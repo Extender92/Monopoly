@@ -22,4 +22,13 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Monopoly.Console\Monopoly.Console.csproj" />
+    <ProjectReference Include="..\Monopoly.Core\Monopoly.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ConsoleTests\" />
+  </ItemGroup>
+
 </Project>
