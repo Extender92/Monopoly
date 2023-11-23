@@ -44,5 +44,7 @@ jobs:
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"CodeCraftersMR_Monopoly" /o:"codecraftersmr" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-          ./Monopoly.Core/Monopoly.Core.csproj --no-restore
+          ./Monopoly.Core/Monopoly.Core.csproj
+          ./Monopoly.Tests/Monopoly.Tests.csproj
+          ./Monopoly.Console/Monopoly.Console.csproj
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
