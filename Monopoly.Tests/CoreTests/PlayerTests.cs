@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Tests.CoreTests
 {
-    public class PalyerTests
+    public class PlayerTests
     {
         [Fact]
         public void CanCrateOneNewPlayer()
