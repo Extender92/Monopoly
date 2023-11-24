@@ -3,3 +3,15 @@ https
 ssh
 ubuntu
 workarounds
+buildtransitive
+contentfiles
+Crafters
+csproj
+dotnet
+Linq
+sln
+sonarcloud
+sonarscanner
+workflows
+xunit
+yml
