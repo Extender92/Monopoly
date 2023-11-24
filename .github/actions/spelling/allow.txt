@@ -15,3 +15,11 @@ sonarscanner
 workflows
 xunit
 yml
+AEB
+CBA
+Cfg
+codecraftersmr
+Decie
+EFBC
+Exe
+JDK
