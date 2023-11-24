@@ -1,5 +1,5 @@
-              - name: trello-integration
-                uses: rematocorp/trello-integration-action@v7.1.0
+name: trello-integration
+uses: rematocorp/trello-integration-action@v7.1.0
             
 on:
     pull_request:
