@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    public class Player
+    internal class Player
     {
         public string Name { get; set; }
         public int Money { get; set; }
@@ -16,16 +16,6 @@ namespace Monopoly.Core.Models
         {
             Name = name;
             Money = 3000;
-        }
-
-        public static List<Player> GetNewPlayers(int numberOfPlayers)
-        {
-            List<Player> players = new List<Player>();
-            for (int i = 0; i < numberOfPlayers; i++)
-            {
-                players.Add(new Player("Player " + (i + 1)));
-            }
-            return players;
         }
     }
 }

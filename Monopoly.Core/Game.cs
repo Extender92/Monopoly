@@ -10,21 +10,23 @@ namespace Monopoly.Core
     internal class Game
     {
         private int[] Board { get; } = new int[40];
-        private Die _die { get; set; }
-        private List<Player> _players  { get; set;}
-        private List<Street> _streets { get; set; }
+        private List<Die> Dice { get; set; }
+        private List<Player> Players  { get; set;}
+        private List<Plot> Streets { get; set; }
+        private GameRules Rules { get; set; }
 
-        public Game(Die dice, int numberOfPlayers)
+        public Game(List<Die> dice, List<Player> players, GameRules rules)
         {
-            _die = dice;
-            _streets = new List<Street>();
-            _players = Player.GetNewPlayers(numberOfPlayers);
+            Rules = rules;
+            Dice = dice;
+            Streets = new List<Plot>();
+            Players = players;
         }
-        private void StartGame(int numberOfPlayers)
+        private void StartGame()
         {          
             while (true)
             {
-                foreach (var player in _players)
+                foreach (var player in Players)
                 {
 
                 }
