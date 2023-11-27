@@ -11,4 +11,5 @@
 		<ProjectReference Include="..\Monopoly.Core\Monopoly.Core.csproj" />
 	</ItemGroup>
 
+
 </Project>
