@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    public class Street
+    public class Plot
     {
         public string Name { get; set; }
         public int Price { get; set; }

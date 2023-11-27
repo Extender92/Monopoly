@@ -12,12 +12,12 @@ namespace Monopoly.Core
         private int[] Board { get; } = new int[40];
         private Die _die { get; set; }
         private List<Player> _players  { get; set;}
-        private List<Street> _streets { get; set; }
+        private List<Plot> _streets { get; set; }
 
         public Game(Die dice, int numberOfPlayers)
         {
             _die = dice;
-            _streets = new List<Street>();
+            _streets = new List<Plot>();
             _players = Player.GetNewPlayers(numberOfPlayers);
         }
         private void StartGame(int numberOfPlayers)
