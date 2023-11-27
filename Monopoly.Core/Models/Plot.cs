@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    public class Plot
+    internal class Plot : Square
     {
-        public string Name { get; set; }
-        public int Price { get; set; }
-
+        internal int Price { get; set; }
+        internal int House { get; set; }
     }
 }

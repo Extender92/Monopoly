@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    public class Player
+    internal class Player
     {
         public string Name { get; set; }
         public int Money { get; set; }

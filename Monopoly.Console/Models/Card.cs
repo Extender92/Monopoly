@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Console.Models
 {
-    public class Card : Plot
+    internal class Card : Plot
     {
         public string Image { get; set; }
     }

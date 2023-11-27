@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class CommunityChest
+    internal class CommunityChest : Square
     {
+
     }
 }

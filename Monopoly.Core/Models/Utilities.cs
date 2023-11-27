@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class Utilities
+    internal class Utilities : Square
     {
+        public int Price { get; set; }
+        public int BaseRent { get; set; }
     }
 }

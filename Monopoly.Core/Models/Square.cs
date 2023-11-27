@@ -2,5 +2,6 @@
 {
     public class Square
     {
+        internal string Name { get; set; }
     }
 }

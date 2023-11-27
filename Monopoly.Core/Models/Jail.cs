@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class Jail
+    internal class Jail : Square
     {
+
     }
 }

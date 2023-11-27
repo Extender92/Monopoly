@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class GoSpace
+    internal class GoSpace : Square
     {
+
     }
 }

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class Chance
+    internal class Chance : Square
     {
+
     }
 }

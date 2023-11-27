@@ -7,8 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Monopoly.Core\Monopoly.Core.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Monopoly.Core\Monopoly.Core.csproj" />
+	</ItemGroup>
 
 </Project>

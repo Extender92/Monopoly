@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class Tax
+    internal class Tax : Square
     {
+        public int Taxes { get; set; }
     }
 }
