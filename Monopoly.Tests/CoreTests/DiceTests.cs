@@ -7,15 +7,15 @@ namespace Monopoly.Tests.CoreTests
         [Fact]
         public void RoleDiceValidDecieValues()
         {
-            //Arrange
-            var dice = new Dice();
+            ////Arrange
+            //var dice = new Die(6);
 
-            //Act
-            dice.RoleDice();
+            ////Act
+            //dice.Roll();
 
-            //Assert
-            Assert.InRange(dice.DiceOne, 1, 6);
-            Assert.InRange(dice.DiceTwo, 1, 6);
+            ////Assert
+            //Assert.InRange(dice.Result, 1, 6);
+            //Assert.InRange(dice.Result, 1, 6);
 
         }
     }

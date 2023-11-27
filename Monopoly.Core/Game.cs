@@ -10,13 +10,13 @@ namespace Monopoly.Core
     internal class Game
     {
         private int[] Board { get; } = new int[40];
-        private Dice _dice { get; set; }
+        private Die _die { get; set; }
         private List<Player> _players  { get; set;}
         private List<Street> _streets { get; set; }
 
-        public Game(Dice dice, int numberOfPlayers)
+        public Game(Die dice, int numberOfPlayers)
         {
-            _dice = dice;
+            _die = dice;
             _streets = new List<Street>();
             _players = Player.GetNewPlayers(numberOfPlayers);
         }
