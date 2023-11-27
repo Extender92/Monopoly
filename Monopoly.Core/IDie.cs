@@ -9,8 +9,8 @@ namespace Monopoly.Core
 {
     internal interface IDie
     {
-         void Roll();
-
-         int GetDieType();
+        void Roll();
+        int GetDieResult();
+        int GetDieType();
     }
 }

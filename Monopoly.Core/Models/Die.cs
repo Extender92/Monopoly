@@ -23,6 +23,11 @@ namespace Monopoly.Core.Models
             Result = _rnd.Next(DieSides);
         }
 
+        public int GetDieResult()
+        {
+            return Result;
+        }
+
         public int GetDieType()
         {
             return DieSides;
