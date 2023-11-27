@@ -6,24 +6,26 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    public class Die
-    {
-        public int DiceOne {  get; set; }
-        public int DiceTwo{  get; set; }
+    internal class Die : IDie
+    { 
+        private int DieSides {  get; set; }
+        internal int Result {  get; set; }
+
+        internal Die(int dieSides)
+        {
+            DieSides = dieSides;
+        }
 
         private static Random _rnd = new Random();
-        public int Roll()
-        {
-            DiceOne = _rnd.Next(1,6);
-            DiceTwo = _rnd.Next(1,6);
 
-            return (DiceOne + DiceTwo);
+        public void Roll()
+        {
+            Result = _rnd.Next(DieSides);
         }
 
-        public bool IsDouble()
+        public int GetDieType()
         {
-            return DiceOne == DiceTwo;
+            return DieSides;
         }
-
     }
 }
