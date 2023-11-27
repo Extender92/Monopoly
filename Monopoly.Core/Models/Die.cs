@@ -6,16 +6,18 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    public class Dice
+    public class Die
     {
         public int DiceOne {  get; set; }
         public int DiceTwo{  get; set; }
 
         private static Random _rnd = new Random();
-        public void RoleDice()
+        public int Roll()
         {
             DiceOne = _rnd.Next(1,6);
             DiceTwo = _rnd.Next(1,6);
+
+            return (DiceOne + DiceTwo);
         }
 
         public bool IsDouble()

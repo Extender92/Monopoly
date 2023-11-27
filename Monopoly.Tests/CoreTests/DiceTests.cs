@@ -8,10 +8,10 @@ namespace Monopoly.Tests.CoreTests
         public void RoleDiceValidDecieValues()
         {
             //Arrange
-            var dice = new Dice();
+            var dice = new Die();
 
             //Act
-            dice.RoleDice();
+            dice.Roll();
 
             //Assert
             Assert.InRange(dice.DiceOne, 1, 6);
