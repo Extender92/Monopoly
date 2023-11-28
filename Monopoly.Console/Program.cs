@@ -42,7 +42,7 @@
 
             header = Helpers.StringHelper.CenterString(header, HorizontalSize);
 
-            GUI.Card.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Red, ConsoleColor.Blue);
+            GUI.Print.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Red, ConsoleColor.Blue);
 
             System.Console.ReadLine();
 
@@ -57,7 +57,7 @@
                 info.Add(rents[i] + ":".PadRight(space) + infoLines[i]);
             }
 
-            GUI.Card.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Green, ConsoleColor.Yellow);
+            GUI.Print.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Green, ConsoleColor.Yellow);
 
             System.Console.ReadLine();
 
@@ -73,7 +73,7 @@
 
             info = Helpers.StringHelper.CenterStringInList(Helpers.StringHelper.GetListOfStringsFromString(infoText, length), length);
 
-            GUI.Card.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Green, ConsoleColor.Yellow);
+            GUI.Print.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Green, ConsoleColor.Yellow);
         }
     }
 }

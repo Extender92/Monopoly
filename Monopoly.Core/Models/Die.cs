@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Monopoly.Core.Models
 {
     internal class Die : IDie
-    { 
-        private int DieSides {  get; set; }
-        internal int Result {  get; set; }
+    {
+        private int DieSides { get; set; }
+        internal int Result { get; set; }
 
         internal Die(int dieSides)
         {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Console.GUI
 {
-    internal class Card
+    internal class Print
     {
         internal static void PrintCard(string header, int posX, int PosY, int lengthX, int lenghtY, List<string> info, ConsoleColor borderColor, ConsoleColor textColor)
         {
