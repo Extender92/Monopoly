@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monopoly.Core.Models
+namespace Monopoly.Console.Models
 {
-    internal class Tax : Square
+    internal class Chance : DrawCards
     {
-        public int Taxes { get; set; }
     }
 }

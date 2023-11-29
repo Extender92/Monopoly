@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monopoly.Core.Models
+namespace Monopoly.Console.Models
 {
-    internal class CommunityChest : Square
+    internal class CommunityChest : DrawCards
     {
-
     }
 }

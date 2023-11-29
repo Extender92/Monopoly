@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monopoly.Core.Models
+namespace Monopoly.Console.Models
 {
-    internal class FreeParking : Square
+    internal class Utilities : Street
     {
-
+        public string Info { get; set; }
     }
 }
