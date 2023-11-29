@@ -14,26 +14,25 @@ namespace Monopoly.Tests.CoreTests
         {
             //Arrange
             string playerName = "TestPalyer";
-            var player = new Player(playerName);
-            var playres = new List<Player> {player};
+            var PlayerId = 1;
+            var player = new Player(playerName, PlayerId);
+            var players = new List<Player> {player};
 
             //Act
-            var actualPlayerId = 1;
-            var actualPlayerName = playerName;
-            var actualMoney = 3000;
-            var actualPosition = 0;
-            var actualNumberOfPlayers = 1;
+            var ExpectedPlayerId = 1;
+            var ExpectedPlayerName = playerName;
+            var ExpectedMoney = 3000;
+            var ExpectedPosition = 0;
+            var ExpectedNumberOfPlayers = 1;
 
             //Assert
-            Assert.Equal(actualPlayerName, player.Name);
-            Assert.Equal(actualMoney, player.Money);
-            Assert.Equal(actualPosition, player.Position);
-            Assert.Equal(actualNumberOfPlayers, playres.Count);
-            Assert.Equal(1, actualPlayerId);
-            Assert.NotEqual(0, actualPlayerId);
-
-
+            Assert.Equal(ExpectedPlayerName, player.Name);
+            Assert.Equal(ExpectedMoney, player.Money);
+            Assert.Equal(ExpectedPosition, player.Position);
+            Assert.Equal(ExpectedNumberOfPlayers, players.Count);
+            Assert.Equal(ExpectedPlayerId, PlayerId);
         }
+
         [Theory]
         [InlineData("Player 1")]
         [InlineData("Player 2")]
@@ -42,29 +41,29 @@ namespace Monopoly.Tests.CoreTests
         public void CanCrateFourNewPlayers(string playerName)
         {
             //Arrange
-            var player = new Player(playerName);
+            var player = new Player(playerName, 0);
             var players = new List<Player> { player };
 
             //Act
-            var actualNumberOfPlayers = 1;
-            var actualPlayerNames = new List<string> { playerName };
+            var expectedNumberOfPlayers = 1;
+            var expectedPlayerNames = playerName;
 
             //Assert
-            Assert.Equal(actualNumberOfPlayers, players.Count);
-            Assert.Equal(actualPlayerNames[0], player.Name);
+            Assert.Equal(expectedNumberOfPlayers, players.Count);
+            Assert.Equal(expectedPlayerNames, player.Name);
         }
 
         [Fact]
         public void CanUpdatePlayerPosition()
         {
             //Arrange
-            var player = new Player("Mohammad");
+            var player = new Player("Mohammad", 0);
 
             //Act
-             var actual = player.Position = 5;
+             var expectedPosition = player.Position = 5;
 
             //Assert
-            Assert.Equal(5, actual);
+            Assert.Equal(expectedPosition, player.Position);
         }
     }
 }
