@@ -1,4 +1,8 @@
-﻿namespace Monopoly.Console
+﻿using Monopoly.Console.GUI;
+using Monopoly.Console.Models;
+using Monopoly.Core.Models;
+
+namespace Monopoly.Console
 {
     internal class Program
     {
@@ -80,6 +84,54 @@
 
 
 
+            Run();
+
         }
+
+        private static void Run()
+        {
+            int numberOfPlayers = 2;
+            int numberOfDice = 2;
+            int dieSides = 6;
+            
+            Core.Game Game = Core.GameSetup.Setup(numberOfPlayers, numberOfDice, dieSides);
+
+            List<TablePiece> tablePieces = new List<TablePiece>();
+            foreach (Player player in Game.Players) 
+            {
+                tablePieces.Add(ChooseTablePiece(player.Id));
+            }
+
+            System.Console.Clear();
+            while (true)
+            {
+                foreach (var player in Game.Players)
+                {
+                    Print.PrintBoard(Game.Players, tablePieces);
+                    System.Console.SetCursorPosition(0, 0);
+                    System.Console.WriteLine("Press Enter");
+                    System.Console.ReadLine();
+                    Game.PlayerTurn(player);
+                    System.Console.Clear();
+                }
+            }
+        }
+
+        private static TablePiece ChooseTablePiece(int playerId)
+        {
+            TablePiece tablePiece = new TablePiece();
+
+            tablePiece.PlayerId = playerId;
+
+            System.Console.Write("Enter a key: ");
+            tablePiece.Piece = System.Console.ReadKey().Key.ToString();
+
+            System.Console.WriteLine("\nYou entered: " + tablePiece.Piece);
+            tablePiece.Color = ConsoleColor.Green;
+            return tablePiece;
+        }
+
+    
+
     }
 }
