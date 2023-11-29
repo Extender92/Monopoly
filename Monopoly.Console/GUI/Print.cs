@@ -13,6 +13,8 @@ namespace Monopoly.Console.GUI
 {
     internal class Print
     {
+        private static IConsoleWrapper Console = new ConsoleWrapper();
+
         internal static void PrintBoard(List<Player> players, List<TablePiece> tablePieces)
         {
             int length = 10;
@@ -29,11 +31,11 @@ namespace Monopoly.Console.GUI
             {
                 x = borderBuffer;
                 y = borderBuffer + i;
-                System.Console.SetCursorPosition(x,y);
+                Console.SetPosition(x,y);
 
                 var playersOnCurrentPosition = players.Where(player => player.Position == correctPosition).ToList();
                 if (playersOnCurrentPosition.Count > 0) PrintPlayers(playersOnCurrentPosition, tablePieces);
-                else System.Console.Write("[ ]");
+                else Console.Write("[ ]");
 
                 correctPosition++;
             }
@@ -42,11 +44,11 @@ namespace Monopoly.Console.GUI
             {
                 x = borderBuffer + (i * horizontalBuffer) + (playerBuffer * i);
                 y = borderBuffer;
-                System.Console.SetCursorPosition(x,y);
+                Console.SetPosition(x,y);
 
                 var playersOnCurrentPosition = players.Where(player => player.Position == correctPosition).ToList();
                 if (playersOnCurrentPosition.Count > 0) PrintPlayers(playersOnCurrentPosition, tablePieces);
-                else System.Console.Write("[ ]");
+                else Console.Write("[ ]");
 
                 correctPosition++;
             }
@@ -55,11 +57,11 @@ namespace Monopoly.Console.GUI
             {
                 x = borderBuffer + (length * horizontalBuffer) + (playerBuffer * length);
                 y = borderBuffer + i;
-                System.Console.SetCursorPosition(x,y);
+                Console.SetPosition(x,y);
 
                 var playersOnCurrentPosition = players.Where(player => player.Position == correctPosition).ToList();
                 if (playersOnCurrentPosition.Count > 0) PrintPlayers(playersOnCurrentPosition, tablePieces);
-                else System.Console.Write("[ ]");
+                else Console.Write("[ ]");
 
                 correctPosition++;
             }
@@ -68,11 +70,11 @@ namespace Monopoly.Console.GUI
             {
                 x = borderBuffer + (i * horizontalBuffer) + (playerBuffer * i);
                 y = borderBuffer + length;
-                System.Console.SetCursorPosition(x,y);
+                Console.SetPosition(x,y);
 
                 var playersOnCurrentPosition = players.Where(player => player.Position == correctPosition).ToList();
                 if (playersOnCurrentPosition.Count > 0) PrintPlayers(playersOnCurrentPosition, tablePieces);
-                else System.Console.Write("[ ]");
+                else Console.Write("[ ]");
 
                 correctPosition++;
             }
@@ -80,62 +82,62 @@ namespace Monopoly.Console.GUI
 
         private static void PrintPlayers(List<Player> players, List<TablePiece> tablePieces)
         {
-            System.Console.Write("[");
+            Console.Write("[");
             foreach (Player player in players)
             {
                 TablePiece piece = tablePieces.First(x => x.PlayerId == player.Id);
-                System.Console.ForegroundColor = piece.Color;
-                System.Console.Write(piece.Piece);
+                Console.SetTextColor(piece.Color);
+                Console.Write(piece.Piece);
             }
-            System.Console.ResetColor();
-            System.Console.Write("]");
+            Console.ResetColor();
+            Console.Write("]");
         }
 
         internal static void PrintCard(string header, int posX, int PosY, int lengthX, int lengthY, List<string> info, ConsoleColor borderColor, ConsoleColor textColor)
         {
             // Header Text
             // Row two
-            System.Console.ForegroundColor = textColor;
-            System.Console.SetCursorPosition(posX + 1, PosY + 1);
-            System.Console.Write(header);
+            Console.SetTextColor(textColor);
+            Console.SetPosition(posX + 1, PosY + 1);
+            Console.Write(header);
 
             // Header Border
             // Row one
-            System.Console.ForegroundColor = borderColor;
-            System.Console.SetCursorPosition(posX, PosY);
-            System.Console.Write('┌' + new String('─', lengthX) + '┐');
+            Console.SetTextColor(borderColor);
+            Console.SetPosition(posX, PosY);
+            Console.Write('┌' + new String('─', lengthX) + '┐');
 
             // Row two
-            System.Console.SetCursorPosition(posX, PosY + 1);
-            System.Console.Write('│');
-            System.Console.SetCursorPosition((posX + lengthX + 1), PosY + 1);
-            System.Console.Write('│');
+            Console.SetPosition(posX, PosY + 1);
+            Console.Write("│");
+            Console.SetPosition((posX + lengthX + 1), PosY + 1);
+            Console.Write("│");
 
             // Row Three
-            System.Console.SetCursorPosition(posX, PosY + 2);
-            System.Console.Write('├' + new String('─', lengthX) + '┤');
+            Console.SetPosition(posX, PosY + 2);
+            Console.Write('├' + new String('─', lengthX) + '┤');
 
             // Body
             // For each row in Y length
             for (int i = 0; i < lengthY; i++)
             {
-                System.Console.SetCursorPosition(posX, PosY + 3 + i);
-                System.Console.Write('│');
+                Console.SetPosition(posX, PosY + 3 + i);
+                Console.Write("│");
 
-                System.Console.ForegroundColor = textColor;
-                System.Console.Write(i >= info.Count ?
+                Console.SetTextColor(textColor);
+                Console.Write(i >= info.Count ?
                     new String(' ', lengthX) :
                     " " + info[i]);
 
-                System.Console.ForegroundColor = borderColor;
-                System.Console.SetCursorPosition((posX + lengthX + 1), PosY + 3 + i);
-                System.Console.Write('│');
+                Console.SetTextColor(borderColor);
+                Console.SetPosition((posX + lengthX + 1), PosY + 3 + i);
+                Console.Write("│");
             }
 
             // Footer
-            System.Console.SetCursorPosition(posX, PosY + (lengthY + 2));
-            System.Console.Write('└' + new String('─', lengthX) + '┘');
-            System.Console.ResetColor();
+            Console.SetPosition(posX, PosY + (lengthY + 2));
+            Console.Write('└' + new String('─', lengthX) + '┘');
+            Console.ResetColor();
         }
     }
 }

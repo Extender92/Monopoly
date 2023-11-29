@@ -90,6 +90,8 @@ namespace Monopoly.Console
 
         private static void Run()
         {
+            IConsoleWrapper console = new ConsoleWrapper();
+
             int numberOfPlayers = 2;
             int numberOfDice = 2;
             int dieSides = 6;
@@ -108,11 +110,12 @@ namespace Monopoly.Console
                 foreach (var player in Game.Players)
                 {
                     Print.PrintBoard(Game.Players, tablePieces);
-                    System.Console.SetCursorPosition(0, 0);
-                    System.Console.WriteLine("Press Enter");
-                    System.Console.ReadLine();
+                    console.SetPosition(0, 0);
+                    console.WriteLine(player.Name + "'s Turn");
+                    console.WriteLine("Press Enter To Roll Dice");
+                    console.ReadLine();
                     Game.PlayerTurn(player);
-                    System.Console.Clear();
+                    console.Clear();
                 }
             }
         }
