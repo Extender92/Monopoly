@@ -13,7 +13,7 @@ namespace Monopoly.Tests.CoreTests
         public void CanCrateOneNewPlayer()
         {
             //Arrange
-            string playerName = "TestPalyer";
+            string playerName = "TestPlayer";
             var PlayerId = 1;
             var player = new Player(playerName, PlayerId);
             var players = new List<Player> {player};
