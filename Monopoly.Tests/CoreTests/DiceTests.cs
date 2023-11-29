@@ -5,17 +5,48 @@ namespace Monopoly.Tests.CoreTests
     public class DiceTests
     {
         [Fact]
-        public void RoleDiceValidDecieValues()
+        public void RoleSetResultBetweenZeroAndDieSides()
         {
-            ////Arrange
-            //var dice = new Die(6);
+            //Arrange
+            var dieSides = 6;
+            var dice = new Die(dieSides);
 
-            ////Act
-            //dice.Roll();
+            //Act
+            dice.Roll();
+            var actual = dice.GetDieResult();
 
-            ////Assert
-            //Assert.InRange(dice.Result, 1, 6);
-            //Assert.InRange(dice.Result, 1, 6);
+            //Assert
+            Assert.InRange(actual,0 ,dieSides);
+
+        }
+
+        [Fact]
+        public void GetDieTypeReturnDieSides()
+        {
+            //Arange
+            var dieSides = 6;
+            var die = new Die(dieSides);
+
+            //Act
+            var actual = die.GetDieType();
+
+            //Assert
+            Assert.Equal(dieSides, actual);
+        }
+        [Fact]
+        public void RollReturnRandomResult()
+        {
+            //Arange
+            var dieSides = 6;
+            var die = new Die(dieSides);
+
+            //Act
+            die.Roll();
+            var actual1 = die.GetDieResult();
+            var actual = die.GetDieResult();
+
+            //Assert
+            Assert.Equal(actual1, actual);
 
         }
     }

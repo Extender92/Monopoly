@@ -9,10 +9,10 @@ namespace Monopoly.Core
 {
     internal class Game
     {
-        internal int[] Board { get; } = new int[40];
+        private int[] Board { get; } = new int[40];
         internal List<Die> Dice { get; set; }
         internal List<Player> Players  { get; set;}
-        internal EventHandler Events { get; set; }
+        private EventHandler Events { get; set; }
         internal GameRules Rules { get; set; }
 
         public Game(List<Die> dice, List<Player> players, GameRules rules)
@@ -22,23 +22,29 @@ namespace Monopoly.Core
             Events = new EventHandler();
             Players = players;
         }
-
         internal void PlayerTurn(Player player)
-        {          
-            int diceSum = 0;
-            foreach (Die die in Dice)
-            {
-                die.Roll();
-                diceSum += die.GetDieResult();
-            }
+        {
+            int diceSum = RollDiceAndReturnSum();
+
             player.Position += diceSum;
             if (player.Position > 39)
             {
                 player.Position -= 39;
             }
             Events.HandleEvent(player, diceSum);
-            // Trade
-            // Buy houses
+
+            Winning(Players.FirstOrDefault());
+        }
+
+        private int RollDiceAndReturnSum()
+        {
+            int diceSum = 0;
+            foreach (Die die in Dice)
+            {
+                die.Roll();
+                diceSum += die.GetDieResult();
+            }
+            return diceSum;
         }
 
         private void Winning(Player player)
