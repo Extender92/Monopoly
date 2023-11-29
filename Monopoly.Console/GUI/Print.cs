@@ -9,7 +9,7 @@ namespace Monopoly.Console.GUI
 {
     internal class Print
     {
-        internal static void PrintCard(string header, int posX, int PosY, int lengthX, int lenghtY, List<string> info, ConsoleColor borderColor, ConsoleColor textColor)
+        internal static void PrintCard(string header, int posX, int PosY, int lengthX, int lengthY, List<string> info, ConsoleColor borderColor, ConsoleColor textColor)
         {
             // Header Text
             System.Console.ForegroundColor = textColor;
@@ -30,7 +30,7 @@ namespace Monopoly.Console.GUI
             System.Console.Write('├' + new String('─', lengthX) + '┤');
 
             // Body
-            for (int i = 0; i < lenghtY; i++)
+            for (int i = 0; i < lengthY; i++)
             {
                 System.Console.SetCursorPosition(posX, PosY + 3 + i);
                 System.Console.Write('│');
@@ -46,7 +46,7 @@ namespace Monopoly.Console.GUI
             }
 
             // Footer
-            System.Console.SetCursorPosition(posX, PosY + (lenghtY + 2));
+            System.Console.SetCursorPosition(posX, PosY + (lengthY + 2));
             System.Console.Write('└' + new String('─', lengthX) + '┘');
             System.Console.ResetColor();
         }
