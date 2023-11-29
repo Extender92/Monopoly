@@ -16,6 +16,12 @@ namespace Monopoly.Console.GUI
 
         public void WriteLine(string s) => System.Console.WriteLine(s);
 
-        public void SetColor(ConsoleColor color) => System.Console.ForegroundColor = color;
+        public void Write(string s) => System.Console.Write(s);
+
+        public void SetTextColor(ConsoleColor color) => System.Console.ForegroundColor = color;
+        
+        public void ResetColor() => System.Console.ResetColor();
+
+        public void SetPosition(int x, int y) => System.Console.SetCursorPosition(x, y);
     }
 }

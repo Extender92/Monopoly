@@ -6,7 +6,10 @@ namespace Monopoly.Console.GUI
         void Clear();
         string ReadKey();
         string ReadLine();
-        void SetColor(ConsoleColor color);
         void WriteLine(string s);
+        void Write(string s);
+        void SetTextColor(ConsoleColor color);
+        void ResetColor();
+        void SetPosition(int x, int y);
     }
 }
