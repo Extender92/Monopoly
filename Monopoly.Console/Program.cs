@@ -71,7 +71,7 @@ namespace Monopoly.Console
             //System.Console.Clear();
             //info.Clear();
 
-            //string infoText = "very lång text Based på Trainstation för att testa how Code handle Line break!";
+            //string infoText = "very lång text Based på Train station för att testa how Code handle Line break!";
 
             //HorizontalSize = 30;
             //header = Helpers.StringHelper.CenterString(header, HorizontalSize);
