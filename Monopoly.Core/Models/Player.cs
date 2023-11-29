@@ -8,12 +8,14 @@ namespace Monopoly.Core.Models
 {
     internal class Player
     {
+        public int Id { get; set; }
         public string Name { get; set; }
         public int Money { get; set; }
         public int Position { get; set; } = 0;
 
-        public Player(string name)
+        public Player(string name, int id)
         {
+            Id = id;
             Name = name;
             Money = 3000;
         }

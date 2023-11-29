@@ -9,11 +9,11 @@ namespace Monopoly.Core
 {
     internal class Game
     {
-        private int[] Board { get; } = new int[40];
-        private List<Die> Dice { get; set; }
-        private List<Player> Players  { get; set;}
-        private EventHandler Events { get; set; }
-        private GameRules Rules { get; set; }
+        internal int[] Board { get; } = new int[40];
+        internal List<Die> Dice { get; set; }
+        internal List<Player> Players  { get; set;}
+        internal EventHandler Events { get; set; }
+        internal GameRules Rules { get; set; }
 
         public Game(List<Die> dice, List<Player> players, GameRules rules)
         {
@@ -22,28 +22,23 @@ namespace Monopoly.Core
             Events = new EventHandler();
             Players = players;
         }
-        private void StartGame()
+
+        internal void PlayerTurn(Player player)
         {          
-            while (true)
+            int diceSum = 0;
+            foreach (Die die in Dice)
             {
-                if (Players.Count <= 1) break;
-                foreach (var player in Players)
-                {
-                    int diceSum = 0;
-                    foreach (Die die in Dice)
-                    {
-                        die.Roll();
-                        diceSum += die.GetDieResult();
-                    }
-                    player.Position += diceSum;
-                    if (player.Position > 39)
-                    {
-                        player.Position -= 39;
-                    }
-                    Events.HandleEvent(player, diceSum);
-                }
+                die.Roll();
+                diceSum += die.GetDieResult();
             }
-            Winning(Players.FirstOrDefault());
+            player.Position += diceSum;
+            if (player.Position > 39)
+            {
+                player.Position -= 39;
+            }
+            Events.HandleEvent(player, diceSum);
+            // Trade
+            // Buy houses
         }
 
         private void Winning(Player player)

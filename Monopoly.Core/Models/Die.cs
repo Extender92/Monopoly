@@ -20,7 +20,7 @@ namespace Monopoly.Core.Models
 
         public void Roll()
         {
-            Result = _rnd.Next(DieSides);
+            Result = _rnd.Next(1, DieSides + 1);
         }
 
         public int GetDieResult()
