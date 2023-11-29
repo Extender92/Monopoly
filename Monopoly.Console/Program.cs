@@ -12,23 +12,23 @@ namespace Monopoly.Console
 
             //List<string> infoLines = new List<string>();
             //infoLines.Add("info");
-            //infoLines.Add("infoagaininfo");
-            //infoLines.Add("infoagaininfoagaininfo");
-            //infoLines.Add("infoagaininfo");
+            //infoLines.Add("info again info");
+            //infoLines.Add("info again info again info");
+            //infoLines.Add("info again info");
             //infoLines.Add("På info");
 
             //List<string> rents = new List<string>();
             //rents.Add("rent");
             //rents.Add("rent");
-            //rents.Add("rentagainrent");
-            //rents.Add("rentagainrent");
+            //rents.Add("rent again rent");
+            //rents.Add("rent again rent");
             //rents.Add("På rent");
 
             //List<string> info = new List<string>();
 
             //int infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
 
-            //string header = "Trainstation";
+            //string header = "train station";
 
             //int positionX = 5;
             //int positionY = 5;
@@ -42,8 +42,8 @@ namespace Monopoly.Console
             //{
             //    int space = HorizontalSize - (infoLines[i].Length + rents[i].Length + 2);
             //    info.Add(infoLines[i] + ":".PadRight(space) + rents[i]);
-            //    info.Add("howdoyou");
-            //    info.Add("howdoyou");
+            //    info.Add("how do you");
+            //    info.Add("how do you");
             //}
 
             //header = Helpers.StringHelper.CenterString(header, HorizontalSize);
@@ -71,7 +71,7 @@ namespace Monopoly.Console
             //System.Console.Clear();
             //info.Clear();
 
-            //string infoText = "Jätte lång text Based på Trainstation för att testa how koden handle radbrytningar!";
+            //string infoText = "very lång text Based på Trainstation för att testa how Code handle Line break!";
 
             //HorizontalSize = 30;
             //header = Helpers.StringHelper.CenterString(header, HorizontalSize);
