@@ -23,7 +23,7 @@ namespace Monopoly.Tests.CoreTests
         [Fact]
         public void GetDieTypeReturnDieSides()
         {
-            //Arange
+            //Arrange
             var dieSides = 6;
             var die = new Die(dieSides);
 
@@ -36,7 +36,7 @@ namespace Monopoly.Tests.CoreTests
         [Fact]
         public void RollReturnRandomResult()
         {
-            //Arange
+            //Arrange
             var dieSides = 6;
             var die = new Die(dieSides);
 

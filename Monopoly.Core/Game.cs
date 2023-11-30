@@ -22,28 +22,29 @@ namespace Monopoly.Core
             Events = new EventHandler();
             Players = players;
         }
-        private void StartGame()
-        {          
-            while (true)
+        internal void PlayerTurn(Player player)
+        {
+            int diceSum = RollDiceAndReturnSum();
+
+            player.Position += diceSum;
+            if (player.Position > 39)
             {
-                if (Players.Count <= 1) break;
-                foreach (var player in Players)
-                {
-                    int diceSum = 0;
-                    foreach (Die die in Dice)
-                    {
-                        die.Roll();
-                        diceSum += die.GetDieResult();
-                    }
-                    player.Position += diceSum;
-                    if (player.Position > 39)
-                    {
-                        player.Position -= 39;
-                    }
-                    Events.HandleEvent(player, diceSum);
-                }
+                player.Position -= 39;
             }
+            Events.HandleEvent(player, diceSum);
+
             Winning(Players.FirstOrDefault());
+        }
+
+        private int RollDiceAndReturnSum()
+        {
+            int diceSum = 0;
+            foreach (Die die in Dice)
+            {
+                die.Roll();
+                diceSum += die.GetDieResult();
+            }
+            return diceSum;
         }
 
         private void Winning(Player player)

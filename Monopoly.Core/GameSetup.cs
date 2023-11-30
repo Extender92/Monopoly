@@ -17,7 +17,7 @@ namespace Monopoly.Core
 
             for (int i = 0; i < numberOfPlayers; i++)
             {
-                players.Add(new Player("Player " + (i + 1)));
+                players.Add(new Player("Player " + (i + 1), i));
             }
 
             for (int i = 0; i < numberOfDice; i++)
