@@ -13,42 +13,42 @@ namespace Monopoly.Tests.ConsoleTests
         public void CenterStringReturnsCenterString()
         {
             //Arrange
-            string inputString = "   Test   ";
-            int totalLength = 10;
+            string expectedInputString = "   Test   ";
+            int expectedTotalLength = 10;
 
             //Act
-            var actual = StringHelper.CenterString(inputString, totalLength);
+            var actual = StringHelper.CenterString(expectedInputString, expectedTotalLength);
 
             //Assert
-            Assert.Equal(inputString, actual);
+            Assert.Equal(expectedInputString, actual);
         }
 
         [Fact]
         public void CenterStringReturnsOriginalStringIfStringIsEmpty()
         {
             //Arrange
-            string inputString = string.Empty;
-            int totalLength = 10;
+            string expectedInputString = string.Empty;
+            int expectedTotalLength = 10;
 
             //Act
-            var actual = StringHelper.CenterString(inputString, totalLength);
+            var actual = StringHelper.CenterString(expectedInputString, expectedTotalLength);
 
             //Assert
-            Assert.Equal(inputString, actual);
+            Assert.Equal(expectedInputString, actual);
         }
 
         [Fact]
         public void CenterStringReturnsOriginalStringIfStringIsNull()
         {
             //Arrange
-            string inputString = null;
-            int totalLength = 10;
+            string? expectedInputString = null;
+            int expectedTotalLength = 10;
 
             //Act
-            var actual = StringHelper.CenterString(inputString, totalLength);
+            var actual = StringHelper.CenterString(expectedInputString, expectedTotalLength);
 
             //Assert
-            Assert.Equal(inputString, actual);
+            Assert.Equal(expectedInputString, actual);
         }
 
         [Fact]
@@ -56,10 +56,10 @@ namespace Monopoly.Tests.ConsoleTests
         {
             //Arrange
             List<string> inputList = new List<string> { "Test1", "Test2", "Test3" };
-            int totalLength = 10;
+            int expectedTotalLength = 10;
 
             //Act 
-            List<string> centeredList = StringHelper.CenterStringInList(inputList, totalLength);
+            List<string> centeredList = StringHelper.CenterStringInList(inputList, expectedTotalLength);
 
             //Assert
             Assert.Equal(["  Test1   ", "  Test2   ", "  Test3   "], centeredList);
