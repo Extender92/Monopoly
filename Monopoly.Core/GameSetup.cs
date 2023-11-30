@@ -12,7 +12,7 @@ namespace Monopoly.Core
         internal static Game Setup(int numberOfPlayers, int numberOfDice, int dieSides)
         {
             List<Player> players = new List<Player>();
-            List<Die> dice = new List<Die>();
+            List<IDie> dice = new List<IDie>();
             GameRules rules = new GameRules();
 
             for (int i = 0; i < numberOfPlayers; i++)
