@@ -10,12 +10,12 @@ namespace Monopoly.Core
     internal class Game
     {
         private int[] Board { get; } = new int[40];
-        internal List<Die> Dice { get; set; }
+        internal List<IDie> Dice { get; set; }
         internal List<Player> Players  { get; set;}
         private EventHandler Events { get; set; }
         internal GameRules Rules { get; set; }
 
-        public Game(List<Die> dice, List<Player> players, GameRules rules)
+        public Game(List<IDie> dice, List<Player> players, GameRules rules)
         {
             Rules = rules;
             Dice = dice;
