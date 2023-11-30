@@ -1,4 +1,8 @@
-﻿namespace Monopoly.Console
+﻿using Monopoly.Console.GUI;
+using Monopoly.Console.Models;
+using Monopoly.Core.Models;
+
+namespace Monopoly.Console
 {
     internal class Program
     {
@@ -8,23 +12,23 @@
 
             //List<string> infoLines = new List<string>();
             //infoLines.Add("info");
-            //infoLines.Add("infoinfoinfo");
-            //infoLines.Add("infoinfoinfoinfoinfo");
-            //infoLines.Add("infoinfoinfo");
+            //infoLines.Add("info again info");
+            //infoLines.Add("info again info again info");
+            //infoLines.Add("info again info");
             //infoLines.Add("På info");
 
             //List<string> rents = new List<string>();
             //rents.Add("rent");
             //rents.Add("rent");
-            //rents.Add("rentrentrent");
-            //rents.Add("rentrentrent");
+            //rents.Add("rent again rent");
+            //rents.Add("rent again rent");
             //rents.Add("På rent");
 
             //List<string> info = new List<string>();
 
             //int infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
 
-            //string header = "Tågstation";
+            //string header = "train station";
 
             //int positionX = 5;
             //int positionY = 5;
@@ -38,8 +42,8 @@
             //{
             //    int space = HorizontalSize - (infoLines[i].Length + rents[i].Length + 2);
             //    info.Add(infoLines[i] + ":".PadRight(space) + rents[i]);
-            //    info.Add("hgfdhdfg");
-            //    info.Add("hgfdhdfg");
+            //    info.Add("how do you");
+            //    info.Add("how do you");
             //}
 
             //header = Helpers.StringHelper.CenterString(header, HorizontalSize);
@@ -67,7 +71,7 @@
             //System.Console.Clear();
             //info.Clear();
 
-            //string infoText = "Jätte lång text baserad på tågstationen för att testa hur koden hanterar radbrytningar!";
+            //string infoText = "very lång text Based på Train station för att testa how Code handle Line break!";
 
             //HorizontalSize = 30;
             //header = Helpers.StringHelper.CenterString(header, HorizontalSize);
@@ -80,6 +84,57 @@
 
 
 
+            Run();
+
         }
+
+        private static void Run()
+        {
+            IConsoleWrapper console = new ConsoleWrapper();
+
+            int numberOfPlayers = 2;
+            int numberOfDice = 2;
+            int dieSides = 6;
+            
+            Core.Game Game = Core.GameSetup.Setup(numberOfPlayers, numberOfDice, dieSides);
+
+            List<TablePiece> tablePieces = new List<TablePiece>();
+            foreach (Player player in Game.Players) 
+            {
+                tablePieces.Add(ChooseTablePiece(player.Id));
+            }
+
+            System.Console.Clear();
+            while (true)
+            {
+                foreach (var player in Game.Players)
+                {
+                    Print.PrintBoard(Game.Players, tablePieces);
+                    console.SetPosition(0, 0);
+                    console.WriteLine(player.Name + "'s Turn");
+                    console.WriteLine("Press Enter To Roll Dice");
+                    console.ReadLine();
+                    Game.PlayerTurn(player);
+                    console.Clear();
+                }
+            }
+        }
+
+        private static TablePiece ChooseTablePiece(int playerId)
+        {
+            TablePiece tablePiece = new TablePiece();
+
+            tablePiece.PlayerId = playerId;
+
+            System.Console.Write("Enter a key: ");
+            tablePiece.Piece = System.Console.ReadKey().Key.ToString();
+
+            System.Console.WriteLine("\nYou entered: " + tablePiece.Piece);
+            tablePiece.Color = ConsoleColor.Green;
+            return tablePiece;
+        }
+
+    
+
     }
 }

@@ -52,17 +52,17 @@ namespace Monopoly.Tests.ConsoleTests
         }
 
         [Fact]
-        public void CenterStringInListReturnsCenterdStrings()
+        public void CenterStringInListReturnsCenteredStrings()
         {
             //Arrange
             List<string> inputList = new List<string> { "Test1", "Test2", "Test3" };
             int totalLength = 10;
 
             //Act 
-            List<string> centerdList = StringHelper.CenterStringInList(inputList, totalLength);
+            List<string> centeredList = StringHelper.CenterStringInList(inputList, totalLength);
 
             //Assert
-            Assert.Equal(["  Test1   ", "  Test2   ", "  Test3   "], centerdList);
+            Assert.Equal(["  Test1   ", "  Test2   ", "  Test3   "], centeredList);
         }
 
         [Fact]

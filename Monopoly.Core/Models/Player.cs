@@ -13,8 +13,9 @@ namespace Monopoly.Core.Models
         public int Money { get; set; }
         public int Position { get; set; } = 0;
 
-        public Player(string name)
+        public Player(string name, int id)
         {
+            Id = id;
             Name = name;
             Money = 3000;
         }
