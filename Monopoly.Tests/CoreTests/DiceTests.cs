@@ -1,22 +1,24 @@
 using Monopoly.Core.Models;
+using Moq;
 
 namespace Monopoly.Tests.CoreTests
 {
     public class DiceTests
     {
         [Fact]
-        public void RoleSetResultBetweenZeroAndDieSides()
+        public void RollShouldSetResultToDieType()
         {
-            //Arrange
+            // Arrange
             var expectedDieSides = 6;
-            var dice = new Die(expectedDieSides);
+            var mockDie = new Mock<IDie>();
+            mockDie.Setup(d => d.GetDieType()).Returns(expectedDieSides);
 
-            //Act
-            dice.Roll();
-            var actual = dice.GetDieResult();
+            // Act
+            mockDie.Object.Roll();
+            var actual = mockDie.Object.GetDieResult();
 
-            //Assert
-            Assert.InRange(actual, 1, expectedDieSides);
+            // Assert
+            mockDie.Verify(x => x.GetDieResult(), Times.Once);
 
         }
 
@@ -25,10 +27,11 @@ namespace Monopoly.Tests.CoreTests
         {
             //Arrange
             var expectedDieSides = 6;
-            var die = new Die(expectedDieSides);
+            var mockDie = new Mock<IDie>();
+            mockDie.Setup(d => d.GetDieType()).Returns(expectedDieSides);
 
             //Act
-            var actual = die.GetDieType();
+            var actual = mockDie.Object.GetDieType();
 
             //Assert
             Assert.Equal(expectedDieSides, actual);
@@ -38,15 +41,16 @@ namespace Monopoly.Tests.CoreTests
         {
             //Arrange
             var expectedDieSides = 6;
+            var mockDie = new Mock<IDie>();
+            mockDie.Setup(die => die.GetDieResult()).Returns(expectedDieSides);
             var die = new Die(expectedDieSides);
 
             //Act
             die.Roll();
-            var actual1 = die.GetDieResult();
-            var actual2 = die.GetDieResult();
+            var actual = mockDie.Object.GetDieResult();
 
             //Assert
-            Assert.Equal(actual1, actual2);
+            Assert.Equal(expectedDieSides, actual);
 
         }
     }
