@@ -26,7 +26,7 @@ namespace Monopoly.Tests.ConsoleTests
         }
 
         [Fact]
-        public void ReadLineShouldlCallSystemConsole()
+        public void ReadLineShouldCallSystemConsole()
         {
             // Arrange
             var input = "TestInput";
