@@ -102,7 +102,7 @@ namespace Monopoly.Console
             List<TablePiece> tablePieces = new List<TablePiece>();
             foreach (Player player in Game.Players) 
             {
-                tablePieces.Add(ChooseTablePiece(player.Id, console));
+                tablePieces.Add(Input.ChooseTablePiece(player.Id));
             }
 
             System.Console.Clear();
@@ -120,36 +120,5 @@ namespace Monopoly.Console
                 }
             }
         }
-
-        private static TablePiece ChooseTablePiece(int playerId, IConsoleWrapper console)
-        {
-            TablePiece tablePiece = new TablePiece();
-
-            tablePiece.PlayerId = playerId;
-
-            while (tablePiece.Piece == null || tablePiece.Piece.Count() < 1)
-            {
-                console.Write("Enter a key: ");
-                string input = console.ReadKey();
-                if (char.IsLetter(char.Parse(input))) tablePiece.Piece = input.ToUpper();
-                console.Clear();
-            }
-
-
-            console.WriteLine("\nYou entered: " + tablePiece.Piece);
-            tablePiece.Color = ConsoleColor.Red;
-            if (playerId == 1)
-            {
-                tablePiece.Color = ConsoleColor.Blue;
-            }
-            else if (playerId == 2)
-            {
-                tablePiece.Color = ConsoleColor.Green;
-            }
-            return tablePiece;
-        }
-
-    
-
     }
 }
