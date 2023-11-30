@@ -24,7 +24,7 @@ namespace Monopoly.Tests.ConsoleTests
         }
 
         [Fact]
-        public void CenterStringReuturnsOriginalStringIfStringIsEmpty()
+        public void CenterStringReturnsOriginalStringIfStringIsEmpty()
         {
             //Arrange
             string inputString = string.Empty;
@@ -38,7 +38,7 @@ namespace Monopoly.Tests.ConsoleTests
         }
 
         [Fact]
-        public void CenterStringReuturnsOriginalStringIfStringIsNull()
+        public void CenterStringReturnsOriginalStringIfStringIsNull()
         {
             //Arrange
             string inputString = null;
@@ -52,7 +52,7 @@ namespace Monopoly.Tests.ConsoleTests
         }
 
         [Fact]
-        public void CenterStringInListReuturnsCenterdStrings()
+        public void CenterStringInListReturnsCenterdStrings()
         {
             //Arrange
             List<string> inputList = new List<string> { "Test1", "Test2", "Test3" };

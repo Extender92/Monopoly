@@ -16,9 +16,7 @@ namespace Monopoly.Console.Builder
         }
         private static List<Card> BuildCards()
         {
-            var cards = new List<Card>();
-            
-
+            var cards = new List<Card>();     
             return cards;
         }
     }
