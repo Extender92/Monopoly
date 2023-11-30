@@ -23,5 +23,7 @@ namespace Monopoly.Console.GUI
         public void ResetColor() => System.Console.ResetColor();
 
         public void SetPosition(int x, int y) => System.Console.SetCursorPosition(x, y);
+
+        public void ShowCursor(bool b) => System.Console.CursorVisible = b;
     }
 }
