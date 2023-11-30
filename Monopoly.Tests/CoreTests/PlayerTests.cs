@@ -14,23 +14,23 @@ namespace Monopoly.Tests.CoreTests
         {
             //Arrange
             string playerName = "TestPlayer";
-            var PlayerId = 1;
-            var player = new Player(playerName, PlayerId);
-            var players = new List<Player> {player};
+            var playerId = 1;
+            var expectedPlayerName = playerName;
+            var expectedPlayerId = 1;
+            var expectedMoney = 3000;
+            var expectedPosition = 0;
+            var expectedNumberOfPlayers = 1;
 
             //Act
-            var ExpectedPlayerId = 1;
-            var ExpectedPlayerName = playerName;
-            var ExpectedMoney = 3000;
-            var ExpectedPosition = 0;
-            var ExpectedNumberOfPlayers = 1;
+            var player = new Player(playerName, playerId);
+            var players = new List<Player> { player };
 
             //Assert
-            Assert.Equal(ExpectedPlayerName, player.Name);
-            Assert.Equal(ExpectedMoney, player.Money);
-            Assert.Equal(ExpectedPosition, player.Position);
-            Assert.Equal(ExpectedNumberOfPlayers, players.Count);
-            Assert.Equal(ExpectedPlayerId, PlayerId);
+            Assert.Equal(expectedPlayerName, player.Name);
+            Assert.Equal(expectedMoney, player.Money);
+            Assert.Equal(expectedPosition, player.Position);
+            Assert.Equal(expectedNumberOfPlayers, players.Count);
+            Assert.Equal(expectedPlayerId, playerId);
         }
 
         [Theory]
@@ -41,12 +41,12 @@ namespace Monopoly.Tests.CoreTests
         public void CanCrateFourNewPlayers(string playerName)
         {
             //Arrange
-            var player = new Player(playerName, 0);
-            var players = new List<Player> { player };
-
-            //Act
             var expectedNumberOfPlayers = 1;
             var expectedPlayerNames = playerName;
+
+            //Act
+            var player = new Player(playerName, 0);
+            var players = new List<Player> { player };
 
             //Assert
             Assert.Equal(expectedNumberOfPlayers, players.Count);
@@ -58,9 +58,10 @@ namespace Monopoly.Tests.CoreTests
         {
             //Arrange
             var player = new Player("Mohammad", 0);
+            var expectedPosition = 5;
 
             //Act
-             var expectedPosition = player.Position = 5;
+            player.Position = expectedPosition; 
 
             //Assert
             Assert.Equal(expectedPosition, player.Position);

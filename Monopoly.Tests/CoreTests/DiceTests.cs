@@ -8,15 +8,15 @@ namespace Monopoly.Tests.CoreTests
         public void RoleSetResultBetweenZeroAndDieSides()
         {
             //Arrange
-            var dieSides = 6;
-            var dice = new Die(dieSides);
+            var expectedDieSides = 6;
+            var dice = new Die(expectedDieSides);
 
             //Act
             dice.Roll();
             var actual = dice.GetDieResult();
 
             //Assert
-            Assert.InRange(actual,0 ,dieSides);
+            Assert.InRange(actual, 1, expectedDieSides);
 
         }
 
@@ -24,29 +24,29 @@ namespace Monopoly.Tests.CoreTests
         public void GetDieTypeReturnDieSides()
         {
             //Arrange
-            var dieSides = 6;
-            var die = new Die(dieSides);
+            var expectedDieSides = 6;
+            var die = new Die(expectedDieSides);
 
             //Act
             var actual = die.GetDieType();
 
             //Assert
-            Assert.Equal(dieSides, actual);
+            Assert.Equal(expectedDieSides, actual);
         }
         [Fact]
         public void RollReturnRandomResult()
         {
             //Arrange
-            var dieSides = 6;
-            var die = new Die(dieSides);
+            var expectedDieSides = 6;
+            var die = new Die(expectedDieSides);
 
             //Act
             die.Roll();
             var actual1 = die.GetDieResult();
-            var actual = die.GetDieResult();
+            var actual2 = die.GetDieResult();
 
             //Assert
-            Assert.Equal(actual1, actual);
+            Assert.Equal(actual1, actual2);
 
         }
     }
