@@ -56,5 +56,11 @@ namespace Monopoly.Console.Helpers
 
             return list;
         }
+
+        internal static List<string> CreateStringList(params string[] strings)
+        {
+            if (strings == null || strings.Length == 0) return new List<string>();
+            return new List<string>(strings);
+        }
     }
 }
