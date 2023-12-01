@@ -82,10 +82,28 @@ namespace Monopoly.Console
 
             //GUI.Print.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Green, ConsoleColor.Yellow);
 
+            //foreach (var card in CardSet.GetStreetCards())
+            //{
+            //    List<string> cardInfo = new()
+            //    {
+            //          $"Rent: {card.Rent}",
+            //          $"Rent with color set: {card.RentWithColor}",
+            //          $"Rent (1 House): {card.RentOneHouses}",
+            //          $"Rent (2 Houses): {card.RentTwoHouses}",
+            //          $"Rent (3 Houses): {card.RentThreeHouses}",
+            //          $"Rent (4 Houses): {card.RentFourHouses}",
+            //          $"Rent (Hotel): {card.RentHotels}",
+            //          $"Houses Cost: {card.HousesCost}",
+            //          $"Hotels Cost : {card.HotelsCost}",
+            //          $"Price: {card.Price}",
+            //          $"Mortgage Value: {card.MortgageValue}"
+            //    };
+            //    Print.PrintCard(card.UKName, 2, 3, 25, 10, cardInfo, card.Color, System.ConsoleColor.White);
+            //    System.Console.ReadKey();
+                
+            //}
 
-
-
-            Run();
+            //Run();
 
         }
 
@@ -96,11 +114,11 @@ namespace Monopoly.Console
             int numberOfPlayers = 2;
             int numberOfDice = 2;
             int dieSides = 6;
-            
+
             Core.Game Game = Core.GameSetup.Setup(numberOfPlayers, numberOfDice, dieSides);
 
             List<TablePiece> tablePieces = new List<TablePiece>();
-            foreach (Player player in Game.Players) 
+            foreach (Player player in Game.Players)
             {
                 tablePieces.Add(Input.ChooseTablePiece(player.Id));
             }
