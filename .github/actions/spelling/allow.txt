@@ -36,3 +36,4 @@ usernames
 IDie
 IConsole
 Moq
+nameof
