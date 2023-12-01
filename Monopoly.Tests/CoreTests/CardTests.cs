@@ -84,14 +84,14 @@ namespace Monopoly.Tests.CoreTests
         }
 
         [Fact]
-        public void GetStreetCardsReturnsCorrectNymberOfCards()
+        public void GetStreetCardsReturnsCorrectNumberOfCards()
         {
             //Arrange
             var expectedNumberOfStreet = 22;
-            var steetCards = CardSet.GetStreetCards();
+            var streetCards = CardSet.GetStreetCards();
 
             //Act
-            var numberOfCards = steetCards.Count;
+            var numberOfCards = streetCards.Count;
 
             //Assert
             Assert.Equal(expectedNumberOfStreet, numberOfCards);
@@ -118,15 +118,15 @@ namespace Monopoly.Tests.CoreTests
             string expectedInfo = "Get Out of Jail Free";
 
             //Act
-            var chanse = new Chance(expectedInfo);
+            var chance = new Chance(expectedInfo);
 
             //Assert
-            Assert.Equal(expectedInfo, chanse.Info);
+            Assert.Equal(expectedInfo, chance.Info);
 
         }
 
         [Fact]
-        public void GetChanceCardsReturnsVaildChance()
+        public void GetChanceCardsReturnsValidChance()
         {
             //Arrange
             var chanceCard = CardSet.GetChanceCards();
@@ -156,7 +156,7 @@ namespace Monopoly.Tests.CoreTests
 
 
         [Fact]
-        public void GetCommunityChestCardsReturnsVaildCommunityChest()
+        public void GetCommunityChestCardsReturnsValidCommunityChest()
         {
             //Arrange
             var communityChestCard = CardSet.GetCommunityChestCards();
