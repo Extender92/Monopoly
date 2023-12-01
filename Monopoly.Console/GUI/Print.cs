@@ -20,11 +20,12 @@ namespace Monopoly.Console.GUI
             int length = 10;
             int borderBuffer = 5;
             int horizontalBuffer = 3;
-            int correctPosition = 0;
             int playerBuffer = players.Count / 2;
 
             int x = 0;
             int y = 0;
+
+            int correctPosition = 0;
 
             // Left Border
             for (int i = length; i > 0; i--)
@@ -86,10 +87,8 @@ namespace Monopoly.Console.GUI
             foreach (Player player in players)
             {
                 TablePiece piece = tablePieces.First(x => x.PlayerId == player.Id);
-                Console.SetTextColor(piece.Color);
-                Console.Write(piece.Piece);
+                PrintColoredText(piece.Piece, piece.Color);
             }
-            Console.ResetColor();
             Console.Write("]");
         }
 
@@ -137,6 +136,13 @@ namespace Monopoly.Console.GUI
             // Footer
             Console.SetPosition(posX, PosY + (lengthY + 2));
             Console.Write('└' + new String('─', lengthX) + '┘');
+            Console.ResetColor();
+        }
+
+        internal static void PrintColoredText(string text, ConsoleColor color)
+        {
+            Console.SetTextColor(color);
+            Console.Write(text);
             Console.ResetColor();
         }
     }

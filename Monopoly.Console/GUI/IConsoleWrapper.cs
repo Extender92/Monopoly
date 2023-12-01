@@ -11,5 +11,6 @@ namespace Monopoly.Console.GUI
         void SetTextColor(ConsoleColor color);
         void ResetColor();
         void SetPosition(int x, int y);
+        void ShowCursor(bool b);
     }
 }
