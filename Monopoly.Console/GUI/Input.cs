@@ -22,8 +22,8 @@ namespace Monopoly.Console.GUI
                     while (tablePiece.Piece == null || tablePiece.Piece.Count() < 1)
                     {
                         Console.Write($"\n Player {playerId + 1} enter a Key to select your board piece: ");
-                        string input = Console.ReadKey();
-                        if (char.IsLetter(char.Parse(input))) tablePiece.Piece = input.ToUpper();
+                        string keyInput = Console.ReadKey();
+                        if (char.IsLetter(char.Parse(keyInput))) tablePiece.Piece = keyInput.ToUpper();
                         Console.Clear();
                     }
 
@@ -43,14 +43,14 @@ namespace Monopoly.Console.GUI
                     }
 
                     Console.Write("\n You selected color: " );
-                    Print.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
+                    ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
 
                 } while (!UserConfirm());
 
                 Console.Write("\n You entered: ");
-                Print.PrintColoredText(tablePiece.Piece, tablePiece.Color);
+                ConsolePrinter.PrintColoredText(tablePiece.Piece, tablePiece.Color);
                 Console.Write(" With color: ");
-                Print.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
+                ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
 
             } while (!UserConfirm());
 
@@ -61,10 +61,9 @@ namespace Monopoly.Console.GUI
 
         internal static bool UserConfirm()
         {
-            Console.WriteLine("\n\n Are You Sure?");
-            Console.ReadLine();
-            Console.Clear();
-            return true;
+            List<string> menuChoices = Helpers.StringHelper.CreateStringList("Yes", "No");
+            int index = MenuOptionSelector.GetSelectedOption(menuChoices);
+            return index == 0; // True for yes and False for everything else
         }
     }
 }

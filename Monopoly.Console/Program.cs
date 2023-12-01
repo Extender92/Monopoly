@@ -110,7 +110,7 @@ namespace Monopoly.Console
             {
                 foreach (var player in Game.Players)
                 {
-                    Print.PrintBoard(Game.Players, tablePieces);
+                    ConsolePrinter.PrintGameBoard(Game.Players, tablePieces);
                     console.SetPosition(0, 0);
                     console.WriteLine(player.Name + "'s Turn");
                     console.WriteLine("Press Enter To Roll Dice");
