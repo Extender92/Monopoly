@@ -1,6 +1,7 @@
 ﻿using Monopoly.Console.GUI;
 using Monopoly.Console.Models;
 using Monopoly.Core.Models;
+using System;
 
 namespace Monopoly.Console
 {
@@ -101,7 +102,7 @@ namespace Monopoly.Console
             List<TablePiece> tablePieces = new List<TablePiece>();
             foreach (Player player in Game.Players) 
             {
-                tablePieces.Add(ChooseTablePiece(player.Id));
+                tablePieces.Add(Input.ChooseTablePiece(player.Id));
             }
 
             System.Console.Clear();
@@ -119,22 +120,5 @@ namespace Monopoly.Console
                 }
             }
         }
-
-        private static TablePiece ChooseTablePiece(int playerId)
-        {
-            TablePiece tablePiece = new TablePiece();
-
-            tablePiece.PlayerId = playerId;
-
-            System.Console.Write("Enter a key: ");
-            tablePiece.Piece = System.Console.ReadKey().Key.ToString();
-
-            System.Console.WriteLine("\nYou entered: " + tablePiece.Piece);
-            tablePiece.Color = ConsoleColor.Green;
-            return tablePiece;
-        }
-
-    
-
     }
 }
