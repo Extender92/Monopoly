@@ -14,6 +14,8 @@ namespace Monopoly.Console.GUI
 
         public string ReadKey() => System.Console.ReadKey().KeyChar.ToString();
 
+        public ConsoleKeyInfo GetPressedKey() => System.Console.ReadKey(true);
+
         public void WriteLine(string s) => System.Console.WriteLine(s);
 
         public void Write(string s) => System.Console.Write(s);
