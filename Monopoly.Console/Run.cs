@@ -15,17 +15,17 @@ namespace Monopoly.Console
         private readonly IConsoleWrapper _console;
 
         private Game Game { get; set; }
+        private List<TablePiece> TablePieces {  get; set; }
 
-        public Run(IConsoleWrapper consoleWrapper,)
+        public Run(IConsoleWrapper consoleWrapper, Game game, List<TablePiece> tablePieces)
         {
             _console = consoleWrapper;
-            Game = new Game(dice, players, rules);
+            Game = game;
+            TablePieces = tablePieces;
         }
 
-        internal static void RunGame()
+        internal void RunGame()
         {
-            IConsoleWrapper _console = new ConsoleWrapper();
-
             ConsoleGameSetup setup = new ConsoleGameSetup();
 
             System.Console.Clear();
@@ -33,7 +33,7 @@ namespace Monopoly.Console
             {
                 foreach (var player in Game.Players)
                 {
-                    ConsolePrinter.PrintGameBoard(Game.Players, tablePieces);
+                    ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
                     _console.SetPosition(0, 0);
                     _console.WriteLine(player.Name + "'s Turn");
                     _console.WriteLine("Press Enter To Roll Dice");

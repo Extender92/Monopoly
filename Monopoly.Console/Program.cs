@@ -100,10 +100,12 @@ namespace Monopoly.Console
             //    };
             //    Print.PrintCard(card.UKName, 2, 3, 25, 10, cardInfo, card.Color, System.ConsoleColor.White);
             //    System.Console.ReadKey();
-                
-            //}
 
-            Run.RunGame();
+            //}
+            ConsoleGameSetup setup = new ConsoleGameSetup();
+            setup.Setup();
+            Run run = new Run(new ConsoleWrapper(), setup.TheGame, setup.TablePieces);
+            run.RunGame();
         }
     }
 }
