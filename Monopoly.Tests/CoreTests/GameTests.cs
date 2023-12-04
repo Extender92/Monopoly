@@ -17,9 +17,10 @@ namespace Monopoly.Tests.CoreTests
             int numberOfPlayers = 4;
             int numberOfDice = 2;
             int dieSides = 6;
+            GameRules rules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
 
             //Act
-            Game game = GameSetup.Setup(numberOfPlayers, numberOfDice, dieSides);
+            Game game = CoreGameSetup.Setup(rules);
 
             //Assert
             Assert.NotNull(game);

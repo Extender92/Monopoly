@@ -100,43 +100,12 @@ namespace Monopoly.Console
             //    };
             //    Print.PrintCard(card.UKName, 2, 3, 25, 10, cardInfo, card.Color, System.ConsoleColor.White);
             //    System.Console.ReadKey();
-                
+
             //}
-
-            //Run();
-
-        }
-
-        private static void Run()
-        {
-            IConsoleWrapper console = new ConsoleWrapper();
-
-            int numberOfPlayers = 2;
-            int numberOfDice = 2;
-            int dieSides = 6;
-
-            Core.Game Game = Core.GameSetup.Setup(numberOfPlayers, numberOfDice, dieSides);
-
-            List<TablePiece> tablePieces = new List<TablePiece>();
-            foreach (Player player in Game.Players)
-            {
-                tablePieces.Add(Input.ChooseTablePiece(player.Id));
-            }
-
-            System.Console.Clear();
-            while (true)
-            {
-                foreach (var player in Game.Players)
-                {
-                    ConsolePrinter.PrintGameBoard(Game.Players, tablePieces);
-                    console.SetPosition(0, 0);
-                    console.WriteLine(player.Name + "'s Turn");
-                    console.WriteLine("Press Enter To Roll Dice");
-                    console.ReadLine();
-                    Game.PlayerTurn(player);
-                    console.Clear();
-                }
-            }
+            ConsoleGameSetup setup = new ConsoleGameSetup();
+            setup.Setup();
+            Run run = new Run(new ConsoleWrapper(), setup.TheGame, setup.TablePieces);
+            run.RunGame();
         }
     }
 }

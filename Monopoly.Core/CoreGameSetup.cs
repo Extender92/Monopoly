@@ -7,23 +7,24 @@ using Monopoly.Core.Models;
 
 namespace Monopoly.Core
 {
-    internal class GameSetup
+    internal class CoreGameSetup
     {
-        internal static Game Setup(int numberOfPlayers, int numberOfDice, int dieSides)
+        internal static Game Setup(GameRules rules)
         {
             List<Player> players = new List<Player>();
             List<IDie> dice = new List<IDie>();
-            GameRules rules = new GameRules();
 
-            for (int i = 0; i < numberOfPlayers; i++)
+            for (int i = 0; i < rules.NumberOfPlayers; i++)
             {
                 players.Add(new Player("Player " + (i + 1), i));
             }
 
-            for (int i = 0; i < numberOfDice; i++)
+            for (int i = 0; i < rules.NumberOfDice; i++)
             {
-                dice.Add(new Die(dieSides));
+                dice.Add(new Die(rules.DieSides));
             }
+
+
 
             return new Game(dice, players, rules);
         }
