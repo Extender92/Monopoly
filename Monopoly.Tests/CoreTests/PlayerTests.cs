@@ -61,10 +61,45 @@ namespace Monopoly.Tests.CoreTests
             var expectedPosition = 5;
 
             //Act
-            player.Position = expectedPosition; 
+            player.Position = expectedPosition;
 
             //Assert
             Assert.Equal(expectedPosition, player.Position);
         }
+
+
+
+        [Fact]
+        public void BuyShouldDeductMoneyAndSetOwner()
+        {
+            // Arrange
+            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30);
+            Player player = new("TestPlayer", 1);
+
+            // Act
+            player.Buy(street);
+
+            // Assert
+            Assert.Equal(3000 - street.Price, player.Money);
+            Assert.Equal(player, street.Owner);
+        }
+
+        [Fact]
+        public void PayRentShouldDeductMoneyFromPlayerAndAddToOwner()
+        {
+            // Arrange
+            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30);
+            Player player1 = new("Player1", 1);
+            Player player2 = new("Player2", 2);
+            street.Owner = player2;
+
+            // Act
+            player1.PayRent(street);
+
+            // Assert
+            Assert.Equal(3000 - street.Price, player1.Money);
+            Assert.Equal(3000 + street.Price, player2.Money);
+        }
+
     }
 }
