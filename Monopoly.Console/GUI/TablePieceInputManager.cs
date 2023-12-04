@@ -17,21 +17,21 @@ namespace Monopoly.Console.GUI
         }
 
 
-        internal TablePiece GetTablePieceFromUserInput(int playerId)
+        internal TablePiece GetTablePieceFromUserInput(int playerId, List<TablePiece> tablePieces)
         {
             TablePiece tablePiece = new TablePiece();
             do
             {
                 do
                 {
-                    tablePiece.Piece = GetUserSelectedPieceKey(playerId);
+                    tablePiece.Piece = GetUserSelectedPieceKey(playerId, tablePieces);
                     _console.Write("\n You entered: " + tablePiece.Piece + "\n Do you want to continue?");
 
                 } while (!Input.GetUserConfirmation());
 
                 do
                 {
-                    tablePiece.Color = GetUserSelectedColor(playerId);
+                    tablePiece.Color = GetUserSelectedColor(playerId, tablePieces);
 
                     _console.Write("\n You selected color: ");
                     ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
@@ -51,11 +51,11 @@ namespace Monopoly.Console.GUI
             return tablePiece;
         }
 
-        private string GetUserSelectedPieceKey(int playerId)
+        private string GetUserSelectedPieceKey(int playerId, List<TablePiece> tablePieces)
         {
             string keyInput = null;
 
-            while (string.IsNullOrEmpty(keyInput) || keyInput.Length != 1 || !char.IsLetter(keyInput[0]))
+            while (string.IsNullOrEmpty(keyInput) || keyInput.Length != 1 || !char.IsLetter(keyInput[0]) || IsKeyInUse(keyInput, tablePieces))
             {
                 _console.Write($"\nPlayer {playerId + 1}, enter a key to select your board piece: ");
                 keyInput = _console.ReadKey().ToUpper();
@@ -65,37 +65,45 @@ namespace Monopoly.Console.GUI
             return keyInput;
         }
 
-        private ConsoleColor GetUserSelectedColor(int playerId)
+        private bool IsKeyInUse(string key, List<TablePiece> tablePieces)
         {
-            _console.Write($"\n Player {playerId + 1}, select a color for your board piece: ");
-            List<string> menuChoices = Helpers.StringHelper.CreateStringList("Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Magenta", "White");
-            int index = MenuOptionSelector.GetSelectedOption(menuChoices, 0, (menuChoices.Count / 2));
-            return GetConsoleColorFromIndex(index);
+            // Check if the key is the same as any existing piece key in the tablePieces
+            return tablePieces.Any(piece => piece.Piece != null && piece.Piece.Equals(key, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static ConsoleColor GetConsoleColorFromIndex(int index)
+
+        private ConsoleColor GetUserSelectedColor(int playerId, List<TablePiece> tablePieces)
         {
-            switch (index)
+            _console.Write($"\n Player {playerId + 1}, select a color for your board piece: ");
+
+            List<ConsoleColor> colors = GetConsoleColors(tablePieces.Select(x => x.Color).ToList());
+
+            List<string> menuChoices = colors.Select(x => x.ToString()).ToList();
+            int index = MenuOptionSelector.GetSelectedOption(menuChoices, 0, (menuChoices.Count / 2));
+            return colors[index];
+        }
+
+        private List<ConsoleColor> GetConsoleColors(List<ConsoleColor> pickedColors = null)
+        {
+            List<ConsoleColor> colors = new List<ConsoleColor>
             {
-                case 0:
-                    return ConsoleColor.Red;
-                case 1:
-                    return ConsoleColor.Blue;
-                case 2:
-                    return ConsoleColor.Green;
-                case 3:
-                    return ConsoleColor.Yellow;
-                case 4:
-                    return ConsoleColor.DarkYellow; // Approximating Orange
-                case 5:
-                    return ConsoleColor.DarkMagenta; // Approximating Purple
-                case 6:
-                    return ConsoleColor.Magenta;
-                case 7:
-                    return ConsoleColor.White;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(index), "Index must be between 0 and 7 inclusive.");
+                ConsoleColor.Red,
+                ConsoleColor.Blue,
+                ConsoleColor.Green,
+                ConsoleColor.Yellow,
+                ConsoleColor.DarkYellow,
+                ConsoleColor.DarkMagenta,
+                ConsoleColor.Magenta,
+                ConsoleColor.White
+            };
+
+            // Remove picked colors from the list if pickedColors is not null
+            if (pickedColors != null)
+            {
+                colors.RemoveAll(color => pickedColors.Contains(color));
             }
+
+            return colors;
         }
     }
 }

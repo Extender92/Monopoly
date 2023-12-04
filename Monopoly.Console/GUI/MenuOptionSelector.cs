@@ -11,6 +11,8 @@ namespace Monopoly.Console.GUI
         private static IConsoleWrapper Console = new ConsoleWrapper();
         public static int GetSelectedOption(List<string> options, int index = 0, int optionsPerLine = 1, bool canCancel = false, ConsoleColor selectColor = ConsoleColor.Red)
         {
+            if (optionsPerLine <= 0) optionsPerLine = 1;
+
             const int startX = 10;
             const int startY = 4;
             const int spacingPerLine = 20;

@@ -37,7 +37,7 @@ namespace Monopoly.Console
             TablePieces = new();
             foreach (Player player in TheGame.Players)
             {
-                TablePieces.Add(_tablePieceSelector.GetTablePieceFromUserInput(player.Id));
+                TablePieces.Add(_tablePieceSelector.GetTablePieceFromUserInput(player.Id, TablePieces));
             }
         }
     }
