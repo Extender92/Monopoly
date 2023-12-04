@@ -69,7 +69,7 @@ namespace Monopoly.Console.GUI
         {
             _console.Write($"\n Player {playerId + 1}, select a color for your board piece: ");
             List<string> menuChoices = Helpers.StringHelper.CreateStringList("Red", "Blue", "Green", "Yellow", "Orange", "Purple", "Magenta", "White");
-            int index = MenuOptionSelector.GetSelectedOption(menuChoices, 0, 4);
+            int index = MenuOptionSelector.GetSelectedOption(menuChoices, 0, (menuChoices.Count / 2));
             return GetConsoleColorFromIndex(index);
         }
 
