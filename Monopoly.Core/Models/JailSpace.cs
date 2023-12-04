@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class Chance : FortuneCard
+    internal class JailSpace : Square
     {
-        public Chance(string info)
+        public JailSpace()
         {
-            Info = info;
+            Position = 30;
+            Info = "Go To Jail"; 
         }
     }
 }

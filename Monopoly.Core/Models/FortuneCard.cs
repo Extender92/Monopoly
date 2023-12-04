@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class Chance : FortuneCard
+    internal class FortuneCard
     {
-        public Chance(string info)
-        {
-            Info = info;
-        }
+        public int EventId { get; set; } 
+        public string Info { get; set; }
     }
 }

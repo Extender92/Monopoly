@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class CommunityChest(string info)
+    internal class CommunityChest : FortuneCard
     {
-        public string Info { get; set; } = info;
+        public CommunityChest(string info)
+        {
+            Info = info;
+        }
     }
 }
