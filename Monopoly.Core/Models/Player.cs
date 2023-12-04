@@ -6,18 +6,24 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class Player
+    internal class Player(string name,int id)
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public int Money { get; set; }
+        public int Id { get; set; } = id;
+        public string Name { get; set; } = name;
+        public int Money { get; set; } = 3000;
         public int Position { get; set; } = 0;
+        public bool InJail { get; set; } = false;
 
-        public Player(string name, int id)
+        public void Buy(Street street)
         {
-            Id = id;
-            Name = name;
-            Money = 3000;
+            Money -= street.Price;
+            street.Owner = this;
+        }
+
+        public void PayRent(Street street)
+        {
+            Money -= street.Price;
+            street.Owner.Money += street.Price;
         }
     }
 }
