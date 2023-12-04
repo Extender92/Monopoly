@@ -103,7 +103,7 @@ namespace Monopoly.Console
                 
             //}
 
-            //Run();
+            Run();
 
         }
 
@@ -118,9 +118,12 @@ namespace Monopoly.Console
             Core.Game Game = Core.GameSetup.Setup(numberOfPlayers, numberOfDice, dieSides);
 
             List<TablePiece> tablePieces = new List<TablePiece>();
+
+            TablePieceInputManager tablePieceSelector = new(new ConsoleWrapper());
+
             foreach (Player player in Game.Players)
             {
-                tablePieces.Add(Input.ChooseTablePiece(player.Id));
+                tablePieces.Add(tablePieceSelector.GetTablePieceFromUserInput(player.Id));
             }
 
             System.Console.Clear();

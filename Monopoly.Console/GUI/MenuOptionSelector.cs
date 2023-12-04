@@ -9,7 +9,7 @@ namespace Monopoly.Console.GUI
     internal class MenuOptionSelector
     {
         private static IConsoleWrapper Console = new ConsoleWrapper();
-        public static int GetSelectedOption(List<string> options, int index = 0, bool canCancel = false, int optionsPerLine = 1, ConsoleColor selectColor = ConsoleColor.Red)
+        public static int GetSelectedOption(List<string> options, int index = 0, int optionsPerLine = 1, bool canCancel = false, ConsoleColor selectColor = ConsoleColor.Red)
         {
             const int startX = 10;
             const int startY = 4;
@@ -21,8 +21,6 @@ namespace Monopoly.Console.GUI
 
             do
             {
-                Console.Clear();
-
                 for (int i = 0; i < options.Count; i++)
                 {
                     Console.SetPosition(startX + (i % optionsPerLine) * spacingPerLine, startY + i / optionsPerLine);
@@ -39,6 +37,7 @@ namespace Monopoly.Console.GUI
 
             } while (key != ConsoleKey.Enter);
 
+            Console.Clear();
             return index;
         }
     }
