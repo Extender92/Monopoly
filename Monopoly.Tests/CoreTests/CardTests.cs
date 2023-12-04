@@ -55,7 +55,7 @@ namespace Monopoly.Tests.CoreTests
         [InlineData(ConsoleColor.Blue, "Oxford Street", 500, 100, 152, 150, 200, 600, 600, 1000, 2000, 4000, 2050)]
         [InlineData(ConsoleColor.Green, "Whitechapel Road", 10, 150, 200, 300, 450, 500, 600, 1000, 2000, 3000, 2100)]
         [InlineData(ConsoleColor.Red, "The Angel Islington", 20, 150, 200, 302, 400, 500, 600, 1000, 2000, 3000, 2200)]
-        [InlineData(ConsoleColor.White, "Euston Roadt", 120, 150, 200, 350, 420, 500, 600, 1000, 2000, 3000, 2250)]
+        [InlineData(ConsoleColor.White, "Euston Road", 120, 150, 200, 350, 420, 500, 600, 1000, 2000, 3000, 2250)]
         public void CanCreateFourStreetCard(ConsoleColor color , string name, int rent, int rentWithColor,
                                          int rentOneHouse, int rentTwoHouses, int rentThreeHouses,
                                          int rentFourHouses, int rentHotels, int housesCost, int hotelsCost,

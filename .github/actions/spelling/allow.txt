@@ -36,3 +36,6 @@ usernames
 IDie
 IConsole
 Moq
+nameof
+Euston
+Pentonville
