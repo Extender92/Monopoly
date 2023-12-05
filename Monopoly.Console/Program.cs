@@ -1,5 +1,6 @@
 ﻿using Monopoly.Console.GUI;
 using Monopoly.Console.Models;
+using Monopoly.Core;
 using Monopoly.Core.Models;
 using System;
 
@@ -102,9 +103,18 @@ namespace Monopoly.Console
             //    System.Console.ReadKey();
 
             //}
-            ConsoleGameSetup setup = new ConsoleGameSetup();
-            setup.Setup();
-            Run run = new Run(new ConsoleWrapper(), setup.TheGame, setup.TablePieces);
+            int numberOfDice = 2;
+            int dieSides = 6;
+
+            System.Console.WriteLine("How many players?");
+            List<string> choices = Helpers.StringHelper.CreateStringList("1", "2", "3", "4", "5", "6", "7", "8");
+            int index = MenuOptionSelector.GetSelectedOption(choices);
+            int numberOfPlayers = index + 1;
+
+            GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
+            ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules);
+            gameSetup.Setup();
+            Run run = new Run(gameSetup.TheGame, gameSetup.TablePieces);
             run.RunGame();
         }
     }

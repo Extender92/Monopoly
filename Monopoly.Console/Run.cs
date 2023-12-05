@@ -17,16 +17,15 @@ namespace Monopoly.Console
         private Game Game { get; set; }
         private List<TablePiece> TablePieces {  get; set; }
 
-        public Run(IConsoleWrapper consoleWrapper, Game game, List<TablePiece> tablePieces)
+        public Run(Game game, List<TablePiece> tablePieces)
         {
-            _console = consoleWrapper;
+            _console = new ConsoleWrapper();
             Game = game;
             TablePieces = tablePieces;
         }
 
         internal void RunGame()
         {
-            ConsoleGameSetup setup = new ConsoleGameSetup();
 
             System.Console.Clear();
             while (true)
