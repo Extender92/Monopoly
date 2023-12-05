@@ -18,7 +18,8 @@ namespace Monopoly.Core
             while (true)
             {
                 PlayGame(players, streetCards);
-                // Add game termination condition here (e.g., one player bankrupts)
+                Console.ReadKey();
+                Console.Clear();
             }
 
 
@@ -102,7 +103,7 @@ namespace Monopoly.Core
                 Console.WriteLine($"Current Money: {player.Money}");
 
                 // Simulate player moving on the board
-                player.Position = (player.Position +random.Next(0,6)) % streetCards.Count;
+                player.Position = (player.Position + random.Next(0,6)) % streetCards.Count;
 
                 Street currentStreet = streetCards[player.Position];
                 Console.WriteLine($"Landed on {currentStreet.Name}");
@@ -122,6 +123,16 @@ namespace Monopoly.Core
                     Console.WriteLine($"You need to pay rent to {currentStreet.Owner.Name}.");
                     player.PayRent(currentStreet);
                     Console.WriteLine($"Remaining Money: {player.Money}");
+                }
+                else
+                {
+                    Console.WriteLine($"Do you want to sell {currentStreet.Name}? (Y/N)");
+                    string input = Console.ReadLine();
+                    if (input.ToUpper() == "Y")
+                    {
+                        player.Sell(currentStreet);
+                        Console.WriteLine($"{currentStreet.Name} is no longer owned by {player.Name}");
+                    }
                 }
 
                 Console.WriteLine("Press Enter to continue to the next turn...");
