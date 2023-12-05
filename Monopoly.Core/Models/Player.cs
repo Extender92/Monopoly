@@ -25,5 +25,18 @@ namespace Monopoly.Core.Models
             Money -= street.Price;
             street.Owner.Money += street.Price;
         }
+
+        public void Sell(Street street)
+        {
+            if (street.Owner == this)
+            {
+                int refundAmount = street.Price;
+                street.Owner = null;
+                Money += refundAmount;
+            }
+            else
+                Console.WriteLine("You do not own this street and cannot sell it.");
+
+        }
     }
 }
