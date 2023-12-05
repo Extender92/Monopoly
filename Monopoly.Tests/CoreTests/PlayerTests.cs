@@ -101,5 +101,37 @@ namespace Monopoly.Tests.CoreTests
             Assert.Equal(3000 + street.Price, player2.Money);
         }
 
+
+        [Fact]
+        public void SellShouldRefundMoneyWhenPlayerOwnsStreet()
+        {
+            // Arrange
+            Player player = new("Player1", 1);
+            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30);
+            player.Buy(street);
+
+            // Act
+            player.Sell(street);
+
+            // Assert
+            Assert.Null(street.Owner);
+            Assert.Equal(3000, player.Money); 
+        }
+
+        [Fact]
+        public void SellShouldNotRefundMoneyWhenPlayerDoesNotOwnStreet()
+        {
+            // Arrange
+            Player player = new("Player2", 2);
+            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30);
+
+            // Act
+            player.Sell(street);
+
+            // Assert
+            Assert.Null(street.Owner); 
+            Assert.Equal(3000, player.Money); 
+        }
+
     }
 }
