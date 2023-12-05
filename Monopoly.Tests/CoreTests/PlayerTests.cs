@@ -128,7 +128,7 @@ namespace Monopoly.Tests.CoreTests
             // Act
             player.Sell(street);
 
-            // Asser
+            // Assert
             Assert.Null(street.Owner); 
             Assert.Equal(3000, player.Money); 
         }
