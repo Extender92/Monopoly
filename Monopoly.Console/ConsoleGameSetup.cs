@@ -15,24 +15,17 @@ namespace Monopoly.Console
         private readonly TablePieceInputManager _tablePieceSelector;
         internal List<TablePiece> TablePieces {  get; set; }
         internal Game TheGame { get; set; }
+        internal GameRules GameRules { get; set; }
 
-        public ConsoleGameSetup()
+        public ConsoleGameSetup(GameRules gameRules)
         {
-            _tablePieceSelector = new TablePieceInputManager(new ConsoleWrapper());
+            _tablePieceSelector = new TablePieceInputManager();
+            GameRules = gameRules;
         }
 
         public void Setup() 
         {
-            int numberOfDice = 2;
-            int dieSides = 6;
-
-            System.Console.WriteLine("How many players?");
-            List<string> choices = Helpers.StringHelper.CreateStringList("1", "2", "3", "4", "5", "6", "7", "8");
-            int index = MenuOptionSelector.GetSelectedOption(choices);
-            int numberOfPlayers = index + 1;
-
-            GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
-            TheGame = CoreGameSetup.Setup(gameRules);
+            TheGame = CoreGameSetup.Setup(GameRules);
 
             TablePieces = new();
             foreach (Player player in TheGame.Players)

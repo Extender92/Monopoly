@@ -11,9 +11,9 @@ namespace Monopoly.Console.GUI
     {
         private readonly IConsoleWrapper _console;
 
-        public TablePieceInputManager(IConsoleWrapper console)
+        public TablePieceInputManager()
         {
-            _console = console;
+            _console = new ConsoleWrapper();
         }
 
 
@@ -76,7 +76,7 @@ namespace Monopoly.Console.GUI
         {
             _console.Write($"\n Player {playerId + 1}, select a color for your board piece: ");
 
-            List<ConsoleColor> colors = GetConsoleColors(tablePieces.Select(x => x.Color).ToList());
+            List<ConsoleColor> colors = GetConsoleColors(tablePieces.Select(piece => piece.Color).ToList());
 
             List<string> menuChoices = colors.Select(x => x.ToString()).ToList();
             int index = MenuOptionSelector.GetSelectedOption(menuChoices, 0, (menuChoices.Count / 2));
