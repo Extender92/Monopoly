@@ -13,5 +13,10 @@ namespace Monopoly.Core.Models
             Position = position;
             Info = "Railroad";
         }
+
+        internal void GetRailroad()
+        {
+            Console.WriteLine($"You are in {Info}");
+        }
     }
 }

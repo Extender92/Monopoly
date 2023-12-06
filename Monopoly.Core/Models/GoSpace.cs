@@ -7,5 +7,10 @@
             Position = 0;
             Info = "Go";
         }
+
+        internal void GetGoSpace()
+        {
+            Console.WriteLine($"You are in {Info}");
+        }
     }
 }

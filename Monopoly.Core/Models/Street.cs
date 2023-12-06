@@ -9,9 +9,10 @@ namespace Monopoly.Core.Models
 {
     internal class Street(ConsoleColor color, string name, int rent, int rentWithColor,
                     int rentOneHouse, int rentTwoHouses, int rentThreeHouses, int rentFourHouses,
-                    int rentHotels, int housesCost, int hotelsCost, int price, int mortgageValue) : Square
+                    int rentHotels, int housesCost, int hotelsCost, int price, int mortgageValue, int position) : Square
     {
         public ConsoleColor Color { get; set; } = color;
+        public int Position { get; set; } = position;
         public string Name { get; set; } = name;
         public int Rent { get; set; } = rent;
         public int RentWithColor { get; set; } = rentWithColor;
