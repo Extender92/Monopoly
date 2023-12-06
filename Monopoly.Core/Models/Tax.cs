@@ -16,7 +16,7 @@ namespace Monopoly.Core.Models
 
         internal void GetTax()
         {
-            Console.WriteLine($"You muste pay {Info}");
+            Console.WriteLine($"You must pay {Info}");
         }
     }
 }

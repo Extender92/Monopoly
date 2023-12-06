@@ -98,7 +98,7 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Equal(10, jail.Position);
-            Assert.Equal("Visiting in Jail", jail.Info);
+            Assert.Equal("Visiting Jail", jail.Info);
         }
 
         [Fact]

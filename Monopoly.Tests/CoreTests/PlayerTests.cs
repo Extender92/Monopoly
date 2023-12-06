@@ -73,7 +73,7 @@ namespace Monopoly.Tests.CoreTests
         public void BuyShouldDeductMoneyAndSetOwner()
         {
             // Arrange
-            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30);
+            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30,1);
             Player player = new("TestPlayer", 1);
 
             // Act
@@ -88,7 +88,7 @@ namespace Monopoly.Tests.CoreTests
         public void PayRentShouldDeductMoneyFromPlayerAndAddToOwner()
         {
             // Arrange
-            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30);
+            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
             Player player1 = new("Player1", 1);
             Player player2 = new("Player2", 2);
             street.Owner = player2;
@@ -107,7 +107,7 @@ namespace Monopoly.Tests.CoreTests
         {
             // Arrange
             Player player = new("Player1", 1);
-            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30);
+            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
             player.Buy(street);
 
             // Act
@@ -123,7 +123,7 @@ namespace Monopoly.Tests.CoreTests
         {
             // Arrange
             Player player = new("Player2", 2);
-            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30);
+            Street street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
 
             // Act
             player.Sell(street);
