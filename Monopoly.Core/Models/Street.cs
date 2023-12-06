@@ -12,7 +12,6 @@ namespace Monopoly.Core.Models
                     int rentHotels, int housesCost, int hotelsCost, int price, int mortgageValue, int position) : Square
     {
         public ConsoleColor Color { get; set; } = color;
-        public int Position { get; set; } = position;
         public string Name { get; set; } = name;
         public int Rent { get; set; } = rent;
         public int RentWithColor { get; set; } = rentWithColor;
