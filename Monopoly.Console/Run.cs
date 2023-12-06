@@ -39,7 +39,8 @@ namespace Monopoly.Console
                     _console.WriteLine("Press Enter To Roll Dice");
                     _console.ReadLine();
                     Game.PlayerTurn(player);
-                    //ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
+                    ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
+                    ConsolePrinter.PrintGameBoard(Game.Players, TablePieces); // PrintCard
                     Core.EventHandler eventHandler = new Core.EventHandler();
                     eventHandler.HandleEvent(player);
                     //_console.ReadKey();

@@ -12,47 +12,47 @@ namespace Monopoly.Console
         {
 
 
-            //List<string> infoLines = new List<string>();
-            //infoLines.Add("info");
-            //infoLines.Add("info again info");
-            //infoLines.Add("info again info again info");
-            //infoLines.Add("info again info");
-            //infoLines.Add("På info");
+            List<string> infoLines = new List<string>();
+            infoLines.Add("info");
+            infoLines.Add("info again info");
+            infoLines.Add("info again info again info");
+            infoLines.Add("info again info");
+            infoLines.Add("På info");
 
-            //List<string> rents = new List<string>();
-            //rents.Add("rent");
-            //rents.Add("rent");
-            //rents.Add("rent again rent");
-            //rents.Add("rent again rent");
-            //rents.Add("På rent");
+            List<string> rents = new List<string>();
+            rents.Add("rent");
+            rents.Add("rent");
+            rents.Add("rent again rent");
+            rents.Add("rent again rent");
+            rents.Add("På rent");
 
-            //List<string> info = new List<string>();
+            List<string> info = new List<string>();
 
-            //int infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
+            int infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
 
-            //string header = "train station";
+            string header = "train station";
 
-            //int positionX = 5;
-            //int positionY = 5;
+            int positionX = 5;
+            int positionY = 5;
 
-            //int HorizontalSize = 30;
-            //int VerticalSize = 9;
+            int HorizontalSize = 30;
+            int VerticalSize = 9;
 
-            //HorizontalSize = Math.Max(HorizontalSize, Math.Max(header.Length + 2, infoTextLength));
+            HorizontalSize = Math.Max(HorizontalSize, Math.Max(header.Length + 2, infoTextLength));
 
-            //for (int i = 0; i < infoLines.Count; i++)
-            //{
-            //    int space = HorizontalSize - (infoLines[i].Length + rents[i].Length + 2);
-            //    info.Add(infoLines[i] + ":".PadRight(space) + rents[i]);
-            //    info.Add("how do you");
-            //    info.Add("how do you");
-            //}
+            for (int i = 0; i < infoLines.Count; i++)
+            {
+                int space = HorizontalSize - (infoLines[i].Length + rents[i].Length + 2);
+                info.Add(infoLines[i] + ":".PadRight(space) + rents[i]);
+                //info.Add("how do you");
+                //info.Add("how do you");
+            }
 
-            //header = Helpers.StringHelper.CenterString(header, HorizontalSize);
+            header = Helpers.StringHelper.CenterString(header, HorizontalSize);
 
-            //GUI.Print.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Red, ConsoleColor.Blue);
+            GUI.ConsolePrinter.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Red, ConsoleColor.Blue);
 
-            //System.Console.ReadLine();
+            System.Console.ReadLine();
 
 
 
