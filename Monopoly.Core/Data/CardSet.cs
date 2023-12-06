@@ -112,7 +112,7 @@ namespace Monopoly.Core.Data
             Chance chanceCard = queue.Peek();
             queue.Dequeue();
             queue.Enqueue(chanceCard);
-            Console.WriteLine($"Chanse : {chanceCard.Info}");
+            Console.WriteLine($"Chance : {chanceCard.Info}");
         }
     }
 }
