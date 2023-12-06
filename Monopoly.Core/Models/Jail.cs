@@ -11,7 +11,12 @@ namespace Monopoly.Core.Models
         public Jail()
         {
             Position = 10;
-            Info = "Visiting in Jail";
+            Info = "Visiting Jail";
+        }
+
+        internal void GetJail()
+        {
+            Console.WriteLine($"You are {Info}");
         }
     }
 }

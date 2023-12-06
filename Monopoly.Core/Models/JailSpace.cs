@@ -13,5 +13,10 @@ namespace Monopoly.Core.Models
             Position = 30;
             Info = "Go To Jail"; 
         }
+
+        internal void GetJailSpace()
+        {
+            Console.WriteLine($"{Info}");
+        }
     }
 }

@@ -7,23 +7,16 @@ namespace Monopoly.Core
     {
         static void Main(string[] args)
         {
-            List<Player> players = new List<Player>
-            {
-                new Player("Player 1",1),
-                new Player("Player 2", 2)
-            };
 
-            var streetCards = CardSet.GetStreetCards();
-
-            while (true)
-            {
-                PlayGame(players, streetCards);
-                Console.ReadKey();
-                Console.Clear();
-            }
-
-
-
+            //Player player = new Player("P", 2);
+            //EventHandler eventHandler = new EventHandler();
+            //Random rnd = new Random();
+            //while (true)
+            //{
+            //    eventHandler.HandleEvent(player, rnd.Next(2));
+            //    Console.ReadKey();
+            //    Console.Clear();
+            //}
 
             //List<Square> squares = new List<Square>();
 
@@ -103,7 +96,7 @@ namespace Monopoly.Core
                 Console.WriteLine($"Current Money: {player.Money}");
 
                 // Simulate player moving on the board
-                player.Position = (player.Position + random.Next(0,6)) % streetCards.Count;
+                player.Position = (player.Position + random.Next(0, 6)) % streetCards.Count;
 
                 Street currentStreet = streetCards[player.Position];
                 Console.WriteLine($"Landed on {currentStreet.Name}");

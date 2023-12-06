@@ -31,7 +31,7 @@ namespace Monopoly.Core
             {
                 player.Position -= 39;
             }
-            Events.HandleEvent(player, diceSum);
+            //Events.HandleEvent(player, diceSum);
 
             Winning(Players.FirstOrDefault());
         }

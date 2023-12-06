@@ -13,5 +13,10 @@ namespace Monopoly.Core.Models
             Position = position;
             Info = "Tax";
         }
+
+        internal void GetTax()
+        {
+            Console.WriteLine($"You muste pay {Info}");
+        }
     }
 }

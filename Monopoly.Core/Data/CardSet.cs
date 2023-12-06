@@ -11,28 +11,28 @@ namespace Monopoly.Core.Data
         {
             List<Street> cards =
             [
-                new Street(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30),
-                new Street(ConsoleColor.Magenta, "Whitechapel Road", 4, 8, 20, 60, 180, 320, 450, 50, 50, 60, 30),
-                new Street(ConsoleColor.Cyan, "The Angel Islington", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50),
-                new Street(ConsoleColor.Cyan, "Euston Road", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50),
-                new Street(ConsoleColor.Cyan, "Pentonville Road", 8, 16, 40, 100, 300, 450, 600, 50, 50, 120, 60),
-                new Street(ConsoleColor.DarkGreen, "Pall Mall", 10, 20, 50, 150, 450, 625, 750, 100, 100, 140, 70),
-                new Street(ConsoleColor.DarkGreen, "Whitehall", 10, 20, 50, 150, 450, 625, 750, 100, 100, 140, 70),
-                new Street(ConsoleColor.DarkGreen, "Northumberland Avenue", 12, 24, 60, 180, 500, 700, 900, 100, 100, 160, 80),
-                new Street(ConsoleColor.DarkGray, "Bow Street", 14, 28, 70, 200, 550, 750, 950, 100, 100, 180, 90),
-                new Street(ConsoleColor.DarkGray, "Marlborough Street", 14, 28, 70, 200, 550, 750, 950, 100, 100, 180, 90),
-                new Street(ConsoleColor.DarkGray, "Vine Street", 16, 32, 80, 220, 600, 800, 1000, 100, 100, 200, 100),
-                new Street(ConsoleColor.Red, "The Strand", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110),
-                new Street(ConsoleColor.Red, "Fleet Street", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110),
-                new Street(ConsoleColor.Red, "Trafalgar Square", 20, 40, 100, 300, 750, 925, 1100, 150, 150, 240, 120),
-                new Street(ConsoleColor.Yellow, "Leicester Square", 22, 44, 110, 330, 800, 975, 1150, 150, 150, 260, 130),
-                new Street(ConsoleColor.Yellow, "Coventry Street", 22, 44, 110, 330, 800, 975, 1150, 150, 150, 260, 130),
-                new Street(ConsoleColor.Yellow, "Piccadilly", 24, 48, 120, 360, 850, 1025, 1200, 150, 150, 280, 150),
-                new Street(ConsoleColor.Green, "Regent Street", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150),
-                new Street(ConsoleColor.Green, "Oxford Street", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150),
-                new Street(ConsoleColor.Green, "Bond Street", 28, 56, 150, 450, 1000, 1200, 1400, 200, 200, 320, 160),
-                new Street(ConsoleColor.DarkBlue, "Park Lane", 35, 70, 175, 500, 1100, 1300, 1500, 200, 200, 350, 175),
-                new Street(ConsoleColor.DarkBlue, "Mayfair", 50, 100, 200, 600, 1400, 1700, 2000, 200, 200, 400, 200),
+                new Street(ConsoleColor.DarkYellow, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30,1),
+                new Street(ConsoleColor.DarkYellow, "Whitechapel Road", 4, 8, 20, 60, 180, 320, 450, 50, 50, 60, 30,3),
+                new Street(ConsoleColor.Cyan, "The Angel Islington", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50,6),
+                new Street(ConsoleColor.Cyan, "Euston Road", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50,8),
+                new Street(ConsoleColor.Cyan, "Pentonville Road", 8, 16, 40, 100, 300, 450, 600, 50, 50, 120, 60,9),
+                new Street(ConsoleColor.Magenta, "Pall Mall", 10, 20, 50, 150, 450, 625, 750, 100, 100, 140, 70,11),
+                new Street(ConsoleColor.Magenta, "Whitehall", 10, 20, 50, 150, 450, 625, 750, 100, 100, 140, 70,13),
+                new Street(ConsoleColor.Magenta, "Northumberland Avenue", 12, 24, 60, 180, 500, 700, 900, 100, 100, 160, 80,14),
+                new Street(ConsoleColor.DarkYellow, "Bow Street", 14, 28, 70, 200, 550, 750, 950, 100, 100, 180, 90,16),
+                new Street(ConsoleColor.DarkYellow, "Marlborough Street", 14, 28, 70, 200, 550, 750, 950, 100, 100, 180, 90,18),
+                new Street(ConsoleColor.DarkYellow, "Vine Street", 16, 32, 80, 220, 600, 800, 1000, 100, 100, 200, 100,19),
+                new Street(ConsoleColor.Red, "The Strand", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110,21),
+                new Street(ConsoleColor.Red, "Fleet Street", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110,23),
+                new Street(ConsoleColor.Red, "Trafalgar Square", 20, 40, 100, 300, 750, 925, 1100, 150, 150, 240, 120,24),
+                new Street(ConsoleColor.Yellow, "Leicester Square", 22, 44, 110, 330, 800, 975, 1150, 150, 150, 260, 130,26),
+                new Street(ConsoleColor.Yellow, "Coventry Street", 22, 44, 110, 330, 800, 975, 1150, 150, 150, 260, 130,27),
+                new Street(ConsoleColor.Yellow, "Piccadilly", 24, 48, 120, 360, 850, 1025, 1200, 150, 150, 280, 150,29),
+                new Street(ConsoleColor.Green, "Regent Street", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150,31),
+                new Street(ConsoleColor.Green, "Oxford Street", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150,32),
+                new Street(ConsoleColor.Green, "Bond Street", 28, 56, 150, 450, 1000, 1200, 1400, 200, 200, 320, 160,34),
+                new Street(ConsoleColor.DarkBlue, "Park Lane", 35, 70, 175, 500, 1100, 1300, 1500, 200, 200, 350, 175,37),
+                new Street(ConsoleColor.DarkBlue, "Mayfair", 50, 100, 200, 600, 1400, 1700, 2000, 200, 200, 400, 200,39),
             ];
             return cards;
         }
@@ -89,6 +89,30 @@ namespace Monopoly.Core.Data
             ];
 
             return communityChests;
+        }
+
+        public static void GetRandomCommunityChest()
+        {
+            Random random = new Random();
+            List<CommunityChest> communityChests = GetCommunityChestCards();
+            communityChests = communityChests.OrderBy(c => random.Next()).ToList();
+            Queue<CommunityChest> queue = new Queue<CommunityChest>(communityChests);
+            CommunityChest communityChestsCard = queue.Peek();
+            queue.Dequeue();
+            queue.Enqueue(communityChestsCard);
+            Console.WriteLine($"Community Chest : {communityChestsCard.Info}");
+        }
+
+        public static void GetRandomChance()
+        {
+            Random random = new Random();
+            List<Chance> chance = GetChanceCards();
+            chance = chance.OrderBy(c => random.Next()).ToList();
+            Queue<Chance> queue = new Queue<Chance>(chance);
+            Chance chanceCard = queue.Peek();
+            queue.Dequeue();
+            queue.Enqueue(chanceCard);
+            Console.WriteLine($"Chance : {chanceCard.Info}");
         }
     }
 }
