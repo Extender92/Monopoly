@@ -33,7 +33,6 @@ namespace Monopoly.Core
                 case 0:
                     GoSpace goSpace = new GoSpace();
                     goSpace.GetGoSpace();
-
                     break;
                 case 1:
                     Console.WriteLine($"Player landed on {currentStreet.Name}");
@@ -145,7 +144,6 @@ namespace Monopoly.Core
                     Console.WriteLine($"Player landed on {currentStreet.Name}");
                     break;
                 case 33:
-                    //CommintyChest
                     CardSet.GetRandomCommunityChest();
                     break;
                 case 34:
@@ -157,7 +155,6 @@ namespace Monopoly.Core
                     railroad.GetRailroad();
                     break;
                 case 36:
-                    //Chanse
                     CardSet.GetRandomChance();
                     break;
                 case 37:
