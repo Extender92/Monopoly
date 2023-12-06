@@ -88,7 +88,6 @@ namespace Monopoly.Core
                     Console.WriteLine($"Player landed on {currentStreet.Name}");
                     break;
                 case 17:
-                    //CommintyChest
                     CardSet.GetCommunityChestCards();
                     break;
                 case 18:
@@ -106,7 +105,6 @@ namespace Monopoly.Core
                     Console.WriteLine($"Player landed on {currentStreet.Name}");
                     break;
                 case 22:
-                    //Chance
                     CardSet.GetRandomChance();
                     break;
                 case 23:
