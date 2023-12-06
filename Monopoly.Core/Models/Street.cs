@@ -7,25 +7,45 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class Street(ConsoleColor color, string name, int rent, int rentWithColor,
-                    int rentOneHouse, int rentTwoHouses, int rentThreeHouses, int rentFourHouses,
-                    int rentHotels, int housesCost, int hotelsCost, int price, int mortgageValue, int position) : Square
+    internal class Street : Square
     {
-        public ConsoleColor Color { get; set; } = color;
-        public string Name { get; set; } = name;
-        public int Rent { get; set; } = rent;
-        public int RentWithColor { get; set; } = rentWithColor;
-        public int RentOneHouses { get; set; } = rentOneHouse;
-        public int RentTwoHouses { get; set; } = rentTwoHouses;
-        public int RentThreeHouses { get; set; } = rentThreeHouses;
-        public int RentFourHouses { get; set; } = rentFourHouses;
-        public int RentHotels { get; set; } = rentHotels;
-        public int HousesCost { get; set; } = housesCost;
-        public int HotelsCost { get; set; } = hotelsCost;
-        public int Price { get; set; } = price;
-        public int MortgageValue { get; set; } = mortgageValue;
+        public ConsoleColor Color { get; set; }
+        public string Name { get; set; }
+        public int Rent { get; set; }
+        public int RentWithColor { get; set; }
+        public int RentOneHouses { get; set; }
+        public int RentTwoHouses { get; set; }
+        public int RentThreeHouses { get; set; }
+        public int RentFourHouses { get; set; }
+        public int RentHotels { get; set; }
+        public int HousesCost { get; set; }
+        public int HotelsCost { get; set; }
+        public int Price { get; set; }
+        public int MortgageValue { get; set; }
 
         public Player Owner { get; set; }
+
+        public Street(ConsoleColor color, string name, int rent, int rentWithColor,
+               int rentOneHouse, int rentTwoHouses, int rentThreeHouses, int rentFourHouses,
+               int rentHotels, int housesCost, int hotelsCost, int price, int mortgageValue, int position)
+        {
+
+            Color = color;
+            Name = name;
+            Rent = rent;
+            RentWithColor = rentWithColor;
+            RentOneHouses = rentOneHouse;
+            RentTwoHouses = rentTwoHouses;
+            RentThreeHouses = rentThreeHouses;
+            RentFourHouses = rentFourHouses;
+            RentHotels = rentHotels;
+            HousesCost = housesCost;
+            HotelsCost = hotelsCost;
+            Price = price;
+            MortgageValue = mortgageValue;
+            Position = position;
+        }
+
     }
 
 }
