@@ -4,19 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monopoly.Core.Models
+namespace Monopoly.Core.Models.Board
 {
-    internal class Tax : Square
+    internal class TaxSquare : Square
     {
-        public Tax(int position)
+        public TaxSquare(int position)
         {
             Position = position;
             Info = "Tax";
         }
 
-        internal void GetTax()
+        public override void LandOn(Player player)
         {
-            Console.WriteLine($"You must pay {Info}");
+            // Logic for when a player lands on
         }
     }
 }

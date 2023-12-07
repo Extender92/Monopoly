@@ -2,6 +2,7 @@
 using Monopoly.Console.Models;
 using Monopoly.Core;
 using Monopoly.Core.Models;
+using Monopoly.Core.Models.Board;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,24 +28,27 @@ namespace Monopoly.Console
 
         internal void RunGame()
         {
-
             System.Console.Clear();
+            ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
             while (true)
             {
                 foreach (var player in Game.Players)
                 {
-                    ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
-                    _console.SetPosition(0, 0);
-                    _console.WriteLine(player.Name + "'s Turn");
-                    _console.WriteLine("Press Enter To Roll Dice");
-                    _console.ReadLine();
+                    ConsolePrinter.DisplayPlayerTurn(player);
                     Game.PlayerTurn(player);
-                    //ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
-                    Core.EventHandler eventHandler = new Core.EventHandler();
-                    eventHandler.HandleEvent(player);
-                    //_console.ReadKey();
-                    //_console.Clear();
 
+                    //ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
+                    //Core.EventHandler eventHandler = new Core.EventHandler();
+                    //eventHandler.HandleEvent(player);
+
+
+                    Square landedSquare = Game.Board.GetSquareAtPosition(player.Position);
+
+                    player.LandOnSquare(landedSquare);
+
+                    //_console.ReadKey();
+                    _console.Clear();
+                    ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
                 }
             }
         }

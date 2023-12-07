@@ -1,5 +1,6 @@
 ﻿using Monopoly.Core.Data;
 using Monopoly.Core.Models;
+using Monopoly.Core.Models.Board;
 
 namespace Monopoly.Core
 {
@@ -86,7 +87,7 @@ namespace Monopoly.Core
 
         }
 
-        public static void PlayGame(List<Player> players, List<Street> streetCards)
+        public static void PlayGame(List<Player> players, List<PropertySquare> streetCards)
         {
             // Simple game loop
             foreach (Player player in players)
@@ -98,7 +99,7 @@ namespace Monopoly.Core
                 // Simulate player moving on the board
                 player.Position = (player.Position + random.Next(0, 6)) % streetCards.Count;
 
-                Street currentStreet = streetCards[player.Position];
+                PropertySquare currentStreet = streetCards[player.Position];
                 Console.WriteLine($"Landed on {currentStreet.Name}");
 
                 if (currentStreet.Owner == null)

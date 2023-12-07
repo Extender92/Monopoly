@@ -1,4 +1,5 @@
 ﻿using Monopoly.Core.Models;
+using Monopoly.Core.Models.Board;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,41 +12,13 @@ namespace Monopoly.Tests.CoreTests
     {
 
         [Fact]
-        public void SquarePositionSetAndGetCorrectly()     //SquareTest
-        {
-            // Arrange
-            var square = new Square
-            {
-                // Act
-                Position = 42
-            };
-
-            // Assert
-            Assert.Equal(42, square.Position);
-        }
-
-        [Fact]
-        public void SquareInfoSetAndGetCorrectly()     //SquareTest
-        {
-            // Arrange
-            var square = new Square
-            {
-                // Act
-                Info = "TestInfo"
-            };
-
-            // Assert
-            Assert.Equal("TestInfo", square.Info);
-        }
-
-        [Fact]
         public void TaxSetsPositionAndInfoCorrectly()    //TaxTest
         {
             // Arrange
             int expectedPosition = 10;
 
             // Act
-            var tax = new Tax(expectedPosition);
+            var tax = new TaxSquare(expectedPosition);
 
             // Assert
             Assert.Equal(expectedPosition, tax.Position);
@@ -61,7 +34,7 @@ namespace Monopoly.Tests.CoreTests
             int expectedPosition = 5;
 
             // Act
-            var railroad = new Railroad(expectedPosition);
+            var railroad = new RailroadSquare(expectedPosition);
 
             // Assert
             Assert.Equal(expectedPosition, railroad.Position);
@@ -72,7 +45,7 @@ namespace Monopoly.Tests.CoreTests
         public void ParkingSpaceSetsPositionAndInfoCorrectly() // ParkingSpaceTest
         {
             // Act
-            var parkingSpace = new ParkingSpace();
+            var parkingSpace = new ParkingSquare();
 
             // Assert
             Assert.Equal(20, parkingSpace.Position);
@@ -83,7 +56,7 @@ namespace Monopoly.Tests.CoreTests
         public void JailSpaceSetsPositionAndInfoCorrectly() // JailSpaceTest
         {
             // Act
-            var jailSpace = new JailSpace();
+            var jailSpace = new GoToJailSquare();
 
             // Assert
             Assert.Equal(30, jailSpace.Position);
@@ -94,7 +67,7 @@ namespace Monopoly.Tests.CoreTests
         public void JailSetsPositionAndInfoCorrectly() // JailTest
         {
             // Act
-            var jail = new Jail();
+            var jail = new JailSquare();
 
             // Assert
             Assert.Equal(10, jail.Position);
@@ -105,7 +78,7 @@ namespace Monopoly.Tests.CoreTests
         public void GoSpaceSetsPositionAndInfoCorrectly()  //  GoSpaceTest
         {
             // Act
-            var goSpace = new GoSpace();
+            var goSpace = new GoSquare();
 
             // Assert
             Assert.Equal(0, goSpace.Position);
