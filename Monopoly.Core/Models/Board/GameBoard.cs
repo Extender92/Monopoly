@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models.Board
 {
-    internal class Board
+    internal class GameBoard
     {
         private List<Square> Squares; // Array or list of all squares on the board
 
-        public Board(GameRules gameRules)
+        public GameBoard(GameRules gameRules)
         {
             Squares = SquareBuilder.GetBoardSquares(gameRules);
         }

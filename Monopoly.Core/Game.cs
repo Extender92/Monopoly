@@ -10,7 +10,7 @@ namespace Monopoly.Core
 {
     internal class Game
     {
-        internal Board Board { get; set; }
+        internal GameBoard Board { get; set; }
         internal List<Player> Players  { get; set;}
         internal List<IDie> Dice { get; set; }
         private EventHandler Events { get; set; }
@@ -18,7 +18,7 @@ namespace Monopoly.Core
 
         public Game(List<IDie> dice, List<Player> players, GameRules rules)
         {
-            Board = new Board(rules);
+            Board = new GameBoard(rules);
             Players = players;
             Dice = dice;
             //Events = new EventHandler();
