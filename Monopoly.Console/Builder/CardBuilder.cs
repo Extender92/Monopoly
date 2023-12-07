@@ -1,4 +1,6 @@
 ﻿using Monopoly.Console.Models;
+using Monopoly.Console.Models.Board;
+using Monopoly.Core.Models.Board;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,15 +11,35 @@ namespace Monopoly.Console.Builder
 {
     internal class CardBuilder
     {
-        private static List<DrawCards> DrawCards;
-        internal static List<Card> GetCards() 
+        internal static List<SquareCard> BuildAllSquareCards(List<Square> squares)
         {
-            return BuildCards();
+            List<SquareCard> squareCardList = new List<SquareCard>();
+
+            foreach (Square square in squares)
+            {
+
+                if (square is PropertySquare property)
+                {
+                    squareCardList.Add(BuildPropertyCardFromProperty(property));
+                }
+
+
+            }
+
+
+            return squareCardList;
         }
-        private static List<Card> BuildCards()
+
+        private static PropertySquareCard BuildPropertyCardFromProperty(PropertySquare property)
         {
-            var cards = new List<Card>();     
-            return cards;
+            var propertyCard = new PropertySquareCardBuilder()
+            .SetName(property.Name)
+            .SetProp(new List<string> { $"Color: {property.Color}", $"Houses Cost: {property.HousesCost}" })
+            .SetRent(new List<string> { $"Rent: {property.Rent}", $"Rent with Color: {property.RentWithColor}" })
+            // Add other setters as needed
+            .Build();
+
+            return propertyCard;
         }
     }
 }
