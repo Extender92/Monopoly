@@ -1,4 +1,5 @@
 ﻿using Monopoly.Core.Models;
+using Monopoly.Core.Models.Board;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,18 +10,19 @@ namespace Monopoly.Core
 {
     internal class Game
     {
-        private int[] Board { get; } = new int[40];
-        internal List<IDie> Dice { get; set; }
+        internal Board Board { get; set; }
         internal List<Player> Players  { get; set;}
+        internal List<IDie> Dice { get; set; }
         private EventHandler Events { get; set; }
         internal GameRules Rules { get; set; }
 
         public Game(List<IDie> dice, List<Player> players, GameRules rules)
         {
-            Rules = rules;
-            Dice = dice;
-            Events = new EventHandler();
+            Board = new Board(rules);
             Players = players;
+            Dice = dice;
+            //Events = new EventHandler();
+            Rules = rules;
         }
         internal void PlayerTurn(Player player)
         {

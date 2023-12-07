@@ -12,11 +12,19 @@ namespace Monopoly.Core
         public int NumberOfPlayers { get; set; }
         public int NumberOfDice { get; set; }
         public int DieSides { get; set; }
+        public Language GameLanguage { get; set; }
         public GameRules(int numberOfPlayers, int numberOfDice, int dieSides)
         {
             NumberOfPlayers = numberOfPlayers;
             NumberOfDice = numberOfDice;
             DieSides = dieSides;
+            GameLanguage = Language.UK;
+        }
+
+        public enum Language
+        {
+            UK,
+            US
         }
     }
 }

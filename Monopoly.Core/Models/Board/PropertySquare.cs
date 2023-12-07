@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monopoly.Core.Models
+namespace Monopoly.Core.Models.Board
 {
-    internal class Street : Square
+    internal class PropertySquare : Square
     {
         public ConsoleColor Color { get; set; }
         public string Name { get; set; }
@@ -25,7 +25,7 @@ namespace Monopoly.Core.Models
 
         public Player Owner { get; set; }
 
-        public Street(ConsoleColor color, string name, int rent, int rentWithColor,
+        public PropertySquare(ConsoleColor color, string name, int rent, int rentWithColor,
                int rentOneHouse, int rentTwoHouses, int rentThreeHouses, int rentFourHouses,
                int rentHotels, int housesCost, int hotelsCost, int price, int mortgageValue, int position)
         {
@@ -46,6 +46,10 @@ namespace Monopoly.Core.Models
             Position = position;
         }
 
+        public override void LandOn(Player player)
+        {
+            // Logic for when a player lands on a property square
+        }
     }
 
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Monopoly.Core.Models.Board;
 
 namespace Monopoly.Core.Models
 {
@@ -14,19 +15,19 @@ namespace Monopoly.Core.Models
         public int Position { get; set; } = 0;
         public bool InJail { get; set; } = false;
 
-        public void Buy(Street street)
+        public void Buy(PropertySquare street)
         {
             Money -= street.Price;
             street.Owner = this;
         }
 
-        public void PayRent(Street street)
+        public void PayRent(PropertySquare street)
         {
             Money -= street.Price;
             street.Owner.Money += street.Price;
         }
 
-        public void Sell(Street street)
+        public void Sell(PropertySquare street)
         {
             if (street.Owner == this)
             {
@@ -37,6 +38,11 @@ namespace Monopoly.Core.Models
             else
                 Console.WriteLine("You do not own this street and cannot sell it.");
 
+        }
+
+        public void LandOnSquare(Square square)
+        {
+            square.LandOn(this);
         }
     }
 }
