@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monopoly.Core.Models
+namespace Monopoly.Core.Models.Board
 {
-    internal class Square()
+    internal abstract class Square()
     {
         public int EventId { get; set; }
         public int Position { get; set; }
         public string Info { get; set; }
+
+        public abstract void LandOn(Player player);
     }
 }

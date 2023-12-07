@@ -4,19 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monopoly.Core.Models
+namespace Monopoly.Core.Models.Board
 {
-    internal class Jail : Square
+    internal class JailSquare : Square
     {
-        public Jail()
+        public JailSquare()
         {
             Position = 10;
             Info = "Visiting Jail";
         }
 
-        internal void GetJail()
+
+        public override void LandOn(Player player)
         {
-            Console.WriteLine($"You are {Info}");
+            // Logic for when a player lands on
         }
     }
 }

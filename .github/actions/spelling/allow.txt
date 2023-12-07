@@ -39,3 +39,6 @@ Moq
 nameof
 Euston
 Pentonville
+IChance
+ICommunity
+

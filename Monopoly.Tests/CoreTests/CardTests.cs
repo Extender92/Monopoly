@@ -1,5 +1,6 @@
 ﻿using Monopoly.Core.Data;
-using Monopoly.Core.Models;
+using Monopoly.Core.Models.Board;
+using Monopoly.Core.Models.FortuneCard;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace Monopoly.Tests.CoreTests
             int position = 1;
 
             //Act 
-            var street = new Street(color, name, rent, rentWithColor, rentOneHouse, rentTwoHouses,
+            var street = new PropertySquare(color, name, rent, rentWithColor, rentOneHouse, rentTwoHouses,
                         rentThreeHouses, rentFourHouses, rentHotels, housesCost, hotelsCost,
                         price, mortgageValue, position);
 
@@ -64,7 +65,7 @@ namespace Monopoly.Tests.CoreTests
         {
 
             //Act 
-            var street = new Street(color, name, rent, rentWithColor, rentOneHouse, rentTwoHouses,
+            var street = new PropertySquare(color, name, rent, rentWithColor, rentOneHouse, rentTwoHouses,
                         rentThreeHouses, rentFourHouses, rentHotels, housesCost, hotelsCost,
                         price, mortgageValue, position);
 
@@ -89,7 +90,7 @@ namespace Monopoly.Tests.CoreTests
         {
             //Arrange
             var expectedNumberOfStreet = 22;
-            var streetCards = CardSet.GetStreetCards();
+            var streetCards = Data.GetPropertySquareData(new Core.GameRules(0, 0, 0));
 
             //Act
             var numberOfCards = streetCards.Count;
@@ -101,13 +102,13 @@ namespace Monopoly.Tests.CoreTests
         public void GetStreetCardsReturnsValidStreet()
         {
             //Arrange
-            var streetCards = CardSet.GetStreetCards();
+            var streetCards = Data.GetPropertySquareData(new Core.GameRules(0, 0, 0));
 
             //Act and Assert
             foreach (var card in streetCards)
             {
                 Assert.NotNull(card);
-                Assert.IsType<Street>(card);
+                Assert.IsType<PropertySquare>(card);
                 Assert.True(card.Rent > 0);
             }
         }
@@ -117,9 +118,10 @@ namespace Monopoly.Tests.CoreTests
         {
             //Arrange
             string expectedInfo = "Get Out of Jail Free";
+            UKChanceCard.UKChanceCardType type = UKChanceCard.UKChanceCardType.GetOutOfJailFree;
 
             //Act
-            var chance = new Chance(expectedInfo);
+            var chance = new UKChanceCard(expectedInfo, type);
 
             //Assert
             Assert.Equal(expectedInfo, chance.Info);
@@ -130,14 +132,14 @@ namespace Monopoly.Tests.CoreTests
         public void GetChanceCardsReturnsValidChance()
         {
             //Arrange
-            var chanceCard = CardSet.GetChanceCards();
+            var chanceCard = Data.GetChanceCardData(new Core.GameRules(0, 0, 0));
 
             //Act and Assert
             foreach(var card in chanceCard)
             {
                 Assert.NotNull(card);
                 Assert.NotNull(card.Info);
-                Assert.IsType<Chance>(card);
+                Assert.IsType<ChanceSquare>(card);
             }
         }
 
@@ -148,7 +150,7 @@ namespace Monopoly.Tests.CoreTests
             string expectedInfo = "Advance to Go (Collect £200)";
 
             //Act
-            var communityChest = new CommunityChest(expectedInfo);
+            var communityChest = new UKCommunityChestCard(expectedInfo, UKCommunityChestCard.UKCommunityChestCardType.AdvanceToGo);
 
             //Assert
             Assert.Equal(expectedInfo, communityChest.Info);
@@ -160,14 +162,14 @@ namespace Monopoly.Tests.CoreTests
         public void GetCommunityChestCardsReturnsValidCommunityChest()
         {
             //Arrange
-            var communityChestCard = CardSet.GetCommunityChestCards();
+            var communityChestCard = Data.GetCommunityChestCardData(new Core.GameRules(0, 0, 0));
 
             //Act and Assert
             foreach (var card in communityChestCard)
             {
                 Assert.NotNull(card);
                 Assert.NotNull(card.Info);
-                Assert.IsType<CommunityChest>(card);
+                Assert.IsType<ICommunityChestCard>(card);
             }
         }
     }

@@ -60,23 +60,23 @@ namespace Monopoly.Console.GUI
 
             switch (side)
             {
-                case 0: // Left Border
-                    y += SideLength - positionIndex;
-                    break;
-
-                case 1: // Top border
-                    x += (positionIndex * HorizontalBuffer) + (playerBuffer * positionIndex);
-                    break;
-
-                case 2: // Right border
-                    x += (SideLength * HorizontalBuffer) + (playerBuffer * SideLength);
-                    y += positionIndex;
-                    break;
-
-                case 3: // Bottom border
+                case 0: // Bottom border
                     positionIndex = SideLength - positionIndex;
                     x += (positionIndex * HorizontalBuffer) + (playerBuffer * positionIndex);
                     y += SideLength;
+                    break;
+
+                case 1: // Left Border
+                    y += SideLength - positionIndex;
+                    break;
+
+                case 2: // Top border
+                    x += (positionIndex * HorizontalBuffer) + (playerBuffer * positionIndex);
+                    break;
+
+                case 3: // Right border
+                    x += (SideLength * HorizontalBuffer) + (playerBuffer * SideLength);
+                    y += positionIndex;
                     break;
 
                 default:
@@ -155,6 +155,13 @@ namespace Monopoly.Console.GUI
             Console.SetTextColor(color);
             Console.Write(text);
             Console.ResetColor();
+        }
+
+        internal static void DisplayPlayerTurn(Player player)
+        {
+            Console.SetPosition(1, 0);
+            Console.WriteLine($"{player.Name}'s Turn\n Press Enter To Roll Dice");
+            Console.ReadLine();
         }
     }
 }
