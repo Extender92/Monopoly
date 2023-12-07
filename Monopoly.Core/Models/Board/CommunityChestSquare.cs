@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models.Board
 {
-    internal class ComunityChestSquare : Square
+    internal class CommunityChestSquare : Square
     {
         public override void LandOn(Player player)
         {
