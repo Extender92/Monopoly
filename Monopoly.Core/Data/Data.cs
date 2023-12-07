@@ -163,47 +163,48 @@ namespace Monopoly.Core.Data
 
         internal static List<ChanceSquare> GetChanceSquareData(GameRules gameRules)
         {
-            throw new NotImplementedException();
+            return new List<ChanceSquare>(); // Return an empty list for now
         }
 
         internal static List<CommunityChestSquare> GetCommunityChestSquareData(GameRules gameRules)
         {
-            throw new NotImplementedException();
+            return new List<CommunityChestSquare>(); // Return an empty list for now
         }
 
         internal static List<GoSquare> GetGoSquareData(GameRules gameRules)
         {
-            throw new NotImplementedException();
+            return new List<GoSquare>(); // Return an empty list for now
         }
 
         internal static List<GoToJailSquare> GetGoToJailSquareData(GameRules gameRules)
         {
-            throw new NotImplementedException();
+            return new List<GoToJailSquare>(); // Return an empty list for now
         }
 
         internal static List<JailSquare> GetJailSquareData(GameRules gameRules)
         {
-            throw new NotImplementedException();
+            return new List<JailSquare>(); // Return an empty list for now
         }
 
         internal static List<ParkingSquare> GetParkingSquareData(GameRules gameRules)
         {
-            throw new NotImplementedException();
+            return new List<ParkingSquare>(); // Return an empty list for now
         }
 
         internal static List<RailroadSquare> GetRailroadSquareData(GameRules gameRules)
         {
-            throw new NotImplementedException();
+            return new List<RailroadSquare>(); // Return an empty list for now
         }
 
         internal static List<TaxSquare> GetTaxSquareData(GameRules gameRules)
         {
-            throw new NotImplementedException();
+            return new List<TaxSquare>(); // Return an empty list for now
         }
 
         internal static List<UtilitySquare> GetUtilitySquareData(GameRules gameRules)
         {
-            throw new NotImplementedException();
+            return new List<UtilitySquare>(); // Return an empty list for now
         }
+
     }
 }
