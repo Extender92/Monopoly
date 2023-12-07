@@ -8,10 +8,12 @@ namespace Monopoly.Core.Models.Board
 {
     internal class RailroadSquare : Square
     {
-        public RailroadSquare(int position)
+        public int Price { get; set; }
+        public RailroadSquare(int position, string info)
         {
             Position = position;
-            Info = "Railroad";
+            Info = info;
+            Price = 200;
         }
 
 
