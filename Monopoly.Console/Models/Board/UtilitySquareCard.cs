@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Console.Models.Board
 {
-    internal class ChanceSquareCard : SquareCard
+    internal class UtilitySquareCard : SquareCard
     {
+        public string Info { get; set; }
     }
 }

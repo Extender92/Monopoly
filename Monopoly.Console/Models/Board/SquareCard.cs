@@ -11,9 +11,7 @@ namespace Monopoly.Console.Models.Board
         public string Name { get; set; }
         public ConsoleColor BorderColor { get; set; }
         public int BoardPosition { get; set; }
-        public int Price { get; set; }
-        public int Mortgage { get; set; }
-        public List<string> InfoList { get; set; }
+        public string Info { get; set; }
 
     }
 }
