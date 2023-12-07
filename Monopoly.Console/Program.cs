@@ -155,15 +155,15 @@ namespace Monopoly.Console
                 List<string> rents = new List<string>
                 {
                     $"{card.Rent}",
-                    $"{card.RentWithColor}",
-                    $"{card.RentOneHouses}",
+                    $"{card.RentWithColorGroup}",
+                    $"{card.RentOneHouse}",
                     $"{card.RentTwoHouses}",
                     $"{card.RentThreeHouses}",
                     $"{card.RentFourHouses}",
-                    $"{card.RentHotels}",
-                    $"{card.HousesCost}",
-                    $"{card.HotelsCost}",
-                    $"{card.HotelsCost}",
+                    $"{card.RentHotel}",
+                    $"{card.BuildHouseCost}",
+                    $"{card.BuildHotelCost}",
+                    $"{card.BuildHotelCost}",
                     $"{card.Price}",
                     $"{card.MortgageValue}"
                 };
