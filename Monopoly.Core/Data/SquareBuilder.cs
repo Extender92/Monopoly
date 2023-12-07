@@ -12,7 +12,7 @@ namespace Monopoly.Core.Data
         internal static List<Square> GetBoardSquares(GameRules gameRules)
         {
             List<ChanceSquare> chanceSquareList = Data.GetChanceSquareData(gameRules);
-            List<CommunityChestSquare> communityChestSquareList = Data.GetComunityChestSquareData(gameRules);
+            List<CommunityChestSquare> communityChestSquareList = Data.GetCommunityChestSquareData(gameRules);
             List<GoSquare> goSquareList = Data.GetGoSquareData(gameRules);
             List<GoToJailSquare> goToJailSquareList = Data.GetGoToJailSquareData(gameRules);
             List<JailSquare> jailSquareList = Data.GetJailSquareData(gameRules);

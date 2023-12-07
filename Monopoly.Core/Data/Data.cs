@@ -166,7 +166,7 @@ namespace Monopoly.Core.Data
             throw new NotImplementedException();
         }
 
-        internal static List<CommunityChestSquare> GetComunityChestSquareData(GameRules gameRules)
+        internal static List<CommunityChestSquare> GetCommunityChestSquareData(GameRules gameRules)
         {
             throw new NotImplementedException();
         }
