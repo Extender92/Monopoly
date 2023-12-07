@@ -131,18 +131,29 @@ namespace Monopoly.Tests.CoreTests
         [Fact]
         public void GetChanceCardsReturnsValidChance()
         {
-            //Arrange
-            var chanceCard = Data.GetChanceCardData(new Core.GameRules(0, 0, 0));
+            // Arrange
+            var gameRulesUK = new Core.GameRules(0, 0, 0) { GameLanguage = Core.GameRules.Language.UK };
+            var gameRulesUS = new Core.GameRules(0, 0, 0) { GameLanguage = Core.GameRules.Language.US };
 
-            //Act and Assert
-            foreach(var card in chanceCard)
+            // Act
+            var chanceCardsUK = Data.GetChanceCardData(gameRulesUK);
+            var chanceCardsUS = Data.GetChanceCardData(gameRulesUS);
+
+            // Assert
+            foreach (var card in chanceCardsUK)
             {
                 Assert.NotNull(card);
                 Assert.NotNull(card.Info);
-                Assert.IsType<ChanceSquare>(card);
+                Assert.IsType<UKChanceCard>(card); 
+            }
+
+            foreach (var card in chanceCardsUS)
+            {
+                Assert.NotNull(card);
+                Assert.NotNull(card.Info);
+                Assert.IsType<USChanceCard>(card); 
             }
         }
-
         [Fact]
         public void CanCreateOneCommunityChestCard()
         {
@@ -161,15 +172,27 @@ namespace Monopoly.Tests.CoreTests
         [Fact]
         public void GetCommunityChestCardsReturnsValidCommunityChest()
         {
-            //Arrange
-            var communityChestCard = Data.GetCommunityChestCardData(new Core.GameRules(0, 0, 0));
+            // Arrange
+            var gameRulesUK = new Core.GameRules(0, 0, 0) { GameLanguage = Core.GameRules.Language.UK };
+            var gameRulesUS = new Core.GameRules(0, 0, 0) { GameLanguage = Core.GameRules.Language.US };
 
-            //Act and Assert
-            foreach (var card in communityChestCard)
+            // Act
+            var communityChestCardsUK = Data.GetCommunityChestCardData(gameRulesUK);
+            var communityChestCardsUS = Data.GetCommunityChestCardData(gameRulesUS);
+
+            // Assert
+            foreach (var card in communityChestCardsUK)
             {
                 Assert.NotNull(card);
                 Assert.NotNull(card.Info);
-                Assert.IsType<ICommunityChestCard>(card);
+                Assert.IsType<UKCommunityChestCard>(card); // Update the type here
+            }
+
+            foreach (var card in communityChestCardsUS)
+            {
+                Assert.NotNull(card);
+                Assert.NotNull(card.Info);
+                Assert.IsType<USCommunityChestCard>(card); // Update the type here
             }
         }
     }

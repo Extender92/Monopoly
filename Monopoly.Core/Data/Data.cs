@@ -163,47 +163,99 @@ namespace Monopoly.Core.Data
 
         internal static List<ChanceSquare> GetChanceSquareData(GameRules gameRules)
         {
-            return new List<ChanceSquare>(); // Return an empty list for now
+            List<ChanceSquare> chanceSquares = new List<ChanceSquare>();
+            List<IChanceCard> chanceCards = GetChanceCardData(gameRules);
+
+            foreach (var chanceCard in chanceCards)
+            {
+                chanceSquares.Add(new ChanceSquare(7));
+                chanceSquares.Add(new ChanceSquare(22));
+                chanceSquares.Add(new ChanceSquare(36));
+            }
+
+            return chanceSquares;
         }
 
         internal static List<CommunityChestSquare> GetCommunityChestSquareData(GameRules gameRules)
         {
-            return new List<CommunityChestSquare>(); // Return an empty list for now
+            List<CommunityChestSquare> communityChestSquares = new List<CommunityChestSquare>();
+            List<ICommunityChestCard> communityChestCards = GetCommunityChestCardData(gameRules);
+            foreach (var communityChestCard in communityChestCards)
+            {
+                communityChestSquares.Add(new CommunityChestSquare(2));
+                communityChestSquares.Add(new CommunityChestSquare(17));
+                communityChestSquares.Add(new CommunityChestSquare(33));
+            }
+            return communityChestSquares;
         }
 
         internal static List<GoSquare> GetGoSquareData(GameRules gameRules)
         {
-            return new List<GoSquare>(); // Return an empty list for now
+            List<GoSquare> goSquares = new List<GoSquare>
+            {
+                 new GoSquare()
+            };
+            return goSquares;
         }
 
         internal static List<GoToJailSquare> GetGoToJailSquareData(GameRules gameRules)
         {
-            return new List<GoToJailSquare>(); // Return an empty list for now
+            List<GoToJailSquare> goToJailSquares = new List<GoToJailSquare>
+            {
+                new GoToJailSquare()
+            };
+
+            return goToJailSquares;
         }
 
         internal static List<JailSquare> GetJailSquareData(GameRules gameRules)
         {
-            return new List<JailSquare>(); // Return an empty list for now
+            List<JailSquare> jailSquares = new List<JailSquare> 
+            {
+                new JailSquare() 
+            };
+            return jailSquares;
         }
 
         internal static List<ParkingSquare> GetParkingSquareData(GameRules gameRules)
         {
-            return new List<ParkingSquare>(); // Return an empty list for now
+            List<ParkingSquare> parkingSquares = new List<ParkingSquare> 
+            { 
+                new ParkingSquare() 
+            };
+            return parkingSquares;
         }
 
         internal static List<RailroadSquare> GetRailroadSquareData(GameRules gameRules)
         {
-            return new List<RailroadSquare>(); // Return an empty list for now
+            List<RailroadSquare> railroadSquares = new List<RailroadSquare>
+            {
+                new RailroadSquare(5,"Kings Cross Station"),
+                new RailroadSquare(15, "Marylebone Station"),
+                new RailroadSquare(25, "Fenchurch Street Station"),
+                new RailroadSquare(35,"Liverpool Street Station")
+            };
+            return railroadSquares;
         }
 
         internal static List<TaxSquare> GetTaxSquareData(GameRules gameRules)
         {
-            return new List<TaxSquare>(); // Return an empty list for now
+            List<TaxSquare> taxSquares = new List<TaxSquare>
+            {
+                new TaxSquare(4,200, "Income Tax"),
+                new TaxSquare(38,100, "Luxury Tax")
+            };
+            return taxSquares;
         }
 
         internal static List<UtilitySquare> GetUtilitySquareData(GameRules gameRules)
         {
-            return new List<UtilitySquare>(); // Return an empty list for now
+            List<UtilitySquare> utilitySquares = new List<UtilitySquare>
+            {
+                new UtilitySquare(12, "Electric Company"),
+                new UtilitySquare(27, "Water Works")
+            };
+            return utilitySquares;
         }
 
     }
