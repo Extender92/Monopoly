@@ -8,16 +8,34 @@ namespace Monopoly.Core.Models.Board
 {
     internal class UtilitySquare : Square
     {
-        public int Price { get; set; }  
-        public UtilitySquare(int position , string info)
+        public int Price { get; set; }
+        public Player Owner { get; set; }
+        public int RentOneUtitlty { get; set; }
+        public int RentTwoUtitlty {  get; set; }
+        public UtilitySquare(int position, string info, int rentOneUtitlty, int rentTwoUtitlty)
         {
             Position = position;
             Info = info;
             Price = 150;
+            RentOneUtitlty = rentOneUtitlty;
+            RentTwoUtitlty = rentTwoUtitlty;
         }
         public override void LandOn(Player player)
         {
-            // Logic for when a player lands on
+            if(this.Owner is null)
+            {
+                // buy utility method
+            }
+            else
+            {
+                int rent = 0;
+
+                //Check utilitys owned 
+                // one owned rent = DiceSum * OneUtitlty
+                // Two owned rent = DiceSum * TwoUtitlty
+                player.PayRent(this.Owner, rent);
+              
+            }
         }
     }
 }
