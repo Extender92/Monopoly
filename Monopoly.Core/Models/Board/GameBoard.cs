@@ -9,7 +9,7 @@ namespace Monopoly.Core.Models.Board
 {
     internal class GameBoard
     {
-        private List<Square> Squares; // Array or list of all squares on the board
+        internal List<Square> Squares; // Array or list of all squares on the board
 
         public GameBoard(GameRules gameRules)
         {

@@ -16,13 +16,11 @@ namespace Monopoly.Console
     {
         private readonly IConsoleWrapper _console;
 
-        private Game Game { get; set; }
         private List<TablePiece> TablePieces { get; set; }
 
-        public Run(Game game, List<TablePiece> tablePieces)
+        public Run(List<TablePiece> tablePieces)
         {
             _console = new ConsoleWrapper();
-            Game = game;
             TablePieces = tablePieces;
         }
 

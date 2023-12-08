@@ -118,7 +118,7 @@ namespace Monopoly.Console
             GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
             ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules);
             gameSetup.Setup();
-            Run run = new Run(gameSetup.TheGame, gameSetup.TablePieces);
+            Run run = new Run(gameSetup.TablePieces);
             run.RunGame();
         }
 

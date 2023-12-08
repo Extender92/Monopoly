@@ -8,23 +8,14 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core
 {
-    internal class Game
+    internal static class Game
     {
-        internal GameBoard Board { get; set; }
-        internal List<Player> Players  { get; set;}
-        internal List<IDie> Dice { get; set; }
-        private EventHandler Events { get; set; }
-        internal GameRules Rules { get; set; }
+        internal static GameBoard Board { get; set; }
+        internal static List<Player> Players  { get; set;}
+        internal static List<IDie> Dice { get; set; }
+        internal static GameRules Rules { get; set; }
 
-        public Game(List<IDie> dice, List<Player> players, GameRules rules)
-        {
-            Board = new GameBoard(rules);
-            Players = players;
-            Dice = dice;
-            //Events = new EventHandler();
-            Rules = rules;
-        }
-        internal void PlayerTurn(Player player)
+        internal static void PlayerTurn(Player player)
         {
             int diceSum = RollDiceAndReturnSum();
 
@@ -38,7 +29,7 @@ namespace Monopoly.Core
             Winning(Players.FirstOrDefault());
         }
 
-        private int RollDiceAndReturnSum()
+        private static int RollDiceAndReturnSum()
         {
             int diceSum = 0;
             foreach (Die die in Dice)
@@ -49,7 +40,7 @@ namespace Monopoly.Core
             return diceSum;
         }
 
-        private void Winning(Player player)
+        private static void Winning(Player player)
         {
             if (player is null) { return; }
             // Win method todo //
