@@ -40,14 +40,14 @@ namespace Monopoly.Tests.CoreTests
             Assert.Equal(color, street.Color);
             Assert.Equal(name, street.Name);
             Assert.Equal(rent, street.Rent);
-            Assert.Equal(rentWithColor, street.RentWithColor);
-            Assert.Equal(rentOneHouse, street.RentOneHouses);
+            Assert.Equal(rentWithColor, street.RentWithColorGroup);
+            Assert.Equal(rentOneHouse, street.RentOneHouse);
             Assert.Equal(rentTwoHouses, street.RentTwoHouses);
             Assert.Equal(rentThreeHouses, street.RentThreeHouses);
             Assert.Equal(rentFourHouses, street.RentFourHouses);
-            Assert.Equal(rentHotels, street.RentHotels);
-            Assert.Equal(housesCost, street.HousesCost);
-            Assert.Equal(hotelsCost, street.HotelsCost);
+            Assert.Equal(rentHotels, street.RentHotel);
+            Assert.Equal(housesCost, street.BuildHouseCost);
+            Assert.Equal(hotelsCost, street.BuildHotelCost);
             Assert.Equal(price, street.Price);
             Assert.Equal(mortgageValue, street.MortgageValue);
 
@@ -73,14 +73,14 @@ namespace Monopoly.Tests.CoreTests
             Assert.Equal(color, street.Color);
             Assert.Equal(name, street.Name);
             Assert.Equal(rent, street.Rent);
-            Assert.Equal(rentWithColor, street.RentWithColor);
-            Assert.Equal(rentOneHouse, street.RentOneHouses);
+            Assert.Equal(rentWithColor, street.RentWithColorGroup);
+            Assert.Equal(rentOneHouse, street.RentOneHouse);
             Assert.Equal(rentTwoHouses, street.RentTwoHouses);
             Assert.Equal(rentThreeHouses, street.RentThreeHouses);
             Assert.Equal(rentFourHouses, street.RentFourHouses);
-            Assert.Equal(rentHotels, street.RentHotels);
-            Assert.Equal(housesCost, street.HousesCost);
-            Assert.Equal(hotelsCost, street.HotelsCost);
+            Assert.Equal(rentHotels, street.RentHotel);
+            Assert.Equal(housesCost, street.BuildHouseCost);
+            Assert.Equal(hotelsCost, street.BuildHotelCost);
             Assert.Equal(price, street.Price);
             Assert.Equal(mortgageValue, street.MortgageValue);
         }

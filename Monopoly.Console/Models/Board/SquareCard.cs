@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monopoly.Console.Models
+namespace Monopoly.Console.Models.Board
 {
-    internal class Card
+    internal abstract class SquareCard
     {
         public string Name { get; set; }
         public ConsoleColor BorderColor { get; set; }
+        public int BoardPosition { get; set; }
+        public string Info { get; set; }
 
     }
 }
