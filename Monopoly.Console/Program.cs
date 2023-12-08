@@ -189,7 +189,7 @@ namespace Monopoly.Console
 
         }
 
-        public static void DrawchanceCards(GameRules rules)
+        public static void DrawChanceCards(GameRules rules)
         {
             List<string> chanceInfoLines = new List<string>
             {
