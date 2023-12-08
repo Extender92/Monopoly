@@ -9,7 +9,6 @@ namespace Monopoly.Core.Models.Board
     internal class UtilitySquare : Square
     {
         public int Price { get; set; }
-        public Player Owner { get; set; }
         public int RentOneUtitlty { get; set; }
         public int RentTwoUtitlty {  get; set; }
         public UtilitySquare(int position, string info, int price, int rentOneUtitlty, int rentTwoUtitlty)

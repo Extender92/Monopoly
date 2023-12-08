@@ -23,7 +23,6 @@ namespace Monopoly.Core.Models.Board
         public int Price { get; set; }
         public int MortgageValue { get; set; }
 
-        public Player Owner { get; set; }
 
         public PropertySquare(ConsoleColor color, string name, int rent, int rentWithColorGroup,
                int rentOneHouse, int rentTwoHouses, int rentThreeHouses, int rentFourHouses,

@@ -8,17 +8,17 @@ namespace Monopoly.Core.Models.Board
 {
     internal class TaxSquare : Square
     {
-        public int TaxAmmount { get; set; }
-        public TaxSquare(int position, int price, string info)
+        public int TaxAmount { get; set; }
+        public TaxSquare(int position, int tax, string info)
         {
             Position = position;
             Info = info;
-            TaxAmmount = price;
+            TaxAmount = tax;
         }
 
         public override void LandOn(Player player)
         {
-            player.Money -= this.TaxAmmount;
+            player.Money -= this.TaxAmount;
           
         }
     }

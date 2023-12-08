@@ -16,10 +16,10 @@ namespace Monopoly.Core.Models
         public bool InJail { get; set; } = false;
         //public Die DieSum { get; set; }
 
-        public void Buy(PropertySquare street)
+        public void Buy(Square square)
         {
-            Money -= street.Price;
-            street.Owner = this;
+            //Money -= square.Price;
+            //square.Owner = this;
         }
 
         public void PayRent(Player player , int rent)

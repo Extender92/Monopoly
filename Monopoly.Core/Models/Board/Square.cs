@@ -11,7 +11,7 @@ namespace Monopoly.Core.Models.Board
         public int EventId { get; set; }
         public int Position { get; set; }
         public string Info { get; set; }
-
+        public Player? Owner { get; set; }
         public abstract void LandOn(Player player);
     }
 }

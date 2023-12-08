@@ -9,7 +9,6 @@ namespace Monopoly.Core.Models.Board
     internal class RailroadSquare : Square
     {
         public int Price { get; set; }
-        public Player Owner { get; set; }   
         public int RentOneStation {  get; set; }
         public int RentTwoStation {  get; set; }
         public int RentThreeStation {  get; set; }
@@ -28,49 +27,24 @@ namespace Monopoly.Core.Models.Board
 
         public override void LandOn(Player player)
         {
-            var currentLocation = this;
-            if (player != null)
+            if (Owner == null)
             {
-                RailroadSquare landedStation = Data.Data.GetRailroadSquareData(null)
-                    .FirstOrDefault(station => station.Position == player.Position);
 
-                if (landedStation != null)
-                {
-                    Player owner = landedStation.Owner;
-                    if (owner != null && owner != player)
-                    {
-                        int ownedStations = CountOwnedStations(owner);
-                        int rent = CalculateRent(ownedStations);
-                        player.Money -= rent;
-                    }
-                }
             }
             else
             {
-                throw new ArgumentNullException(nameof(player), "Player cannot be null.");
-            }
-        }
+                int ownedStations = 0;
 
-        private int CountOwnedStations(Player player)
-        {
-            Data.Data.GetRailroadSquareData(null).ForEach(station => player.LandOnSquare(station));
-            return Data.Data.GetRailroadSquareData(null).Count(station => station.Owner == player);
-        }
+                // Iterate through all the RailroadSquare instances on the board
+                foreach (Square square in Game.Board.Squares)
+                {
+                    if (square is RailroadSquare railroadSquare)
+                        // Check if the current square has the same owner and is not the current square
+                        if (railroadSquare.Owner != null && railroadSquare.Owner == Owner && railroadSquare != this)
+                            ownedStations++;
+                }
 
-        private int CalculateRent(int ownedStations)
-        {
-            switch (ownedStations)
-            {
-                case 1:
-                    return 25;
-                case 2:
-                    return 50;
-                case 3:
-                    return 100;
-                case 4:
-                    return 200;
-                default:
-                    return 0; 
+
             }
         }
     }

@@ -31,7 +31,7 @@ namespace Monopoly.Tests.CoreTests
             // Assert
             Assert.Equal(expectedPosition, tax.Position);
             Assert.Equal(expectedInfo, tax.Info);
-            Assert.Equal(expectedPrice, tax.TaxAmmount);
+            Assert.Equal(expectedPrice, tax.TaxAmount);
         }
 
 
@@ -228,13 +228,13 @@ namespace Monopoly.Tests.CoreTests
                 item =>
                 {
                     Assert.Equal(expectedFirstPositionTax, item.Position);
-                    Assert.Equal(200, item.TaxAmmount);
+                    Assert.Equal(200, item.TaxAmount);
                     Assert.Equal("Income Tax", item.Info);
                 },
                 item =>
                 {
                     Assert.Equal(expectedSecondPositionTax, item.Position);
-                    Assert.Equal(100, item.TaxAmmount);
+                    Assert.Equal(100, item.TaxAmount);
                     Assert.Equal("Luxury Tax", item.Info);
                 }
             );
