@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Monopoly.Console.Models.Board;
 
-namespace Monopoly.Console.Models
+namespace Monopoly.Console.Models.Board
 {
-    internal class DrawCards
+    internal class UtilitySquareCard : SquareCard
     {
-        public int Id { get; set; }
         public string Info { get; set; }
     }
 }

@@ -12,35 +12,35 @@ namespace Monopoly.Core.Models.Board
         public ConsoleColor Color { get; set; }
         public string Name { get; set; }
         public int Rent { get; set; }
-        public int RentWithColor { get; set; }
-        public int RentOneHouses { get; set; }
+        public int RentWithColorGroup { get; set; }
+        public int RentOneHouse { get; set; }
         public int RentTwoHouses { get; set; }
         public int RentThreeHouses { get; set; }
         public int RentFourHouses { get; set; }
-        public int RentHotels { get; set; }
-        public int HousesCost { get; set; }
-        public int HotelsCost { get; set; }
+        public int RentHotel { get; set; }
+        public int BuildHouseCost { get; set; }
+        public int BuildHotelCost { get; set; }
         public int Price { get; set; }
         public int MortgageValue { get; set; }
 
         public Player Owner { get; set; }
 
-        public PropertySquare(ConsoleColor color, string name, int rent, int rentWithColor,
+        public PropertySquare(ConsoleColor color, string name, int rent, int rentWithColorGroup,
                int rentOneHouse, int rentTwoHouses, int rentThreeHouses, int rentFourHouses,
-               int rentHotels, int housesCost, int hotelsCost, int price, int mortgageValue, int position)
+               int rentHotel, int buildHouseCost, int buildHotelCost, int price, int mortgageValue, int position)
         {
 
             Color = color;
             Name = name;
             Rent = rent;
-            RentWithColor = rentWithColor;
-            RentOneHouses = rentOneHouse;
+            RentWithColorGroup = rentWithColorGroup;
+            RentOneHouse = rentOneHouse;
             RentTwoHouses = rentTwoHouses;
             RentThreeHouses = rentThreeHouses;
             RentFourHouses = rentFourHouses;
-            RentHotels = rentHotels;
-            HousesCost = housesCost;
-            HotelsCost = hotelsCost;
+            RentHotel = rentHotel;
+            BuildHouseCost = buildHouseCost;
+            BuildHotelCost = buildHotelCost;
             Price = price;
             MortgageValue = mortgageValue;
             Position = position;

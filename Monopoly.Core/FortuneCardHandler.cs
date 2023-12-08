@@ -12,12 +12,10 @@ namespace Monopoly.Core
     {
         private Queue<IChanceCard> ChanceQueue { get; set; }
         private Queue<ICommunityChestCard> CommunityChestQueue { get; set; }
-        private Random Random { get; }
 
         public FortuneCardHandler(GameRules gameRules)
         {
             InitializeQueues(gameRules);
-            Random = new Random();
         }
 
         private void InitializeQueues(GameRules gameRules)
@@ -29,8 +27,9 @@ namespace Monopoly.Core
 
         private void ShuffleQueues()
         {
-            ChanceQueue = new Queue<IChanceCard>(ChanceQueue.OrderBy(c => Random.Next()));
-            CommunityChestQueue = new Queue<ICommunityChestCard>(CommunityChestQueue.OrderBy(c => Random.Next()));
+            Random random = new Random();
+            ChanceQueue = new Queue<IChanceCard>(ChanceQueue.OrderBy(c => random.Next()));
+            CommunityChestQueue = new Queue<ICommunityChestCard>(CommunityChestQueue.OrderBy(c => random.Next()));
         }
 
         internal IChanceCard DrawNextChanceCard()
