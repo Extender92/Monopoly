@@ -111,7 +111,7 @@ namespace Monopoly.Console.Builder
                     $"{property.RentFourHouses}{Currency}",
                     $"{property.RentHotel}{Currency}",
                 },
-                Info = $"Mortage Value {property.MortgageValue}{Currency}. Houses Cost {property.BuildHouseCost}{Currency} each. " +
+                Info = $"Mortgage Value {property.MortgageValue}{Currency}. Houses Cost {property.BuildHouseCost}{Currency} each. " +
                 $"Hotels Cost {property.BuildHouseCost}{Currency} plus 4 houses"
             };
 
