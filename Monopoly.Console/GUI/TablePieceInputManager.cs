@@ -25,19 +25,20 @@ namespace Monopoly.Console.GUI
                 do
                 {
                     tablePiece.Piece = GetUserSelectedPieceKey(playerId, tablePieces);
-                    _console.Write("\n You entered: " + tablePiece.Piece + "\n Do you want to continue?");
+                    _console.Write("\n You entered: " + tablePiece.Piece);
 
-                } while (!Input.GetUserConfirmation());
+                    //_console.Write("\n Do you want to continue?");
+                } while (/*!Input.GetUserConfirmation()*/ false);
 
                 do
                 {
                     tablePiece.Color = GetUserSelectedColor(playerId, tablePieces);
 
-                    _console.Write("\n You selected color: ");
-                    ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
-                    _console.WriteLine("\n Do you want to continue?");
+                    //_console.Write("\n You selected color: ");
+                    //ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
 
-                } while (!Input.GetUserConfirmation());
+                    //_console.WriteLine("\n Do you want to continue?");
+                } while (/*!Input.GetUserConfirmation()*/ false);
 
                 _console.Write("\n You entered: ");
                 ConsolePrinter.PrintColoredText(tablePiece.Piece, tablePiece.Color);

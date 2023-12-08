@@ -8,10 +8,10 @@ namespace Monopoly.Core.Models.Board
 {
     internal class CommunityChestSquare : Square
     {
-        public CommunityChestSquare(int position)
+        public CommunityChestSquare(int position, string info)
         {
             Position = position;
-            Info = "Community Chest";
+            Info = info;
         }
         public override void LandOn(Player player)
         {

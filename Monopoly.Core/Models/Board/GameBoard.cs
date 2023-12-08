@@ -16,9 +16,9 @@ namespace Monopoly.Core.Models.Board
             Squares = SquareBuilder.GetBoardSquares(gameRules);
         }
 
-        public void HandlePlayerLanding(Player player, int position)
+        public void HandlePlayerLanding(Player player)
         {
-            Squares.First(s => s.Position == position).LandOn(player);
+            Squares.First(s => s.Position == player.Position).LandOn(player);
         }
 
         internal Square GetSquareAtPosition(int position)

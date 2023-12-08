@@ -3,10 +3,10 @@
     internal class GoSquare : Square
     {
 
-        public GoSquare()
+        public GoSquare(int position, string info)
         {
-            Position = 0;
-            Info = "Go";
+            Position = position;
+            Info = info;
         }
         public override void LandOn(Player player)
         {

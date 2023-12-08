@@ -12,11 +12,11 @@ namespace Monopoly.Core.Models.Board
         public Player Owner { get; set; }
         public int RentOneUtitlty { get; set; }
         public int RentTwoUtitlty {  get; set; }
-        public UtilitySquare(int position, string info, int rentOneUtitlty, int rentTwoUtitlty)
+        public UtilitySquare(int position, string info, int price, int rentOneUtitlty, int rentTwoUtitlty)
         {
             Position = position;
             Info = info;
-            Price = 150;
+            Price = price;
             RentOneUtitlty = rentOneUtitlty;
             RentTwoUtitlty = rentTwoUtitlty;
         }

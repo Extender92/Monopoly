@@ -105,19 +105,17 @@ namespace Monopoly.Console
 
             //}
 
+            //DrawPropertyCards(gameRules);
 
 
             int numberOfDice = 2;
             int dieSides = 6;
-            int numberOfPlayers = 1;
-            GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
-            DrawPropertyCards(gameRules);
             System.Console.WriteLine("How many players?");
-            List<string> choices = Helpers.StringHelper.CreateStringList("1", "2", "3", "4", "5", "6", "7", "8");
-            int index = MenuOptionSelector.GetSelectedOption(choices);
-            //int numberOfPlayers = index + 1;
+            List<string> choices = Helpers.StringHelper.CreateStringList("2", "3", "4", "5", "6", "7", "8");
+            int index = MenuOptionSelector.GetSelectedOption(choices, 0, 3);
+            int numberOfPlayers = index + 2;
 
-            //GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
+            GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
             ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules);
             gameSetup.Setup();
             Run run = new Run(gameSetup.TheGame, gameSetup.TablePieces);

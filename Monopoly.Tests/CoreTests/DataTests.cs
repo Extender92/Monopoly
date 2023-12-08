@@ -21,13 +21,17 @@ namespace Monopoly.Tests.CoreTests
             int expectedPosition = 10;
             int expectedPrice = 150;
             string expectedInfo = "Test info";
+
             // Act
-            var tax = new TaxSquare(expectedPosition, expectedPrice, expectedInfo);
+            string info = "Test info";
+            int Position = 10;
+            int Price = 150;
+            var tax = new TaxSquare(Position, Price, info);
 
             // Assert
             Assert.Equal(expectedPosition, tax.Position);
             Assert.Equal(expectedInfo, tax.Info);
-            Assert.Equal(expectedPrice, tax.Price);
+            Assert.Equal(expectedPrice, tax.TaxAmmount);
         }
 
 
@@ -38,60 +42,92 @@ namespace Monopoly.Tests.CoreTests
             // Arrange
             int expectedPosition = 5;
             string expectedInfo = "Test info";
+            int expectedPrice = 200;
 
             // Act
-            var railroad = new RailroadSquare(expectedPosition, expectedInfo);
+            int position = 5;
+            int price = 200;
+            int rentOneStation = 25;
+            int rentTwoStation = 50;
+            int rentThreeStation = 100;
+            int rentFourStation = 200;
+            string info = "Test info";
+            var railroad = new RailroadSquare(position, info, price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation);
 
             // Assert
             Assert.Equal(expectedPosition, railroad.Position);
             Assert.Equal(expectedInfo, railroad.Info);
-            Assert.Equal(200, railroad.Price);
+            Assert.Equal(expectedPrice, railroad.Price);
         }
 
         [Fact]
         public void ParkingSpaceSetsPositionAndInfoCorrectly() // ParkingSpaceTest
         {
+            // Arrange
+            int expectedPosition = 20;
+            string expectedInfo = "Free Parking";
+
             // Act
-            var parkingSpace = new ParkingSquare();
+            int position = 20;
+            string info = "Free Parking";
+            var parkingSpace = new ParkingSquare(position, info);
 
             // Assert
-            Assert.Equal(20, parkingSpace.Position);
-            Assert.Equal("Free Parking", parkingSpace.Info);
+            Assert.Equal(expectedPosition, parkingSpace.Position);
+            Assert.Equal(expectedInfo, parkingSpace.Info);
         }
 
         [Fact]
         public void JailSpaceSetsPositionAndInfoCorrectly() // JailSpaceTest
         {
+            // Arrange
+            int expectedPosition = 30;
+            string expectedInfo = "Go To Jail";
+
             // Act
-            var jailSpace = new GoToJailSquare();
+            int position = 30;
+            string info = "Go To Jail";
+            var jailSpace = new GoToJailSquare(position, info);
 
             // Assert
-            Assert.Equal(30, jailSpace.Position);
-            Assert.Equal("Go To Jail", jailSpace.Info);
+            Assert.Equal(expectedPosition, jailSpace.Position);
+            Assert.Equal(expectedInfo, jailSpace.Info);
         }
 
         [Fact]
         public void JailSetsPositionAndInfoCorrectly() // JailTest
         {
+            // Arrange
+            int expectedPosition = 10;
+            string expectedInfo = "Visiting Jail";
+            string expectedInJail = "In Jail";
+
             // Act
-            var jail = new JailSquare();
+            int position = 10;
+            string info = "Visiting Jail";
+            string inJail = "In Jail";
+            var jail = new JailSquare(position, info, inJail);
 
             // Assert
-            Assert.Equal(10, jail.Position);
-            Assert.Equal("Visiting Jail", jail.Info);
+            Assert.Equal(expectedPosition, jail.Position);
+            Assert.Equal(expectedInfo, jail.Info);
+            Assert.Equal(expectedInJail, jail.InJail);
         }
 
         [Fact]
         public void GoSpaceSetsPositionAndInfoCorrectly()  //  GoSpaceTest
         {
             //Arrange 
+            int ExpectedPosition = 0;
             var expectedInfo = "Go";
 
             // Act
-            var goSpace = new GoSquare();
+            int position = 0;
+            var info = "Go";
+            var goSpace = new GoSquare(position, info);
 
             // Assert
-            Assert.Equal(0, goSpace.Position);
+            Assert.Equal(ExpectedPosition, goSpace.Position);
             Assert.Equal(expectedInfo, goSpace.Info);
         }
 
@@ -100,14 +136,25 @@ namespace Monopoly.Tests.CoreTests
         {
             // Arrange
             int expectedPosition = 12;
+            var expectedInfo = "Utility";
+            int expectedPrice = 150;
+            int expectedRentOneUtility = 4;
+            int expectedRentTwoUtility = 10;
 
             // Act
-            var utility = new UtilitySquare(expectedPosition, "Utility");
+            int position = 12;
+            var info = "Utility";
+            int price = 150;
+            int rentOneUtility = 4;
+            int rentTwoUtility = 10;
+            var utility = new UtilitySquare(position, info, price, rentOneUtility, rentTwoUtility);
 
             // Assert
             Assert.Equal(expectedPosition, utility.Position);
-            Assert.Equal("Utility", utility.Info);
-            Assert.Equal(150, utility.Price);
+            Assert.Equal(expectedInfo, utility.Info);
+            Assert.Equal(expectedPrice, utility.Price);
+            Assert.Equal(expectedRentOneUtility, utility.RentOneUtitlty);
+            Assert.Equal(expectedRentTwoUtility, utility.RentTwoUtitlty);
         }
 
         [Fact]
@@ -181,13 +228,13 @@ namespace Monopoly.Tests.CoreTests
                 item =>
                 {
                     Assert.Equal(expectedFirstPositionTax, item.Position);
-                    Assert.Equal(200, item.Price);
+                    Assert.Equal(200, item.TaxAmmount);
                     Assert.Equal("Income Tax", item.Info);
                 },
                 item =>
                 {
                     Assert.Equal(expectedSecondPositionTax, item.Position);
-                    Assert.Equal(100, item.Price);
+                    Assert.Equal(100, item.TaxAmmount);
                     Assert.Equal("Luxury Tax", item.Info);
                 }
             );
