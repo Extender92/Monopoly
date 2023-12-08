@@ -228,12 +228,16 @@ namespace Monopoly.Core.Data
 
         internal static List<RailroadSquare> GetRailroadSquareData(GameRules gameRules)
         {
+            int rentOneStation = 25;
+            int rentTwoStation = 50;
+            int rentThreeStation = 100;
+            int rentFourStation = 200;
             List<RailroadSquare> railroadSquares = new List<RailroadSquare>
             {
-                new RailroadSquare(5,"Kings Cross Station"),
-                new RailroadSquare(15, "Marylebone Station"),
-                new RailroadSquare(25, "Fenchurch Street Station"),
-                new RailroadSquare(35,"Liverpool Street Station")
+                new RailroadSquare(5,"Kings Cross Station", rentOneStation, rentTwoStation,rentThreeStation,rentFourStation),
+                new RailroadSquare(15, "Marylebone Station", rentOneStation, rentTwoStation,rentThreeStation,rentFourStation),
+                new RailroadSquare(25, "Fenchurch Street Station", rentOneStation, rentTwoStation,rentThreeStation,rentFourStation),
+                new RailroadSquare(35,"Liverpool Street Station", rentOneStation, rentTwoStation,rentThreeStation,rentFourStation)
             };
             return railroadSquares;
         }
@@ -250,10 +254,13 @@ namespace Monopoly.Core.Data
 
         internal static List<UtilitySquare> GetUtilitySquareData(GameRules gameRules)
         {
+            int rentOneUtility = 4;
+            int rentTwoUtility = 10;
+
             List<UtilitySquare> utilitySquares = new List<UtilitySquare>
             {
-                new UtilitySquare(12, "Electric Company"),
-                new UtilitySquare(27, "Water Works")
+                new UtilitySquare(12, "Electric Company", rentOneUtility, rentTwoUtility),
+                new UtilitySquare(27, "Water Works", rentOneUtility, rentTwoUtility)
             };
             return utilitySquares;
         }

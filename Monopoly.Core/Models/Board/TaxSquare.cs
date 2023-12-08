@@ -18,7 +18,8 @@ namespace Monopoly.Core.Models.Board
 
         public override void LandOn(Player player)
         {
-            // Logic for when a player lands on
+            player.Money -= this.Price;
+          
         }
     }
 }

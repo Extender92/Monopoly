@@ -14,6 +14,7 @@ namespace Monopoly.Core.Models
         public int Money { get; set; } = 3000;
         public int Position { get; set; } = 0;
         public bool InJail { get; set; } = false;
+        //public Die DieSum { get; set; }
 
         public void Buy(PropertySquare street)
         {
@@ -21,10 +22,10 @@ namespace Monopoly.Core.Models
             street.Owner = this;
         }
 
-        public void PayRent(PropertySquare street)
+        public void PayRent(Player player , int rent)
         {
-            Money -= street.Price;
-            street.Owner.Money += street.Price;
+            Money -= rent;
+            player.Money += rent;
         }
 
         public void Sell(PropertySquare street)
