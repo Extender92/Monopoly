@@ -34,7 +34,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        private static void PrintSingleSide(int playerBuffer, int side, int startSidePosition, List<Player> players, List<TablePiece> tablePieces)
+        internal static void PrintSingleSide(int playerBuffer, int side, int startSidePosition, List<Player> players, List<TablePiece> tablePieces)
         {
             int x, y;
 
@@ -53,7 +53,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        private static void GetPositionCoordinates(int side, int positionIndex, int playerBuffer, out int x, out int y)
+        internal static void GetPositionCoordinates(int side, int positionIndex, int playerBuffer, out int x, out int y)
         {
             x = BorderBuffer;
             y = BorderBuffer;
@@ -84,7 +84,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        private static void PrintPositionContent(List<Player> playersOnCurrentPosition, List<TablePiece> tablePieces)
+        internal static void PrintPositionContent(List<Player> playersOnCurrentPosition, List<TablePiece> tablePieces)
         {
             Console.Write("[");
             Console.Write(playersOnCurrentPosition.Count > 0 ? "" : " ");
@@ -92,7 +92,7 @@ namespace Monopoly.Console.GUI
             Console.Write("]");
         }
 
-        private static void PrintPlayers(List<Player> players, List<TablePiece> tablePieces)
+        internal static void PrintPlayers(List<Player> players, List<TablePiece> tablePieces)
         {
             foreach (Player player in players)
             {
