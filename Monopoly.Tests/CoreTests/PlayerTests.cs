@@ -92,14 +92,15 @@ namespace Monopoly.Tests.CoreTests
             PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
             Player player1 = new("Player1", 1);
             Player player2 = new("Player2", 2);
+            int rent = 50; 
             street.Owner = player2;
 
             // Act
-            player1.PayRent(street);
+            player1.PayRent(player2, rent);
 
             // Assert
-            Assert.Equal(3000 - street.Price, player1.Money);
-            Assert.Equal(3000 + street.Price, player2.Money);
+            Assert.Equal(3000 - rent, player1.Money);
+            Assert.Equal(3000 + rent, player2.Money);
         }
 
 

@@ -38,9 +38,12 @@ namespace Monopoly.Tests.CoreTests
             // Arrange
             int expectedPosition = 5;
             string expectedInfo = "Test info";
-
+            int rentOneStation = 25;
+            int rentTwoStation = 50;
+            int rentThreeStation = 100;
+            int rentFourStation = 200;
             // Act
-            var railroad = new RailroadSquare(expectedPosition, expectedInfo);
+            var railroad = new RailroadSquare(expectedPosition, expectedInfo, rentOneStation,rentTwoStation, rentThreeStation, rentFourStation);
 
             // Assert
             Assert.Equal(expectedPosition, railroad.Position);
@@ -100,9 +103,10 @@ namespace Monopoly.Tests.CoreTests
         {
             // Arrange
             int expectedPosition = 12;
-
+            int rentOneStation = 4;
+            int rentTwoStation =  10 ;
             // Act
-            var utility = new UtilitySquare(expectedPosition, "Utility");
+            var utility = new UtilitySquare(expectedPosition, "Utility" , rentOneStation, rentTwoStation);
 
             // Assert
             Assert.Equal(expectedPosition, utility.Position);
