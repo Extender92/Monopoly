@@ -19,7 +19,6 @@ namespace Monopoly.Core.Models.Board
         public override void LandOn(Player player)
         {
             player.Money -= this.TaxAmount;
-          
         }
     }
 }

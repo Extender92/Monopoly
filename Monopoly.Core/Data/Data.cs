@@ -290,6 +290,7 @@ namespace Monopoly.Core.Data
             List<RailroadSquare> railroadSquares = new List<RailroadSquare>();
 
             int price = 200;
+            int mortgageValue = price / 2;
             int rentOneStation = 25;
             int rentTwoStation = 50;
             int rentThreeStation = 100;
@@ -297,17 +298,17 @@ namespace Monopoly.Core.Data
 
             if (gameRules.GameLanguage == GameRules.Language.UK)
             {
-                railroadSquares.Add(new RailroadSquare(5, "Kings Cross Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation));
-                railroadSquares.Add(new RailroadSquare(15, "Marylebone Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation));
-                railroadSquares.Add(new RailroadSquare(25, "Fenchurch Street Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation));
-                railroadSquares.Add(new RailroadSquare(35, "Liverpool Street Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation));
+                railroadSquares.Add(new RailroadSquare(5, "Kings Cross Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(15, "Marylebone Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(25, "Fenchurch Street Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(35, "Liverpool Street Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
             }
             else if(gameRules.GameLanguage == GameRules.Language.US)
             {
-                railroadSquares.Add(new RailroadSquare(5, "Reading Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation));
-                railroadSquares.Add(new RailroadSquare(15, "Pennsylvania Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation));
-                railroadSquares.Add(new RailroadSquare(25, "B&O Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation));
-                railroadSquares.Add(new RailroadSquare(35, "Short Line", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation));
+                railroadSquares.Add(new RailroadSquare(5, "Reading Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(15, "Pennsylvania Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(25, "B&O Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(35, "Short Line", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
             }
             else
             {
@@ -339,13 +340,14 @@ namespace Monopoly.Core.Data
             List<UtilitySquare> utilitySquares = new List<UtilitySquare>();
 
             int price = 150;
+            int mortgageValue = price / 2;
             int rentOneUtility = 4;
             int rentTwoUtility = 10;
 
             if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
             {
-                utilitySquares.Add(new UtilitySquare(12, "Electric Company", price, rentOneUtility, rentTwoUtility));
-                utilitySquares.Add(new UtilitySquare(27, "Water Works", price, rentOneUtility, rentTwoUtility));
+                utilitySquares.Add(new UtilitySquare(12, "Electric Company", price, rentOneUtility, rentTwoUtility, mortgageValue));
+                utilitySquares.Add(new UtilitySquare(27, "Water Works", price, rentOneUtility, rentTwoUtility, mortgageValue));
             }
             else
             {

@@ -11,13 +11,17 @@ namespace Monopoly.Core.Models.Board
         public int Price { get; set; }
         public int RentOneUtitlty { get; set; }
         public int RentTwoUtitlty {  get; set; }
-        public UtilitySquare(int position, string info, int price, int rentOneUtitlty, int rentTwoUtitlty)
+        public int MortgageValue { get; set; }
+
+
+        public UtilitySquare(int position, string info, int price, int rentOneUtitlty, int rentTwoUtitlty, int mortgageValue)
         {
             Position = position;
             Info = info;
             Price = price;
             RentOneUtitlty = rentOneUtitlty;
             RentTwoUtitlty = rentTwoUtitlty;
+            MortgageValue = mortgageValue;
         }
         public override void LandOn(Player player)
         {
@@ -32,7 +36,7 @@ namespace Monopoly.Core.Models.Board
                 //Check utilitys owned 
                 // one owned rent = DiceSum * OneUtitlty
                 // Two owned rent = DiceSum * TwoUtitlty
-                player.PayRent(this.Owner, rent);
+                
               
             }
         }

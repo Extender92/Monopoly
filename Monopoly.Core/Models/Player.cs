@@ -14,32 +14,7 @@ namespace Monopoly.Core.Models
         public int Money { get; set; } = 3000;
         public int Position { get; set; } = 0;
         public bool InJail { get; set; } = false;
-        //public Die DieSum { get; set; }
 
-        public void Buy(Square square)
-        {
-            //Money -= square.Price;
-            //square.Owner = this;
-        }
-
-        public void PayRent(Player player , int rent)
-        {
-            Money -= rent;
-            player.Money += rent;
-        }
-
-        public void Sell(PropertySquare street)
-        {
-            if (street.Owner == this)
-            {
-                int refundAmount = street.Price;
-                street.Owner = null;
-                Money += refundAmount;
-            }
-            else
-                Console.WriteLine("You do not own this street and cannot sell it.");
-
-        }
 
         public void LandOnSquare(Square square)
         {

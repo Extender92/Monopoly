@@ -3,6 +3,7 @@ using Monopoly.Core.Models.Board;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,22 +15,27 @@ namespace Monopoly.Core
         internal static List<Player> Players  { get; set;}
         internal static List<IDie> Dice { get; set; }
         internal static GameRules Rules { get; set; }
+        internal static Transaction Transaction { get; set; }
+        internal static Jail Jail { get; set; }
+        internal static FortuneCardHandler FortuneCard { get; set; }
 
-        internal static void PlayerTurn(Player player)
+        internal static void NextPlayerTakeTurn(Player player)
         {
             int diceSum = RollDiceAndReturnSum();
 
             player.Position += diceSum;
-            if (player.Position > 39)
-            {
-                player.Position -= 39;
-            }
-            //Events.HandleEvent(player, diceSum);
-
-            Winning(Players.FirstOrDefault());
         }
 
-        private static int RollDiceAndReturnSum()
+        private static void CheckIfPlayerGoPastGo(Player player)
+        {
+            if (player.Position >= Board.Squares.Count)
+            {
+                player.Position -= (Board.Squares.Count);
+                Transaction.PlayerGetSalary(player);
+            }
+        }
+
+        internal static int RollDiceAndReturnSum()
         {
             int diceSum = 0;
             foreach (Die die in Dice)
@@ -40,7 +46,7 @@ namespace Monopoly.Core
             return diceSum;
         }
 
-        private static void Winning(Player player)
+        internal static void Winning(Player player)
         {
             if (player is null) { return; }
             // Win method todo //

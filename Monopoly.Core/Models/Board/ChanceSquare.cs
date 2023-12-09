@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Monopoly.Core.Models.FortuneCard;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,8 @@ namespace Monopoly.Core.Models.Board
         }
         public override void LandOn(Player player)
         {
-            // Logic for when a player lands on a chance square
+            IChanceCard chanceCard = Game.FortuneCard.DrawNextChanceCard();
+            chanceCard.ExecuteEffect(player);
         }
     }
 }

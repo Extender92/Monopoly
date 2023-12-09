@@ -10,7 +10,23 @@
 
         public override void LandOn(Player player)
         {
-            // Logic for when a player lands on
+            switch (Game.Rules.FreeParking)
+            {
+                case GameRules.Parking.Classic:
+                    // Nothing Happens In Classic
+                    break;
+
+                case GameRules.Parking.SetFee:
+                    // Code for SetFee parking rules
+                    break;
+
+                case GameRules.Parking.Fines:
+                    // Code for Fines parking rules
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Rule {Game.Rules.FreeParking} is not implemented.");
+            }
         }
     }
 }

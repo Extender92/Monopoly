@@ -8,10 +8,11 @@
             Position = position;
             Info = info;
         }
+
         public override void LandOn(Player player)
         {
-            
-            // Logic for when a player lands on a GoSquare
+            if (Game.Rules.DoubleOnGo)
+                Game.Transaction.PlayerGetSalary(player);
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Monopoly.Console
                 foreach (var player in Game.Players)
                 {
                     ConsolePrinter.DisplayPlayerTurn(player);
-                    Game.PlayerTurn(player);
+                    Game.NextPlayerTakeTurn(player);
 
                     //ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
                     //Core.EventHandler eventHandler = new Core.EventHandler();

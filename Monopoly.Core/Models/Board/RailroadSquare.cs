@@ -13,7 +13,10 @@ namespace Monopoly.Core.Models.Board
         public int RentTwoStation {  get; set; }
         public int RentThreeStation {  get; set; }
         public int RentFourStation {  get; set; }
-        public RailroadSquare(int position, string info, int price, int rentOneStation , int rentTwoStation, int rentThreeStation, int rentFourStation)
+        public int MortgageValue { get; set; }
+
+
+        public RailroadSquare(int position, string info, int price, int rentOneStation , int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
         {
             Position = position;
             Info = info;
@@ -22,6 +25,7 @@ namespace Monopoly.Core.Models.Board
             RentTwoStation = rentTwoStation;
             RentThreeStation = rentThreeStation;
             RentFourStation = rentFourStation;
+            MortgageValue = mortgageValue;
         }
 
 
