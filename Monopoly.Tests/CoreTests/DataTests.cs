@@ -31,7 +31,7 @@ namespace Monopoly.Tests.CoreTests
             // Assert
             Assert.Equal(expectedPosition, tax.Position);
             Assert.Equal(expectedInfo, tax.Info);
-            Assert.Equal(expectedPrice, tax.TaxAmount);
+            Assert.Equal(expectedPrice, tax.Price);
         }
 
 
@@ -52,7 +52,7 @@ namespace Monopoly.Tests.CoreTests
             int rentThreeStation = 100;
             int rentFourStation = 200;
             string info = "Test info";
-            var railroad = new RailroadSquare(position, info, price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation);
+            var railroad = new RailroadSquare(position, info, price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, 2);
 
             // Assert
             Assert.Equal(expectedPosition, railroad.Position);
@@ -147,7 +147,7 @@ namespace Monopoly.Tests.CoreTests
             int price = 150;
             int rentOneUtility = 4;
             int rentTwoUtility = 10;
-            var utility = new UtilitySquare(position, info, price, rentOneUtility, rentTwoUtility);
+            var utility = new UtilitySquare(position, info, price, rentOneUtility, rentTwoUtility, 2);
 
             // Assert
             Assert.Equal(expectedPosition, utility.Position);
@@ -228,13 +228,13 @@ namespace Monopoly.Tests.CoreTests
                 item =>
                 {
                     Assert.Equal(expectedFirstPositionTax, item.Position);
-                    Assert.Equal(200, item.TaxAmount);
+                    Assert.Equal(200, item.Price);
                     Assert.Equal("Income Tax", item.Info);
                 },
                 item =>
                 {
                     Assert.Equal(expectedSecondPositionTax, item.Position);
-                    Assert.Equal(100, item.TaxAmount);
+                    Assert.Equal(100, item.Price);
                     Assert.Equal("Luxury Tax", item.Info);
                 }
             );
