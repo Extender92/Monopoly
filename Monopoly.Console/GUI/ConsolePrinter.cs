@@ -16,14 +16,52 @@ namespace Monopoly.Console.GUI
     {
         private const int TotalSides = 4;
         private const int SideLength = 10;
-        private const int BorderBuffer = 5;
         private const int HorizontalBuffer = 3;
+
+        public ConsolePrinter(ConsolePositions positions)
+        {
+            Positions = positions;
+        }
+
+        public ConsolePositions Positions { get; set; }
+
+        private static int BoardPosX { get; set; }
+        private static int BoardPosY { get; set; }
+        private static int LogPosX { get; set; }
+        private static int LogPosY { get; set; }
+        private static int TextPosX { get; set; }
+        private static int TextPosY { get; set; }
+        private static int CardPosX { get; set; }
+        private static int CardPosY { get; set; }
+
+        internal void SetBoardPosition()
+        {
+            BoardPosX = Positions.BoardXPos;
+            BoardPosY = Positions.BoardYPos;
+        }
+
+        internal void SetTextPosition()
+        {
+            TextPosX = Positions.TextPosX;
+            TextPosY = Positions.TextPosY;
+        }
+
+        internal void SetCardPosition()
+        {
+            CardPosX = Positions.CardPosX;
+            CardPosY = Positions.CardPosY;
+        }
+
+        internal void SetLogPosition()
+        {
+            LogPosX = Positions.LogPosX;
+            LogPosY = Positions.LogPosY;
+        }
 
         private static IConsoleWrapper Console = new ConsoleWrapper();
 
         internal static void PrintGameBoard(List<Player> players, List<TablePiece> tablePieces)
         {
-
             int playerBuffer = players.Count / 2;
             int startPosition = 0;
 
@@ -34,7 +72,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        internal static void PrintSingleSide(int playerBuffer, int side, int startSidePosition, List<Player> players, List<TablePiece> tablePieces)
+        private static void PrintSingleSide(int playerBuffer, int side, int startSidePosition, List<Player> players, List<TablePiece> tablePieces)
         {
             int x, y;
 
@@ -53,10 +91,10 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        internal static void GetPositionCoordinates(int side, int positionIndex, int playerBuffer, out int x, out int y)
+        private static void GetPositionCoordinates(int side, int positionIndex, int playerBuffer, out int x, out int y)
         {
-            x = BorderBuffer;
-            y = BorderBuffer;
+            x = BoardPosX;
+            y = BoardPosY;
 
             switch (side)
             {
@@ -84,7 +122,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        internal static void PrintPositionContent(List<Player> playersOnCurrentPosition, List<TablePiece> tablePieces)
+        private static void PrintPositionContent(List<Player> playersOnCurrentPosition, List<TablePiece> tablePieces)
         {
             Console.Write("[");
             Console.Write(playersOnCurrentPosition.Count > 0 ? "" : " ");
@@ -92,7 +130,7 @@ namespace Monopoly.Console.GUI
             Console.Write("]");
         }
 
-        internal static void PrintPlayers(List<Player> players, List<TablePiece> tablePieces)
+        private static void PrintPlayers(List<Player> players, List<TablePiece> tablePieces)
         {
             foreach (Player player in players)
             {
@@ -101,37 +139,37 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        internal static void PrintCard(string header, int posX, int posY, int width, int height, List<string> info, ConsoleColor borderColor, ConsoleColor textColor)
+        internal static void PrintCard(string header, int width, int height, List<string> info, ConsoleColor borderColor, ConsoleColor textColor)
         {
             // Header Text
             // Row two
             Console.SetTextColor(textColor);
-            Console.SetPosition(posX + 1, posY + 1);
+            Console.SetPosition(CardPosX + 1, CardPosY + 1);
             Console.Write(header);
 
             // Header Border
             // Row one
             Console.SetTextColor(borderColor);
-            Console.SetPosition(posX, posY);
+            Console.SetPosition(CardPosX, CardPosY);
             Console.Write('┌' + new String('─', width) + '┐');
 
             // Header Border
             // Row two
-            Console.SetPosition(posX, posY + 1);
+            Console.SetPosition(CardPosX, CardPosY + 1);
             Console.Write("│");
-            Console.SetPosition((posX + width + 1), posY + 1);
+            Console.SetPosition((CardPosX + width + 1), CardPosY + 1);
             Console.Write("│");
 
             // Header Border
             // Row Three
-            Console.SetPosition(posX, posY + 2);
+            Console.SetPosition(CardPosX, CardPosY + 2);
             Console.Write('├' + new String('─', width) + '┤');
 
             // Body
             // For each row in Y length
             for (int i = 0; i < height; i++)
             {
-                Console.SetPosition(posX, posY + 3 + i);
+                Console.SetPosition(CardPosX, CardPosY + 3 + i);
                 Console.Write("│");
 
                 Console.SetTextColor(textColor);
@@ -140,12 +178,12 @@ namespace Monopoly.Console.GUI
                     " " + info[i]);
 
                 Console.SetTextColor(borderColor);
-                Console.SetPosition((posX + width + 1), posY + 3 + i);
+                Console.SetPosition((CardPosX + width + 1), CardPosY + 3 + i);
                 Console.Write("│");
             }
 
             // Footer
-            Console.SetPosition(posX, posY + (height + 2));
+            Console.SetPosition(CardPosX, CardPosY + (height + 2));
             Console.Write('└' + new String('─', width) + '┘');
             Console.ResetColor();
         }
@@ -157,11 +195,48 @@ namespace Monopoly.Console.GUI
             Console.ResetColor();
         }
 
-        internal static void DisplayPlayerTurn(Player player)
+        internal static void PrintText(string text)
+        {
+            Console.ResetColor();
+            Console.SetPosition(1, 0);
+            Console.Write(text);
+        }
+
+        internal static void DisplayPlayerTurnAndWaitForInput(Player player)
         {
             Console.SetPosition(1, 0);
             Console.WriteLine($"{player.Name}'s Turn\n Press Enter To Roll Dice");
             Console.ReadLine();
+        }
+
+        internal static void PrintLogs(string header, List<string> logs, ConsoleColor borderColor, ConsoleColor textColor)
+        {
+            int width = logs.Max(x => x.Length) + 2;
+            if (width < header.Length + 2) width = header.Length + 4;
+
+            // Border and Header Text
+            Console.SetTextColor(borderColor);
+            Console.SetPosition(LogPosX, LogPosY);
+            Console.Write("┌─ " + header + " " + new String('─', width - header.Length - 3) + '┐');
+
+            // Body
+            for (int i = 0; i < logs.Count; i++)
+            {
+                Console.SetPosition(LogPosX, LogPosY + 1 + i);
+                Console.Write("│");
+
+                Console.SetTextColor(textColor);
+                Console.Write(" " + logs[i] + " ");
+
+                Console.SetTextColor(borderColor);
+                Console.SetPosition((LogPosX + width + 1), LogPosY + 1 + i);
+                Console.Write("│");
+            }
+
+            // Footer
+            Console.SetPosition(LogPosX, LogPosY + (logs.Count));
+            Console.Write('└' + new String('─', width) + '┘');
+            Console.ResetColor();
         }
     }
 }
