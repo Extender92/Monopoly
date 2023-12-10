@@ -12,9 +12,5 @@
 		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
 		<InternalsVisibleTo Include="Monopoly.Tests" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Events\" />
-	</ItemGroup>
 	
 </Project>

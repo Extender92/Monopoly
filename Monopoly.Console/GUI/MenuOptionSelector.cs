@@ -14,7 +14,7 @@ namespace Monopoly.Console.GUI
             if (optionsPerLine <= 0) optionsPerLine = 1;
 
             const int startX = 10;
-            const int startY = 4;
+            const int startY = 3;
             const int spacingPerLine = 20;
 
             ConsoleKey key;

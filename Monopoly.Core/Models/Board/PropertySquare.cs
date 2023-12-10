@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Monopoly.Core.Events;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -10,7 +11,6 @@ namespace Monopoly.Core.Models.Board
     internal class PropertySquare : Square
     {
         public ConsoleColor Color { get; set; }
-        public string Name { get; set; }
         public int Rent { get; set; }
         public int RentWithColorGroup { get; set; }
         public int RentOneHouse { get; set; }
@@ -20,9 +20,7 @@ namespace Monopoly.Core.Models.Board
         public int RentHotel { get; set; }
         public int BuildHouseCost { get; set; }
         public int BuildHotelCost { get; set; }
-        public int Price { get; set; }
-        public int MortgageValue { get; set; }
-        private int Houses {  get; set; }
+        public int Houses {  get; set; }
 
 
         public PropertySquare(ConsoleColor color, string name, int rent, int rentWithColorGroup,
@@ -51,23 +49,32 @@ namespace Monopoly.Core.Models.Board
         {
             if (Owner == null)
             {
-
+                if (Game.CanAffordWithAssets(player, Price))
+                {
+                    Game.Transaction.HandleCanBuySquare(player, this);
+                }
             }
             else
             {
-                int rent = CalculateRent();
-                if (Game.Transaction.PayRentFromPlayerToPlayer(player, rent, Owner))
-                {
-
-                }
+                HandleRentPayment(player);
             }
         }
 
-        public enum LandOnOutcome
+        private void HandleRentPayment(Player player)
         {
-            PaidSuccessfully,
-            InsufficientFunds,
-            PlayerBuysProperty,
+            int rent = CalculateRent();
+
+            while (!Game.Transaction.PayRentFromPlayerToPlayer(player, rent, Owner))
+            {
+                if (Game.IsPlayerBankrupt(player, rent))
+                {
+                    int restOfPlayerMoney = Game.HandlePlayerBankruptcyAndGetMoney(player);
+                    Game.Transaction.GetMoneyFromBank(Owner, restOfPlayerMoney);
+                    break;
+                }
+
+                GameEvents.InvokePlayerInsufficientFunds(player, Price);
+            }
         }
 
         private int CalculateRent()

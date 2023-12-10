@@ -15,7 +15,7 @@ namespace Monopoly.Console.Builder
         public static string Currency { get; set; }
         internal static List<SquareCard> BuildAllSquareCards(List<Square> squares, GameRules gameRules)
         {
-            setCurrency(gameRules.GameLanguage);
+            gameRules.CurrencySymbol = Currency;
 
             List<SquareCard> squareCardList = new List<SquareCard>();
 
@@ -64,22 +64,6 @@ namespace Monopoly.Console.Builder
             }
 
             return squareCardList;
-        }
-
-        private static void setCurrency(GameRules.Language language)
-        {
-            switch (language)
-            {
-                case GameRules.Language.UK:
-                    Currency = "$";
-                    break;
-                case GameRules.Language.US:
-                    Currency = "£";
-                    break;
-                default:
-                    Currency = "M";
-                    break;
-            }
         }
 
         private static PropertySquareCard BuildPropertyCardFromProperty(PropertySquare property)

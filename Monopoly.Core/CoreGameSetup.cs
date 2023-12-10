@@ -31,6 +31,9 @@ namespace Monopoly.Core
             Game.Dice = dice;
             Game.Players = players;
             Game.Rules = gameRules;
+            Game.Jail = new Jail();
+            Game.FortuneCard = new FortuneCardHandler(gameRules);
+            Game.Transaction = new Transaction();
         }
     }
 }

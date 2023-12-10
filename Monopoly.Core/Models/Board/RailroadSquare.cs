@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Monopoly.Core.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,18 +9,16 @@ namespace Monopoly.Core.Models.Board
 {
     internal class RailroadSquare : Square
     {
-        public int Price { get; set; }
         public int RentOneStation {  get; set; }
         public int RentTwoStation {  get; set; }
         public int RentThreeStation {  get; set; }
         public int RentFourStation {  get; set; }
-        public int MortgageValue { get; set; }
 
 
-        public RailroadSquare(int position, string info, int price, int rentOneStation , int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
+        public RailroadSquare(int position, string name, int price, int rentOneStation , int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
         {
             Position = position;
-            Info = info;
+            Name = name;
             Price = price;
             RentOneStation = rentOneStation;
             RentTwoStation = rentTwoStation;
@@ -28,27 +27,59 @@ namespace Monopoly.Core.Models.Board
             MortgageValue = mortgageValue;
         }
 
-
         public override void LandOn(Player player)
         {
             if (Owner == null)
             {
-
+                if (Game.CanAffordWithAssets(player, Price))
+                {
+                    Game.Transaction.HandleCanBuySquare(player, this);
+                }
             }
             else
             {
-                int ownedStations = 0;
+                HandleRentPayment(player);
+            }
+        }
 
-                // Iterate through all the RailroadSquare instances on the board
-                foreach (Square square in Game.Board.Squares)
+        private void HandleRentPayment(Player player)
+        {
+            int rent = CalculateRent();
+
+            while (!Game.Transaction.PayRentFromPlayerToPlayer(player, rent, Owner))
+            {
+                if (Game.IsPlayerBankrupt(player, rent))
                 {
-                    if (square is RailroadSquare railroadSquare)
-                        // Check if the current square has the same owner and is not the current square
-                        if (railroadSquare.Owner != null && railroadSquare.Owner == Owner && railroadSquare != this)
-                            ownedStations++;
+                    int restOfPlayerMoney = Game.HandlePlayerBankruptcyAndGetMoney(player);
+                    Game.Transaction.GetMoneyFromBank(Owner, restOfPlayerMoney);
+                    break;
                 }
 
+                GameEvents.InvokePlayerInsufficientFunds(player, Price);
+            }
+        }
 
+        private int CalculateRent()
+        {
+            int ownedStations = Game.Board.Squares.OfType<RailroadSquare>()
+                         .Count(square => square.Owner == Owner);
+
+            Dictionary<int, int> stationRents = new Dictionary<int, int>
+            {
+                { 1, RentOneStation },
+                { 2, RentTwoStation },
+                { 3, RentThreeStation },
+                { 4, RentFourStation }
+            };
+
+            // Use TryGetValue to get the rent based on the number of owned stations
+            if (stationRents.TryGetValue(ownedStations, out var rent))
+            {
+                return rent;
+            }
+            else
+            {
+                throw new InvalidOperationException($"Invalid number of stations owned: {ownedStations}");
             }
         }
     }

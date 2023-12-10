@@ -1,4 +1,5 @@
-﻿using Monopoly.Console.GUI;
+﻿using Monopoly.Console.Events;
+using Monopoly.Console.GUI;
 using Monopoly.Console.Models;
 using Monopoly.Core;
 using Monopoly.Core.Models;
@@ -26,27 +27,22 @@ namespace Monopoly.Console
 
         internal void RunGame()
         {
+            ConsoleEventHandler.SubscribeToEvents();
+
             System.Console.Clear();
             ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
             while (true)
             {
                 foreach (var player in Game.Players)
                 {
-                    ConsolePrinter.DisplayPlayerTurn(player);
+                    ConsolePrinter.DisplayPlayerTurnAndWaitForInput(player);
                     Game.NextPlayerTakeTurn(player);
 
-                    //ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
-                    //Core.EventHandler eventHandler = new Core.EventHandler();
-                    //eventHandler.HandleEvent(player);
-
-
-                    Square landedSquare = Game.Board.GetSquareAtPosition(player.Position);
-
-                    player.LandOnSquare(landedSquare);
-
-                    //_console.ReadKey();
                     _console.Clear();
                     ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
+
+                    Square landedSquare = Game.Board.GetSquareAtPosition(player.Position);
+                    player.LandOnSquare(landedSquare);
                 }
             }
         }

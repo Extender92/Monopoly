@@ -347,7 +347,7 @@ namespace Monopoly.Core.Data
             if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
             {
                 utilitySquares.Add(new UtilitySquare(12, "Electric Company", price, rentOneUtility, rentTwoUtility, mortgageValue));
-                utilitySquares.Add(new UtilitySquare(27, "Water Works", price, rentOneUtility, rentTwoUtility, mortgageValue));
+                utilitySquares.Add(new UtilitySquare(28, "Water Works", price, rentOneUtility, rentTwoUtility, mortgageValue));
             }
             else
             {
