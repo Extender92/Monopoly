@@ -8,7 +8,7 @@ using Monopoly.Console.Models.Board;
 
 namespace Monopoly.Console.Models
 {
-    internal class DrawCards
+    internal class FortuneCard
     {
         public int Id { get; set; }
         public string Info { get; set; }

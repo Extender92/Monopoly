@@ -32,5 +32,11 @@ namespace Monopoly.Core.Models
         {
             return DieSides;
         }
+
+        // Scramble Die For Jail
+        public void ScrambleDie()
+        {
+            Result = -1;
+        }
     }
 }

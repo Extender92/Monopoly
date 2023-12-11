@@ -23,19 +23,12 @@ namespace Monopoly.Core
         internal static FortuneCardHandler FortuneCard { get; set; }
         internal static int Fines { get; set; }
 
-        internal static void NextPlayerTakeTurn(Player player)
+        internal static void RoleDiceAndMovePlayer(Player player)
         {
-            if (player.InJail)
-            {
-                TheJail.TakeTurnInJail(player);
-            }
-            else
-            {
-                RollDice(player);
-                int diceSum = CalculateDiceSum();
-                player.Position += diceSum;
-                CheckIfPlayerGoPastGo(player);
-            }
+            RollDice(player);
+            int diceSum = CalculateDiceSum();
+            player.Position += diceSum;
+            CheckIfPlayerGoPastGo(player);
         }
 
         internal static void CheckIfPlayerGoPastGo(Player player)

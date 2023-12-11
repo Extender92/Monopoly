@@ -45,6 +45,7 @@ namespace Monopoly.Core
 
                 if (Game.IsDiceDouble())
                 {
+                    Game.Dice[0].ScrambleDie();
                     ReleasePlayerFromJail(player);
                     return;
                 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Console.Models
 {
-    internal class CommunityChest : DrawCards
+    internal class CommunityChest : FortuneCard
     {
     }
 }
