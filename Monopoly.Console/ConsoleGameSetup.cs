@@ -26,6 +26,10 @@ namespace Monopoly.Console
         {
             CoreGameSetup.Setup(GameRules);
 
+            new ConsolePrinter(new ConsolePositions());
+            MenuOptionSelector.SetPositions();
+
+
             TablePieces = new();
             foreach (Player player in Game.Players)
             {
