@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Monopoly.Core.Models.FortuneCard;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,14 +9,16 @@ namespace Monopoly.Core.Models.Board
 {
     internal class ChanceSquare : Square
     {
-        public ChanceSquare(int position)
+        public ChanceSquare(int position, string name, string info)
         {
             Position = position;
-            Info = "Chance";
+            Name = name;
+            Info = info;
         }
         public override void LandOn(Player player)
         {
-            // Logic for when a player lands on a chance square
+            IChanceCard chanceCard = Game.FortuneCard.DrawNextChanceCard();
+            chanceCard.ExecuteEffect(player);
         }
     }
 }

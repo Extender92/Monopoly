@@ -2,6 +2,7 @@
 using Monopoly.Console.Models;
 using Monopoly.Core;
 using Monopoly.Core.Models;
+using Monopoly.Core.Models.Board;
 using System;
 using System.Runtime.InteropServices;
 
@@ -11,182 +12,40 @@ namespace Monopoly.Console
     {
         static void Main(string[] args)
         {
-
-
-            //List<string> infoLines = new List<string>();
-            //infoLines.Add("info");
-            //infoLines.Add("info again info");
-            //infoLines.Add("info again info again info");
-            //infoLines.Add("info again info");
-            //infoLines.Add("På info");
-
-            //List<string> rents = new List<string>();
-            //rents.Add("rent");
-            //rents.Add("rent");
-            //rents.Add("rent again rent");
-            //rents.Add("rent again rent");
-            //rents.Add("På rent");
-
-            //List<string> info = new List<string>();
-
-            //int infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
-
-            //string header = "train station";
-
-            //int positionX = 5;
-            //int positionY = 5;
-
-            //int HorizontalSize = 30;
-            //int VerticalSize = 9;
-
-            //HorizontalSize = Math.Max(HorizontalSize, Math.Max(header.Length + 2, infoTextLength));
-
-            //for (int i = 0; i < infoLines.Count; i++)
-            //{
-            //    int space = HorizontalSize - (infoLines[i].Length + rents[i].Length + 2);
-            //    info.Add(infoLines[i] + ":".PadRight(space) + rents[i]);
-            //    //info.Add("how do you");
-            //    //info.Add("how do you");
-            //}
-
-            //header = Helpers.StringHelper.CenterString(header, HorizontalSize);
-
-            //GUI.ConsolePrinter.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Red, ConsoleColor.Blue);
-
-            //System.Console.ReadLine();
-
-
-
-
-            //info.Clear();
-
-            //for (int i = 0; i < infoLines.Count; i++)
-            //{
-            //    int space = HorizontalSize - (infoLines[i].Length + rents[i].Length + 2);
-            //    info.Add(rents[i] + ":".PadRight(space) + infoLines[i]);
-            //}
-
-            //GUI.Print.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Green, ConsoleColor.Yellow);
-
-            //System.Console.ReadLine();
-
-
-            //System.Console.Clear();
-            //info.Clear();
-
-            //string infoText = "very lång text Based på Train station för att testa how Code handle Line break!";
-
-            //HorizontalSize = 30;
-            //header = Helpers.StringHelper.CenterString(header, HorizontalSize);
-            //int length = HorizontalSize - 1;
-
-            //info = Helpers.StringHelper.CenterStringInList(Helpers.StringHelper.GetListOfStringsFromString(infoText, length), length);
-
-            //GUI.Print.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, ConsoleColor.Green, ConsoleColor.Yellow);
-
-            //foreach (var card in CardSet.GetStreetCards())
-            //{
-            //    List<string> cardInfo = new()
-            //    {
-            //          $"Rent: {card.Rent}",
-            //          $"Rent with color set: {card.RentWithColor}",
-            //          $"Rent (1 House): {card.RentOneHouses}",
-            //          $"Rent (2 Houses): {card.RentTwoHouses}",
-            //          $"Rent (3 Houses): {card.RentThreeHouses}",
-            //          $"Rent (4 Houses): {card.RentFourHouses}",
-            //          $"Rent (Hotel): {card.RentHotels}",
-            //          $"Houses Cost: {card.HousesCost}",
-            //          $"Hotels Cost : {card.HotelsCost}",
-            //          $"Price: {card.Price}",
-            //          $"Mortgage Value: {card.MortgageValue}"
-            //    };
-            //    Print.PrintCard(card.UKName, 2, 3, 25, 10, cardInfo, card.Color, System.ConsoleColor.White);
-            //    System.Console.ReadKey();
-
-            //}
-
-
-
             int numberOfDice = 2;
             int dieSides = 6;
-            int numberOfPlayers = 1;
-            GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
-            DrawPropertyCards(gameRules);
             System.Console.WriteLine("How many players?");
-            List<string> choices = Helpers.StringHelper.CreateStringList("1", "2", "3", "4", "5", "6", "7", "8");
-            int index = MenuOptionSelector.GetSelectedOption(choices);
-            //int numberOfPlayers = index + 1;
+            List<string> menuChoices = Helpers.StringHelper.CreateStringList("2", "3", "4", "5", "6", "7", "8");
+            int index = MenuOptionSelector.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length), 0, 3);
+            int numberOfPlayers = index + 2;
 
-            //GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
+            GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
             ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules);
             gameSetup.Setup();
-            Run run = new Run(gameSetup.TheGame, gameSetup.TablePieces);
+            Run run = new Run(gameSetup.TablePieces);
+
             run.RunGame();
         }
 
-        public static void DrawPropertyCards(GameRules rules)
+        public static void TestCards()
         {
-
-            List<string> infoLines = new List<string>();
-            infoLines.Add("Rent");
-            infoLines.Add("Rent with color set");
-            infoLines.Add("Rent (1 House)");
-            infoLines.Add("Rent (2 Houses)");
-            infoLines.Add("Rent (3 Houses)");
-            infoLines.Add("Rent (4 Houses)");
-            infoLines.Add("Rent (Hotel)");
-            infoLines.Add("Houses Cost");
-            infoLines.Add("Hotels Cost");
-            infoLines.Add("Price");
-            infoLines.Add("Mortgage Value");
-
-            List<string> info = new List<string>();
-
-            int infoTextLength = infoLines.Max(line => line.Length) + 4;
-
-            int positionX = 85;
-            int positionY = 5;
-
-            int HorizontalSize = 30;
-            int VerticalSize = 9;
-
-            foreach (var card in Core.Data.Data.GetPropertySquareData(rules))
+            while (true)
             {
-                List<string> rents = new List<string>
+
+                foreach (var landedSquare in Game.Board.Squares)
                 {
-                    $"{card.Rent}",
-                    $"{card.RentWithColorGroup}",
-                    $"{card.RentOneHouse}",
-                    $"{card.RentTwoHouses}",
-                    $"{card.RentThreeHouses}",
-                    $"{card.RentFourHouses}",
-                    $"{card.RentHotel}",
-                    $"{card.BuildHouseCost}",
-                    $"{card.BuildHotelCost}",
-                    $"{card.BuildHotelCost}",
-                    $"{card.Price}",
-                    $"{card.MortgageValue}"
-                };
-
-                string header = card.Name;
-
-                HorizontalSize = Math.Max(HorizontalSize, Math.Max(header.Length + 2, infoTextLength));
-
-                for (int i = 0; i < infoLines.Count; i++)
-                {
-                    int space = HorizontalSize - (infoLines[i].Length + rents[i].Length + 2);
-                    info.Add(infoLines[i] + ":".PadRight(space) + rents[i]);
+                    System.Console.Clear();
+                    if (landedSquare is PropertySquare)
+                    {
+                        ConsolePrinter.PrepareAndPrintPropertyCard(landedSquare.Position);
+                    }
+                    else
+                    {
+                        ConsolePrinter.PrepareAndPrintSquareCard(landedSquare.Position);
+                    }
+                    System.Console.ReadLine();
                 }
-
-                header = Helpers.StringHelper.CenterString(header, HorizontalSize);
-
-                GUI.ConsolePrinter.PrintCard(header, positionX, positionY, HorizontalSize, VerticalSize, info, card.Color, ConsoleColor.White);
-
-                System.Console.ReadLine();
-
-                info.Clear();
             }
-
         }
 
         public static void DrawChanceCards(GameRules rules)
@@ -225,7 +84,7 @@ namespace Monopoly.Console
 
                 chanceHeader = Helpers.StringHelper.CenterString(chanceHeader, chanceHorizontalSize);
 
-                GUI.ConsolePrinter.PrintCard(chanceHeader, chancePositionX, chancePositionY, chanceHorizontalSize, chanceVerticalSize, chanceInfo, ConsoleColor.Green, ConsoleColor.Yellow);
+                GUI.ConsolePrinter.PrintCard(chanceHeader, chanceHorizontalSize, chanceVerticalSize, chanceInfo, ConsoleColor.Green, ConsoleColor.Yellow);
 
                 System.Console.ReadLine();
 

@@ -14,7 +14,6 @@ namespace Monopoly.Console
     {
         private readonly TablePieceInputManager _tablePieceSelector;
         internal List<TablePiece> TablePieces {  get; set; }
-        internal Game TheGame { get; set; }
         internal GameRules GameRules { get; set; }
 
         public ConsoleGameSetup(GameRules gameRules)
@@ -25,10 +24,14 @@ namespace Monopoly.Console
 
         public void Setup() 
         {
-            TheGame = CoreGameSetup.Setup(GameRules);
+            CoreGameSetup.Setup(GameRules);
+
+            new ConsolePrinter(new ConsolePositions());
+            MenuOptionSelector.SetPositions();
+
 
             TablePieces = new();
-            foreach (Player player in TheGame.Players)
+            foreach (Player player in Game.Players)
             {
                 TablePieces.Add(_tablePieceSelector.GetTablePieceFromUserInput(player.Id, TablePieces));
             }

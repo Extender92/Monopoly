@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Monopoly.Core.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,33 +9,69 @@ namespace Monopoly.Core.Models.Board
 {
     internal class UtilitySquare : Square
     {
-        public int Price { get; set; }
-        public Player Owner { get; set; }
-        public int RentOneUtitlty { get; set; }
-        public int RentTwoUtitlty {  get; set; }
-        public UtilitySquare(int position, string info, int rentOneUtitlty, int rentTwoUtitlty)
+        public int RentOneUtility { get; set; }
+        public int RentTwoUtility {  get; set; }
+
+
+        public UtilitySquare(int position, string name, int price, int rentOneUtility, int rentTwoUtility, int mortgageValue)
         {
             Position = position;
-            Info = info;
-            Price = 150;
-            RentOneUtitlty = rentOneUtitlty;
-            RentTwoUtitlty = rentTwoUtitlty;
+            Name = name;
+            Price = price;
+            RentOneUtility = rentOneUtility;
+            RentTwoUtility = rentTwoUtility;
+            MortgageValue = mortgageValue;
         }
+
         public override void LandOn(Player player)
         {
-            if(this.Owner is null)
+            if (Owner == null)
             {
-                // buy utility method
+                if (Game.CanAffordWithAssets(player, Price))
+                {
+                    Game.Transactions.HandleCanBuySquare(player, this);
+                }
             }
-            else
+            else if (!IsMortgage)
             {
-                int rent = 0;
+                HandleRentPayment(player);
+            }
+        }
 
-                //Check utilitys owned 
-                // one owned rent = DiceSum * OneUtitlty
-                // Two owned rent = DiceSum * TwoUtitlty
-                player.PayRent(this.Owner, rent);
-              
+        private void HandleRentPayment(Player player)
+        {
+            int rent = CalculateRent();
+
+            while (!Game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
+            {
+                if (Game.IsPlayerBankrupt(player, rent))
+                {
+                    int restOfPlayerMoney = Game.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
+                    Game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
+                    break;
+                }
+
+                GameEvents.InvokePlayerInsufficientFunds(player, Price);
+            }
+        }
+
+        private int CalculateRent()
+        {
+            int ownedUtility = Game.Board.Squares.OfType<UtilitySquare>()
+                             .Count(square => square.Owner == Owner);
+
+            int diceSum = Game.Dice.Sum(die => die.GetDieResult());
+
+            switch (ownedUtility)
+            {
+                case 1:
+                    return diceSum * RentOneUtility;
+
+                case 2:
+                    return diceSum * RentTwoUtility;
+
+                default:
+                    throw new InvalidOperationException($"Invalid number of utility owned: {ownedUtility}");
             }
         }
     }

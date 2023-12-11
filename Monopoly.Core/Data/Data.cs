@@ -15,26 +15,26 @@ namespace Monopoly.Core.Data
             if (gameRules.GameLanguage == GameRules.Language.UK)
             {
                 data = new List<PropertySquare> {
-                    new PropertySquare(ConsoleColor.DarkYellow, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1),
-                    new PropertySquare(ConsoleColor.DarkYellow, "Whitechapel Road", 4, 8, 20, 60, 180, 320, 450, 50, 50, 60, 30, 3),
-                    new PropertySquare(ConsoleColor.Cyan, "The Angel Islington", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50, 6),
-                    new PropertySquare(ConsoleColor.Cyan, "Euston Road", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50, 8),
-                    new PropertySquare(ConsoleColor.Cyan, "Pentonville Road", 8, 16, 40, 100, 300, 450, 600, 50, 50, 120, 60, 9),
+                    new PropertySquare(ConsoleColor.DarkGray, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1),
+                    new PropertySquare(ConsoleColor.DarkGray, "Whitechapel Road", 4, 8, 20, 60, 180, 320, 450, 50, 50, 60, 30, 3),
+                    new PropertySquare(ConsoleColor.DarkCyan, "The Angel Islington", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50, 6),
+                    new PropertySquare(ConsoleColor.DarkCyan, "Euston Road", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50, 8),
+                    new PropertySquare(ConsoleColor.DarkCyan, "Pentonville Road", 8, 16, 40, 100, 300, 450, 600, 50, 50, 120, 60, 9),
                     new PropertySquare(ConsoleColor.Magenta, "Pall Mall", 10, 20, 50, 150, 450, 625, 750, 100, 100, 140, 70, 11),
                     new PropertySquare(ConsoleColor.Magenta, "Whitehall", 10, 20, 50, 150, 450, 625, 750, 100, 100, 140, 70, 13),
                     new PropertySquare(ConsoleColor.Magenta, "Northumberland Avenue", 12, 24, 60, 180, 500, 700, 900, 100, 100, 160, 80, 14),
                     new PropertySquare(ConsoleColor.DarkYellow, "Bow Street", 14, 28, 70, 200, 550, 750, 950, 100, 100, 180, 90, 16),
                     new PropertySquare(ConsoleColor.DarkYellow, "Marlborough Street", 14, 28, 70, 200, 550, 750, 950, 100, 100, 180, 90, 18),
                     new PropertySquare(ConsoleColor.DarkYellow, "Vine Street", 16, 32, 80, 220, 600, 800, 1000, 100, 100, 200, 100, 19),
-                    new PropertySquare(ConsoleColor.Red, "The Strand", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110, 21),
-                    new PropertySquare(ConsoleColor.Red, "Fleet Street", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110, 23),
-                    new PropertySquare(ConsoleColor.Red, "Trafalgar Square", 20, 40, 100, 300, 750, 925, 1100, 150, 150, 240, 120, 24),
+                    new PropertySquare(ConsoleColor.DarkRed, "The Strand", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110, 21),
+                    new PropertySquare(ConsoleColor.DarkRed, "Fleet Street", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110, 23),
+                    new PropertySquare(ConsoleColor.DarkRed, "Trafalgar Square", 20, 40, 100, 300, 750, 925, 1100, 150, 150, 240, 120, 24),
                     new PropertySquare(ConsoleColor.Yellow, "Leicester Square", 22, 44, 110, 330, 800, 975, 1150, 150, 150, 260, 130, 26),
                     new PropertySquare(ConsoleColor.Yellow, "Coventry Street", 22, 44, 110, 330, 800, 975, 1150, 150, 150, 260, 130, 27),
                     new PropertySquare(ConsoleColor.Yellow, "Piccadilly", 24, 48, 120, 360, 850, 1025, 1200, 150, 150, 280, 150, 29),
-                    new PropertySquare(ConsoleColor.Green, "Regent Street", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150, 31),
-                    new PropertySquare(ConsoleColor.Green, "Oxford Street", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150, 32),
-                    new PropertySquare(ConsoleColor.Green, "Bond Street", 28, 56, 150, 450, 1000, 1200, 1400, 200, 200, 320, 160, 34),
+                    new PropertySquare(ConsoleColor.DarkGreen, "Regent Street", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150, 31),
+                    new PropertySquare(ConsoleColor.DarkGreen, "Oxford Street", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150, 32),
+                    new PropertySquare(ConsoleColor.DarkGreen, "Bond Street", 28, 56, 150, 450, 1000, 1200, 1400, 200, 200, 320, 160, 34),
                     new PropertySquare(ConsoleColor.DarkBlue, "Park Lane", 35, 70, 175, 500, 1100, 1300, 1500, 200, 200, 350, 175, 37),
                     new PropertySquare(ConsoleColor.DarkBlue, "Mayfair", 50, 100, 200, 600, 1400, 1700, 2000, 200, 200, 400, 200, 39),
                 };
@@ -164,13 +164,21 @@ namespace Monopoly.Core.Data
         internal static List<ChanceSquare> GetChanceSquareData(GameRules gameRules)
         {
             List<ChanceSquare> chanceSquares = new List<ChanceSquare>();
-            List<IChanceCard> chanceCards = GetChanceCardData(gameRules);
 
-            foreach (var chanceCard in chanceCards)
+            string name;
+            string info;
+
+            if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
             {
-                chanceSquares.Add(new ChanceSquare(7));
-                chanceSquares.Add(new ChanceSquare(22));
-                chanceSquares.Add(new ChanceSquare(36));
+                name = "Chance ?";
+                info = "Draw a chance card";
+                chanceSquares.Add(new ChanceSquare(7, name, info));
+                chanceSquares.Add(new ChanceSquare(22, name, info));
+                chanceSquares.Add(new ChanceSquare(36, name, info));
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported language");
             }
 
             return chanceSquares;
@@ -179,89 +187,185 @@ namespace Monopoly.Core.Data
         internal static List<CommunityChestSquare> GetCommunityChestSquareData(GameRules gameRules)
         {
             List<CommunityChestSquare> communityChestSquares = new List<CommunityChestSquare>();
-            List<ICommunityChestCard> communityChestCards = GetCommunityChestCardData(gameRules);
-            foreach (var communityChestCard in communityChestCards)
+
+            string name;
+            string info;
+
+            if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
             {
-                communityChestSquares.Add(new CommunityChestSquare(2));
-                communityChestSquares.Add(new CommunityChestSquare(17));
-                communityChestSquares.Add(new CommunityChestSquare(33));
+                name = "Community Chest";
+                info = "Draw a community chest card";
+                communityChestSquares.Add(new CommunityChestSquare(2, name, info));
+                communityChestSquares.Add(new CommunityChestSquare(17, name, info));
+                communityChestSquares.Add(new CommunityChestSquare(33, name, info));
             }
+            else
+            {
+                throw new ArgumentException("Unsupported language");
+            }
+
             return communityChestSquares;
         }
 
         internal static List<GoSquare> GetGoSquareData(GameRules gameRules)
         {
-            List<GoSquare> goSquares = new List<GoSquare>
+            List<GoSquare> goSquares = new List<GoSquare>();
+
+            int position = 0;
+            string name;
+            string info;
+
+            if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
             {
-                 new GoSquare()
-            };
+                name = "GO";
+                info = $"Collect salary as you pass GO";
+                goSquares.Add(new GoSquare(position, name, info));
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported language");
+            }
+
             return goSquares;
         }
 
         internal static List<GoToJailSquare> GetGoToJailSquareData(GameRules gameRules)
         {
-            List<GoToJailSquare> goToJailSquares = new List<GoToJailSquare>
+            List<GoToJailSquare> goToJailSquares = new List<GoToJailSquare>();
+
+            int position = 30;
+            string name;
+            string info;
+
+            if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
             {
-                new GoToJailSquare()
-            };
+                name = "Go To Jail";
+                info = "Go to jail! Do not collect salary";
+                goToJailSquares.Add(new GoToJailSquare(position, name, info));
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported language");
+            }
 
             return goToJailSquares;
         }
 
         internal static List<JailSquare> GetJailSquareData(GameRules gameRules)
         {
-            List<JailSquare> jailSquares = new List<JailSquare> 
+            List<JailSquare> jailSquares = new List<JailSquare>();
+
+            int Position = 10;
+            string name;
+            string info;
+            string InJailInfo;
+
+            if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
             {
-                new JailSquare() 
-            };
+                name = "Jail";
+                info = "Visiting Jail";
+                InJailInfo = "In Jail";
+                jailSquares.Add(new JailSquare(Position, name, info, InJailInfo));
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported language");
+            }
+
             return jailSquares;
         }
 
         internal static List<ParkingSquare> GetParkingSquareData(GameRules gameRules)
         {
-            List<ParkingSquare> parkingSquares = new List<ParkingSquare> 
-            { 
-                new ParkingSquare() 
-            };
+            List<ParkingSquare> parkingSquares = new List<ParkingSquare>();
+
+            int position = 20;
+            string name;
+
+            if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
+            {
+                name = "Free Parking";
+                parkingSquares.Add(new ParkingSquare(position, name));
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported language");
+            }
+
             return parkingSquares;
         }
 
         internal static List<RailroadSquare> GetRailroadSquareData(GameRules gameRules)
         {
+            List<RailroadSquare> railroadSquares = new List<RailroadSquare>();
+
+            int price = 200;
+            int mortgageValue = price / 2;
             int rentOneStation = 25;
             int rentTwoStation = 50;
             int rentThreeStation = 100;
             int rentFourStation = 200;
-            List<RailroadSquare> railroadSquares = new List<RailroadSquare>
+
+            if (gameRules.GameLanguage == GameRules.Language.UK)
             {
-                new RailroadSquare(5,"Kings Cross Station", rentOneStation, rentTwoStation,rentThreeStation,rentFourStation),
-                new RailroadSquare(15, "Marylebone Station", rentOneStation, rentTwoStation,rentThreeStation,rentFourStation),
-                new RailroadSquare(25, "Fenchurch Street Station", rentOneStation, rentTwoStation,rentThreeStation,rentFourStation),
-                new RailroadSquare(35,"Liverpool Street Station", rentOneStation, rentTwoStation,rentThreeStation,rentFourStation)
-            };
+                railroadSquares.Add(new RailroadSquare(5, "Kings Cross Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(15, "Marylebone Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(25, "Fenchurch Street Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(35, "Liverpool Street Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+            }
+            else if(gameRules.GameLanguage == GameRules.Language.US)
+            {
+                railroadSquares.Add(new RailroadSquare(5, "Reading Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(15, "Pennsylvania Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(25, "B&O Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+                railroadSquares.Add(new RailroadSquare(35, "Short Line", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported language");
+            }
+
             return railroadSquares;
         }
 
         internal static List<TaxSquare> GetTaxSquareData(GameRules gameRules)
         {
-            List<TaxSquare> taxSquares = new List<TaxSquare>
+            List<TaxSquare> taxSquares = new List<TaxSquare>();
+
+            string info;
+            if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
             {
-                new TaxSquare(4,200, "Income Tax"),
-                new TaxSquare(38,100, "Luxury Tax")
-            };
+                info = "Pay tax";
+                taxSquares.Add(new TaxSquare(4, 200, "Income Tax", info));
+                taxSquares.Add(new TaxSquare(38, 100, "Luxury Tax", info));
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported language");
+            }
+
             return taxSquares;
         }
 
         internal static List<UtilitySquare> GetUtilitySquareData(GameRules gameRules)
         {
+            List<UtilitySquare> utilitySquares = new List<UtilitySquare>();
+
+            int price = 150;
+            int mortgageValue = 75;
             int rentOneUtility = 4;
             int rentTwoUtility = 10;
 
-            List<UtilitySquare> utilitySquares = new List<UtilitySquare>
+            if (gameRules.GameLanguage == GameRules.Language.UK || gameRules.GameLanguage == GameRules.Language.US)
             {
-                new UtilitySquare(12, "Electric Company", rentOneUtility, rentTwoUtility),
-                new UtilitySquare(27, "Water Works", rentOneUtility, rentTwoUtility)
-            };
+                utilitySquares.Add(new UtilitySquare(12, "Electric Company", price, rentOneUtility, rentTwoUtility, mortgageValue));
+                utilitySquares.Add(new UtilitySquare(28, "Water Works", price, rentOneUtility, rentTwoUtility, mortgageValue));
+            }
+            else
+            {
+                throw new ArgumentException("Unsupported language");
+            }
+
             return utilitySquares;
         }
 

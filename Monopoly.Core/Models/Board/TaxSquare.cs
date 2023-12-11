@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Monopoly.Core.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,18 +9,26 @@ namespace Monopoly.Core.Models.Board
 {
     internal class TaxSquare : Square
     {
-        public int Price { get; set; }
-        public TaxSquare(int position, int price, string info)
+        public TaxSquare(int position, int tax, string name, string info)
         {
             Position = position;
+            Name = name;
             Info = info;
-            Price = price;
+            Price = tax;
         }
 
         public override void LandOn(Player player)
         {
-            player.Money -= this.Price;
-          
+            while(!Game.Transactions.PayTax(player, Price))
+            {
+                if (Game.IsPlayerBankrupt(player, Price))
+                {
+                    Game.HandlePlayerBankruptcy(player);
+                    return;
+                }
+
+                GameEvents.InvokePlayerInsufficientFunds(player, Price);
+            }
         }
     }
 }

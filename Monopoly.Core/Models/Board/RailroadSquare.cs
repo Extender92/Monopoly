@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Monopoly.Core.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,69 +9,77 @@ namespace Monopoly.Core.Models.Board
 {
     internal class RailroadSquare : Square
     {
-        public int Price { get; set; }
-        public Player Owner { get; set; }   
         public int RentOneStation {  get; set; }
         public int RentTwoStation {  get; set; }
         public int RentThreeStation {  get; set; }
         public int RentFourStation {  get; set; }
-        public RailroadSquare(int position, string info, int rentOneStation , int rentTwoStation, int rentThreeStation, int rentFourStation)
+
+
+        public RailroadSquare(int position, string name, int price, int rentOneStation , int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
         {
             Position = position;
-            Info = info;
-            Price = 200;
+            Name = name;
+            Price = price;
             RentOneStation = rentOneStation;
             RentTwoStation = rentTwoStation;
             RentThreeStation = rentThreeStation;
             RentFourStation = rentFourStation;
+            MortgageValue = mortgageValue;
         }
-
 
         public override void LandOn(Player player)
         {
-            var currentLocation = this;
-            if (player != null)
+            if (Owner == null)
             {
-                RailroadSquare landedStation = Data.Data.GetRailroadSquareData(null)
-                    .FirstOrDefault(station => station.Position == player.Position);
-
-                if (landedStation != null)
+                if (Game.CanAffordWithAssets(player, Price))
                 {
-                    Player owner = landedStation.Owner;
-                    if (owner != null && owner != player)
-                    {
-                        int ownedStations = CountOwnedStations(owner);
-                        int rent = CalculateRent(ownedStations);
-                        player.Money -= rent;
-                    }
+                    Game.Transactions.HandleCanBuySquare(player, this);
                 }
+            }
+            else if (!IsMortgage)
+            {
+                HandleRentPayment(player);
+            }
+        }
+
+        private void HandleRentPayment(Player player)
+        {
+            int rent = CalculateRent();
+
+            while (!Game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
+            {
+                if (Game.IsPlayerBankrupt(player, rent))
+                {
+                    int restOfPlayerMoney = Game.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
+                    Game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
+                    break;
+                }
+
+                GameEvents.InvokePlayerInsufficientFunds(player, Price);
+            }
+        }
+
+        private int CalculateRent()
+        {
+            int ownedStations = Game.Board.Squares.OfType<RailroadSquare>()
+                         .Count(square => square.Owner == Owner);
+
+            Dictionary<int, int> stationRents = new Dictionary<int, int>
+            {
+                { 1, RentOneStation },
+                { 2, RentTwoStation },
+                { 3, RentThreeStation },
+                { 4, RentFourStation }
+            };
+
+            // Use TryGetValue to get the rent based on the number of owned stations
+            if (stationRents.TryGetValue(ownedStations, out var rent))
+            {
+                return rent;
             }
             else
             {
-                throw new ArgumentNullException(nameof(player), "Player cannot be null.");
-            }
-        }
-
-        private int CountOwnedStations(Player player)
-        {
-            Data.Data.GetRailroadSquareData(null).ForEach(station => player.LandOnSquare(station));
-            return Data.Data.GetRailroadSquareData(null).Count(station => station.Owner == player);
-        }
-
-        private int CalculateRent(int ownedStations)
-        {
-            switch (ownedStations)
-            {
-                case 1:
-                    return 25;
-                case 2:
-                    return 50;
-                case 3:
-                    return 100;
-                case 4:
-                    return 200;
-                default:
-                    return 0; 
+                throw new InvalidOperationException($"Invalid number of stations owned: {ownedStations}");
             }
         }
     }
