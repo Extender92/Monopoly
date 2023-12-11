@@ -19,7 +19,7 @@ namespace Monopoly.Core.Logs
                 Info = text
             };
             LogList.Add(log);
-            GameEvents.InvokeLogAdded(this, text);
+            GameEvents.InvokeLogAdded(this, LogList);
         }
     }
 }

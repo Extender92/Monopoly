@@ -16,6 +16,6 @@ namespace Monopoly.Core.Models.Board
         public int MortgageValue { get; set; }
         public bool IsMortgage {  get; set; }
 
-        public abstract void LandOn(Player player);
+        public abstract void LandOn(Player player, Game game);
     }
 }

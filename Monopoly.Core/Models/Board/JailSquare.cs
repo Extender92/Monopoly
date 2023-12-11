@@ -17,7 +17,7 @@ namespace Monopoly.Core.Models.Board
             InJailInfo = inJailInfo;
         }
 
-        public override void LandOn(Player player)
+        public override void LandOn(Player player, Game game)
         {
             
         }

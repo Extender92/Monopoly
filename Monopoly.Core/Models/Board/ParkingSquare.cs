@@ -8,25 +8,25 @@
             Name = name;
         }
 
-        public override void LandOn(Player player)
+        public override void LandOn(Player player, Game game)
         {
-            switch (Game.Rules.FreeParking)
+            switch (game.Rules.FreeParking)
             {
                 case GameRules.Parking.Classic:
                     // Nothing Happens In Classic
                     break;
 
                 case GameRules.Parking.SetFee:
-                    Game.Transactions.GetMoneyFromBank(player, (int)GameRules.Parking.SetFee);
+                    game.Transactions.GetMoneyFromBank(player, (int)GameRules.Parking.SetFee);
                     break;
 
                 case GameRules.Parking.Fines:
-                    Game.Transactions.GetMoneyFromBank(player, Game.Fines);
-                    Game.Fines = 0;
+                    game.Transactions.GetMoneyFromBank(player, game.Fines);
+                    game.Fines = 0;
                     break;
 
                 default:
-                    throw new NotImplementedException($"Rule {Game.Rules.FreeParking} is not implemented.");
+                    throw new NotImplementedException($"Rule {game.Rules.FreeParking} is not implemented.");
             }
         }
     }

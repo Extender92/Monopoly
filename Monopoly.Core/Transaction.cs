@@ -13,10 +13,19 @@ namespace Monopoly.Core
 {
     internal class Transaction
     {
+        // Add a private field to hold the reference to the Game instance
+        private Game _game;
+
+        // Constructor to initialize the Game reference
+        public Transaction(Game game)
+        {
+            _game = game;
+        }
+
         internal void PlayerGetSalary(Player player)
         {
-            player.Money += Game.Rules.Salary;
-            Game.Logs.CreateLog($"{player.Name} collected salary {Game.Rules.Salary}{Game.Rules.CurrencySymbol}");
+            player.Money += _game.Rules.Salary;
+            _game.Logs.CreateLog($"{player.Name} collected salary {_game.Rules.Salary}{_game.Rules.CurrencySymbol}");
         }
 
         public bool BuyPurchasableSquare(Player player, Square square)
@@ -25,7 +34,7 @@ namespace Monopoly.Core
             {
                 player.Money -= square.Price;
                 square.Owner = player;
-                Game.Logs.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{Game.Rules.CurrencySymbol}");
+                _game.Logs.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{_game.Rules.CurrencySymbol}");
                 return true;
             }
             return false;
@@ -37,7 +46,7 @@ namespace Monopoly.Core
             {
                 fromPlayer.Money -= rent;
                 toPlayer.Money += rent;
-                Game.Logs.CreateLog($"{fromPlayer.Name} payed rent {rent}{Game.Rules.CurrencySymbol} to {toPlayer.Name}");
+                _game.Logs.CreateLog($"{fromPlayer.Name} payed rent {rent}{_game.Rules.CurrencySymbol} to {toPlayer.Name}");
                 return true;
             }
             return false;
@@ -47,18 +56,18 @@ namespace Monopoly.Core
         {
             GetMoneyFromBank(player, square.MortgageValue);
             square.IsMortgage = true;
-            Game.Logs.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{Game.Rules.CurrencySymbol}");
+            _game.Logs.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{_game.Rules.CurrencySymbol}");
         }
 
         public bool RepayMortgageProperty(Player player, Square square)
         {
-            int interestRate = Game.Rules.MortgageInterestRate;
+            int interestRate = _game.Rules.MortgageInterestRate;
             int sumToPay = (int)(square.MortgageValue * (1 + interestRate / 100.0));
             if (sumToPay <= player.Money)
             {
                 player.Money -= sumToPay;
                 square.IsMortgage = false;
-                Game.Logs.CreateLog($"{player.Name} repayed mortgage {sumToPay}{Game.Rules.CurrencySymbol} for {square.Name}");
+                _game.Logs.CreateLog($"{player.Name} repayed mortgage {sumToPay}{_game.Rules.CurrencySymbol} for {square.Name}");
                 return true;
             }
             return false;
@@ -93,7 +102,7 @@ namespace Monopoly.Core
         internal void GetMoneyFromBank(Player player, int sum)
         {
             player.Money += sum;
-            Game.Logs.CreateLog($"{player.Name} collected money from bank {sum}{Game.Rules.CurrencySymbol}");
+            _game.Logs.CreateLog($"{player.Name} collected money from bank {sum}{_game.Rules.CurrencySymbol}");
         }
 
         internal bool PayTax(Player player, int sum)
@@ -110,12 +119,12 @@ namespace Monopoly.Core
         {
             if (fines <= player.Money)
             {
-                if (Game.Rules.FreeParking == GameRules.Parking.Fines)
+                if (_game.Rules.FreeParking == GameRules.Parking.Fines)
                 {
-                    Game.Fines += fines;
+                    _game.Fines += fines;
                 }
                 player.Money -= fines;
-                Game.Logs.CreateLog($"{player.Name} payed fines {fines}{Game.Rules.CurrencySymbol}");
+                _game.Logs.CreateLog($"{player.Name} payed fines {fines}{_game.Rules.CurrencySymbol}");
                 return true;
             }
             return false;

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,71 +16,78 @@ namespace Monopoly.Console
 {
     internal class ConsoleGame
     {
-        private readonly IConsoleWrapper _console;
-
+        internal Game TheGame;
+        internal ConsolePrinter Printer { get; set; }
         internal List<TablePiece> TablePieces { get; set; }
+        internal Input PlayerInput { get; set; }
+        internal LogPrinter LogPrint { get; set; }
 
-        public ConsoleGame(List<TablePiece> tablePieces)
+        public ConsoleGame(Game game, ConsolePrinter consolePrinter, List<TablePiece> tablePieces, Input input, LogPrinter logPrint)
         {
-            _console = new ConsoleWrapper();
+            TheGame = game;
+            Printer = consolePrinter;
             TablePieces = tablePieces;
+            PlayerInput = input;
+            LogPrint = logPrint;
+
         }
+
 
         internal void StartGame()
         {
-            ConsoleEventHandler.SubscribeToEvents();
+            ConsoleEventHandler.SubscribeToEvents(this);
 
             System.Console.Clear();
-            ConsolePrinter.PrintGameBoard(TablePieces);
+            Printer.PrintGameBoard(TablePieces, TheGame.Players);
 
-            while (Game.Players.Count(p => !p.IsBankrupt) > 1)
+            while (TheGame.Players.Count(p => !p.IsBankrupt) > 1)
             {
-                foreach (var player in Game.Players.Where(p => !p.IsBankrupt))
+                foreach (var player in TheGame.Players.Where(p => !p.IsBankrupt))
                 {
                     do
                     {
-                        ConsolePrinter.WaitForInputToStartTurn(player);
+                        Printer.WaitForInputToStartTurn(player, TheGame.Players);
 
                         if (player.InJail)
                         {
-                            Game.TheJail.TakeTurnInJail(player);
+                            TheGame.TheJail.TakeTurnInJail(player);
                         }
                         else
                         {
-                            Game.RoleDiceAndMovePlayer(player);
+                            TheGame.Handler.RoleDiceAndMovePlayer(player);
                         }
 
-                        Square landedSquare = Game.Board.GetSquareAtPosition(player.Position);
+                        Square landedSquare = TheGame.Board.GetSquareAtPosition(player.Position);
 
                         UpdateGameInformation(landedSquare, player);
 
                         if (!player.IsBankrupt)
                         {
-                            player.LandOnSquare(landedSquare);
+                            player.LandOnSquare(landedSquare, TheGame);
 
                             UpdateGameInformation(landedSquare, player);
 
                             // Check for a double roll
-                            if (Game.IsDiceDouble())
+                            if (TheGame.Handler.IsDiceDouble())
                             {
-                                ConsolePrinter.PrintText($"{player.Name} rolled a double! Taking another turn.");
+                                Printer.PrintText($"{player.Name} rolled a double! Taking another turn.");
                             }
                         }
 
-                        ConsolePrinter.WaitForInputToEndTurn(player);
-                    } while (Game.IsDiceDouble() && !player.IsBankrupt);
+                        Printer.WaitForInputToEndTurn(player, TheGame.Players);
+                    } while (TheGame.Handler.IsDiceDouble() && !player.IsBankrupt);
                 }
             }
-            Game.Winning(Game.Players.First(p => !p.IsBankrupt));
+            TheGame.Handler.Winning(TheGame.Players.First(p => !p.IsBankrupt));
         }
 
         private void UpdateGameInformation(Square landedSquare, Player player)
         {
-            _console.Clear();
-            ConsolePrinter.PrintGameBoard(TablePieces);
-            ConsolePrinter.DisplayPlayersInformation(player);
-            ConsolePrinter.PrepareAndPrintSquareCard(landedSquare.Position);
-            ConsolePrinter.PrintNewestLogs(10);
+            Printer.Console.Clear();
+            Printer.PrintGameBoard(TablePieces, TheGame.Players);
+            Printer.DisplayPlayersInformation(player, TheGame.Players);
+            Printer.PrepareAndPrintSquareCard(landedSquare.Position);
+            LogPrint.PrintNewestLogs(10, TheGame.Logs.LogList);
         }
     }
 }

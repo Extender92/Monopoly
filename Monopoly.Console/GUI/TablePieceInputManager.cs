@@ -9,9 +9,16 @@ namespace Monopoly.Console.GUI
 {
     internal class TablePieceInputManager
     {
-        private IConsoleWrapper Console = new ConsoleWrapper();
+        private IConsoleWrapper Console;
+        private ConsolePrinter Printer;
 
-        internal TablePiece GetTablePieceFromUserInput(int playerId, List<TablePiece> tablePieces)
+        public TablePieceInputManager(IConsoleWrapper consoleWrapper, ConsolePrinter consolePrinter)
+        {
+            Console = consoleWrapper;
+            Printer = consolePrinter;
+        }
+
+        internal TablePiece GetTablePieceFromUserInput(int playerId, List<TablePiece> tablePieces, Input playerInput)
         {
             TablePiece tablePiece = new TablePiece();
             do
@@ -38,12 +45,12 @@ namespace Monopoly.Console.GUI
 
                 Console.Clear();
                 Console.Write(" You entered: ");
-                ConsolePrinter.PrintColoredText(tablePiece.Piece, tablePiece.Color);
+                Printer.PrintColoredText(tablePiece.Piece, tablePiece.Color);
                 Console.Write(" With color: ");
-                ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
+                Printer.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
                 Console.WriteLine("\n Do you want to continue?");
 
-            } while (!Input.GetUserConfirmation());
+            } while (!playerInput.GetUserConfirmation());
 
             tablePiece.PlayerId = playerId;
             return tablePiece;
@@ -78,7 +85,9 @@ namespace Monopoly.Console.GUI
 
             List<string> menuChoices = colors.Select(x => x.ToString()).ToList();
 
-            int index = MenuOptionSelector.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length), 0, (menuChoices.Count / 2));
+            MenuOptionSelector menu = new MenuOptionSelector(Console);
+
+            int index = menu.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length), 0, (menuChoices.Count / 2));
             return colors[index];
         }
 

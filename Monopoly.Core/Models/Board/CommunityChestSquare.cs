@@ -15,9 +15,9 @@ namespace Monopoly.Core.Models.Board
             Name = name;
             Info = info;
         }
-        public override void LandOn(Player player)
+        public override void LandOn(Player player, Game game)
         {
-            ICommunityChestCard communityChestCard = Game.FortuneCard.DrawNextCommunityChestCard();
+            ICommunityChestCard communityChestCard = game.FortuneCard.DrawNextCommunityChestCard();
             communityChestCard.ExecuteEffect(player);
         }
     }

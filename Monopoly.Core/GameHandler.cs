@@ -11,7 +11,14 @@ namespace Monopoly.Core
 {
     internal class GameHandler
     {
-        internal  void RoleDiceAndMovePlayer(Player player)
+        public Game TheGame { get; set; }
+
+        public GameHandler(Game theGame)
+        {
+            TheGame = theGame;
+        }
+
+        internal void RoleDiceAndMovePlayer(Player player)
         {
             RollDice(player);
             int diceSum = CalculateDiceSum();
@@ -21,56 +28,56 @@ namespace Monopoly.Core
 
         internal void CheckIfPlayerGoPastGo(Player player)
         {
-            if (player.Position >= Game.Board.Squares.Count)
+            if (player.Position >= TheGame.Board.Squares.Count)
             {
-                player.Position -= (Game.Board.Squares.Count);
-                Game.Transactions.PlayerGetSalary(player);
+                player.Position -= (TheGame.Board.Squares.Count);
+                TheGame.Transactions.PlayerGetSalary(player);
             }
         }
 
-        internal  void RollDice(Player player)
+        internal void RollDice(Player player)
         {
             string diceRoll = player.Name + " rolled:";
-            foreach (Die die in Game.Dice)
+            foreach (Die die in TheGame.Dice)
             {
                 die.Roll();
                 diceRoll += $" {die.GetDieResult()}";
             }
             diceRoll += " Total: " + CalculateDiceSum();
-            Game.Logs.CreateLog(diceRoll);
+            TheGame.Logs.CreateLog(diceRoll);
         }
 
-        internal  bool IsDiceDouble()
+        internal bool IsDiceDouble()
         {
-            if (Game.Dice.Count < 2)
+            if (TheGame.Dice.Count < 2)
             {
                 // At least two dice are required for a double
                 return false;
             }
 
             // Get the result of the first die
-            int firstDieResult = Game.Dice[0].GetDieResult();
+            int firstDieResult = TheGame.Dice[0].GetDieResult();
 
             // Check if all dice have the same result as the first die
-            return Game.Dice.All(die => die.GetDieResult() == firstDieResult);
+            return TheGame.Dice.All(die => die.GetDieResult() == firstDieResult);
         }
 
         internal int CalculateDiceSum()
         {
             int diceSum = 0;
-            foreach (Die die in Game.Dice)
+            foreach (Die die in TheGame.Dice)
             {
                 diceSum += die.GetDieResult();
             }
             return diceSum;
         }
 
-        internal static void Winning(Player player)
+        internal void Winning(Player player)
         {
             // Win method todo //
         }
 
-        internal static int GetMoneyFromBankruptPlayerAndBankruptPlayer(Player player)
+        internal int GetMoneyFromBankruptPlayerAndBankruptPlayer(Player player)
         {
             int remainingPlayerMoney = player.Money;
             player.Money = 0;
@@ -79,15 +86,15 @@ namespace Monopoly.Core
             return remainingPlayerMoney;
         }
 
-        internal static void HandlePlayerBankruptcy(Player player)
+        internal void HandlePlayerBankruptcy(Player player)
         {
             ClearOwnershipForPlayer(player);
             player.IsBankrupt = true;
         }
 
-        public static void ClearOwnershipForPlayer(Player player)
+        public void ClearOwnershipForPlayer(Player player)
         {
-            foreach (var square in Game.Board.Squares)
+            foreach (var square in TheGame.Board.Squares)
                 if (square.Owner == player)
                 {
                     square.Owner = null;
@@ -98,21 +105,21 @@ namespace Monopoly.Core
                 }
         }
 
-        internal static bool IsPlayerBankrupt(Player player, int sum)
+        internal bool IsPlayerBankrupt(Player player, int sum)
         {
             return !CanAffordWithAssets(player, sum);
         }
 
-        internal static bool CanAffordWithAssets(Player player, int sum)
+        internal bool CanAffordWithAssets(Player player, int sum)
         {
             return CalculatePlayerAssets(player) >= sum;
         }
 
-        private static int CalculatePlayerAssets(Player player)
+        private int CalculatePlayerAssets(Player player)
         {
             int totalAssets = player.Money;
 
-            foreach (var square in Game.Board.Squares)
+            foreach (var square in TheGame.Board.Squares)
             {
                 if (square.Owner == player)
                 {
@@ -131,12 +138,12 @@ namespace Monopoly.Core
             return totalAssets;
         }
 
-        private static int CalculateMortgageValue(Square square)
+        private int CalculateMortgageValue(Square square)
         {
             return square.MortgageValue;
         }
 
-        private static int CalculateHouseAndHotelValue(PropertySquare property)
+        private int CalculateHouseAndHotelValue(PropertySquare property)
         {
             const int hotelIndex = 5;
 

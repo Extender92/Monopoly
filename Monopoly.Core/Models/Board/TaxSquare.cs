@@ -17,13 +17,13 @@ namespace Monopoly.Core.Models.Board
             Price = tax;
         }
 
-        public override void LandOn(Player player)
+        public override void LandOn(Player player, Game game)
         {
-            while(!Game.Transactions.PayTax(player, Price))
+            while(!game.Transactions.PayTax(player, Price))
             {
-                if (Game.IsPlayerBankrupt(player, Price))
+                if (game.Handler.IsPlayerBankrupt(player, Price))
                 {
-                    Game.HandlePlayerBankruptcy(player);
+                    game.Handler.HandlePlayerBankruptcy(player);
                     return;
                 }
 

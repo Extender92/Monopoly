@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Monopoly.Core.Logs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +9,11 @@ namespace Monopoly.Core.Events
 {
     internal class LogEventArgs
     {
-        public string LogInfo { get; }
+        public List<Log> LogList { get; set; }
 
-        public LogEventArgs(string logInfo)
+        public LogEventArgs(List<Log> logList)
         {
-            LogInfo = logInfo;
+            LogList = logList;
         }
     }
 }
