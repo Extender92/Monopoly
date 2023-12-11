@@ -8,18 +8,23 @@ namespace Monopoly.Console.GUI
 {
     internal class MenuOptionSelector
     {
-        public static int StartX { get; set; } = 10;
-        public static int StartY { get; set; } = 2;
+        public int StartX { get; set; } = 10;
+        public int StartY { get; set; } = 2;
 
-        private static IConsoleWrapper Console = new ConsoleWrapper();
+        private IConsoleWrapper Console { get; set; }
 
-        internal static void SetPositions()
+        public MenuOptionSelector(IConsoleWrapper consoleWrapper)
         {
-            StartX = ConsolePrinter.Positions.MenuPosX;
-            StartY = ConsolePrinter.Positions.MenuPosY;
+            Console = consoleWrapper;
         }
 
-        public static int GetSelectedOption(List<string> options, int spacingPerLine = 18, int index = 0, int optionsPerLine = 1, bool canCancel = false, ConsoleColor selectColor = ConsoleColor.Red)
+        internal void SetPositions()
+        {
+            StartX = ConsolePositions.MenuPosX;
+            StartY = ConsolePositions.MenuPosY;
+        }
+
+        public int GetSelectedOption(List<string> options, int spacingPerLine = 18, int index = 0, int optionsPerLine = 1, bool canCancel = false, ConsoleColor selectColor = ConsoleColor.Red)
         {
             const int spacingBuffer = 2;
             spacingPerLine += spacingBuffer;

@@ -22,7 +22,7 @@ namespace Monopoly.Console.Events
             Player player = e.Player;
             int targetSum = e.TargetSum;
             string message = $"{player.Name} you dont have enough money, you need {targetSum}{Game.Rules.CurrencySymbol}";
-            ConsolePrinter.PrintText(message);
+            ConsoleGame.Printer.PrintText(message);
             // Menu SellAssets
         }
 
@@ -30,22 +30,22 @@ namespace Monopoly.Console.Events
         {
             Square square = e.Square;
             string message = $"Do you want to buy {square.Name} for {square.Price}{Game.Rules.CurrencySymbol}?";
-            ConsolePrinter.PrintText(message);
-            return Input.GetUserConfirmation();
+            ConsoleGame.Printer.PrintText(message);
+            return ConsoleGame.PlayerInput.GetUserConfirmation();
         }
 
         private static bool HandleAskPlayerToBuyOutOfJail(object sender, PlayerEventArgs e)
         {
             Player player = e.Player;
             string message = $"{player.Name} do you want to buy yourself out from prison?";
-            ConsolePrinter.PrintText(message);
-            return Input.GetUserConfirmation();
+            ConsoleGame.Printer.PrintText(message);
+            return ConsoleGame.PlayerInput.GetUserConfirmation();
         }
 
         private static void LogHandler_LogAdded(object sender, LogEventArgs e)
         {
             // Print the newest logs when a new log is added
-            ConsolePrinter.PrintNewestLogs(10);
+            ConsoleGame.Printer.PrintNewestLogs(10);
         }
     }
 }

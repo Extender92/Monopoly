@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,22 +16,18 @@ namespace Monopoly.Console
 {
     internal class ConsoleGame
     {
-        private readonly IConsoleWrapper _console;
+        internal static ConsolePrinter Printer { get; } = new ConsolePrinter(new ConsoleWrapper());
 
-        internal List<TablePiece> TablePieces { get; set; }
+        internal static List<TablePiece> TablePieces { get; set; }
+        internal static Input PlayerInput { get; set; }
 
-        public ConsoleGame(List<TablePiece> tablePieces)
-        {
-            _console = new ConsoleWrapper();
-            TablePieces = tablePieces;
-        }
 
-        internal void StartGame()
+        internal static void StartGame()
         {
             ConsoleEventHandler.SubscribeToEvents();
 
             System.Console.Clear();
-            ConsolePrinter.PrintGameBoard(TablePieces);
+            Printer.PrintGameBoard(TablePieces);
 
             while (Game.Players.Count(p => !p.IsBankrupt) > 1)
             {
@@ -38,7 +35,7 @@ namespace Monopoly.Console
                 {
                     do
                     {
-                        ConsolePrinter.WaitForInputToStartTurn(player);
+                        Printer.WaitForInputToStartTurn(player);
 
                         if (player.InJail)
                         {
@@ -62,24 +59,24 @@ namespace Monopoly.Console
                             // Check for a double roll
                             if (Game.IsDiceDouble())
                             {
-                                ConsolePrinter.PrintText($"{player.Name} rolled a double! Taking another turn.");
+                                Printer.PrintText($"{player.Name} rolled a double! Taking another turn.");
                             }
                         }
 
-                        ConsolePrinter.WaitForInputToEndTurn(player);
+                        Printer.WaitForInputToEndTurn(player);
                     } while (Game.IsDiceDouble() && !player.IsBankrupt);
                 }
             }
             Game.Winning(Game.Players.First(p => !p.IsBankrupt));
         }
 
-        private void UpdateGameInformation(Square landedSquare, Player player)
+        private static void UpdateGameInformation(Square landedSquare, Player player)
         {
-            _console.Clear();
-            ConsolePrinter.PrintGameBoard(TablePieces);
-            ConsolePrinter.DisplayPlayersInformation(player);
-            ConsolePrinter.PrepareAndPrintSquareCard(landedSquare.Position);
-            ConsolePrinter.PrintNewestLogs(10);
+            Printer.Console.Clear();
+            Printer.PrintGameBoard(TablePieces);
+            Printer.DisplayPlayersInformation(player);
+            Printer.PrepareAndPrintSquareCard(landedSquare.Position);
+            Printer.PrintNewestLogs(10);
         }
     }
 }

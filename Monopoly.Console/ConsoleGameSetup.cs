@@ -22,12 +22,12 @@ namespace Monopoly.Console
             GameRules = gameRules;
         }
 
-        public void Setup() 
+        public void Setup(IConsoleWrapper consoleWrapper) 
         {
             CoreGameSetup.Setup(GameRules);
 
-            new ConsolePrinter(new ConsolePositions());
-            MenuOptionSelector.SetPositions();
+            MenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
+            menu.SetPositions();
 
 
             TablePieces = new();
@@ -35,6 +35,8 @@ namespace Monopoly.Console
             {
                 TablePieces.Add(_tablePieceSelector.GetTablePieceFromUserInput(player.Id, TablePieces));
             }
+
+            ConsoleGame.TablePieces = TablePieces;
         }
     }
 }

@@ -12,25 +12,24 @@ namespace Monopoly.Console
     {
         static void Main(string[] args)
         {
-
-            GameRules gameRules = SetupRules();
+            IConsoleWrapper consoleWrapper = new ConsoleWrapper();
+            GameRules gameRules = SetupRules(consoleWrapper);
             ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules);
-            gameSetup.Setup();
-            ConsoleGame run = new ConsoleGame(gameSetup.TablePieces);
-
-            run.StartGame();
+            gameSetup.Setup(consoleWrapper);
+            ConsoleGame.StartGame();
         }
 
-        private static GameRules SetupRules()
+        private static GameRules SetupRules(IConsoleWrapper consoleWrapper)
         {
+            MenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
+            Input input = new Input(consoleWrapper, menu);
             int numberOfDice = 2;
             int dieSides = 6;
-            int numberOfPlayers = Input.GetNumberOfPlayers();
+            int numberOfPlayers = input.GetNumberOfPlayers();
             return new GameRules(numberOfPlayers, numberOfDice, dieSides);
         }
 
-
-        public static void TestCards()
+        public void TestCards()
         {
             while (true)
             {
@@ -38,7 +37,7 @@ namespace Monopoly.Console
                 foreach (var landedSquare in Game.Board.Squares)
                 {
                     System.Console.Clear();
-                    ConsolePrinter.PrepareAndPrintSquareCard(landedSquare.Position);
+                    ConsoleGame.Printer.PrepareAndPrintSquareCard(landedSquare.Position);
                     System.Console.ReadLine();
                 }
             }
@@ -80,7 +79,7 @@ namespace Monopoly.Console
 
                 chanceHeader = Helpers.StringHelper.CenterString(chanceHeader, chanceHorizontalSize);
 
-                GUI.ConsolePrinter.PrintCard(chanceHeader, chanceHorizontalSize, chanceVerticalSize, chanceInfo, ConsoleColor.Green, ConsoleColor.Yellow);
+                ConsoleGame.Printer.PrintCard(chanceHeader, chanceHorizontalSize, chanceVerticalSize, chanceInfo, ConsoleColor.Green, ConsoleColor.Yellow);
 
                 System.Console.ReadLine();
 

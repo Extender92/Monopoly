@@ -8,25 +8,25 @@ namespace Monopoly.Console.GUI
 {
     internal class ConsolePositions
     {
-        public int BoardPosX { get; set; }
-        public int BoardPosY { get; set; }
-        public int LogPosX { get; set; }
-        public int LogPosY { get; set; }
-        public int TextPosX { get; set; }
-        public int TextPosY { get; set; }
-        public int CardPosX { get; set; }
-        public int CardPosY { get; set; }
-        public int MenuPosX { get; set; }
-        public int MenuPosY { get; set; }
-        public int PlayerInformationX { get; set; }
-        public int PlayerInformationY { get; set; }
+        public static int BoardPosX { get; set; }
+        public static int BoardPosY { get; set; }
+        public static int LogPosX { get; set; }
+        public static int LogPosY { get; set; }
+        public static int TextPosX { get; set; }
+        public static int TextPosY { get; set; }
+        public static int CardPosX { get; set; }
+        public static int CardPosY { get; set; }
+        public static int MenuPosX { get; set; }
+        public static int MenuPosY { get; set; }
+        public static int PlayerInformationX { get; set; }
+        public static int PlayerInformationY { get; set; }
 
         public ConsolePositions()
         {
             SetStandardPositions();
         }
 
-        internal void SetStandardPositions()
+        internal static void SetStandardPositions()
         {
             BoardPosX = 2;
             BoardPosY = 6;
