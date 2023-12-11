@@ -32,7 +32,7 @@ namespace Monopoly.Tests.CoreTests
             int position = 1;
 
             //Act 
-            var street = new PropertySquare(color, name, rent, rentWithColor, rentOneHouse, rentTwoHouses,
+            var street = new Core.Models.Board.PropertySquare(color, name, rent, rentWithColor, rentOneHouse, rentTwoHouses,
                         rentThreeHouses, rentFourHouses, rentHotels, housesCost, hotelsCost,
                         price, mortgageValue, position);
 
@@ -65,7 +65,7 @@ namespace Monopoly.Tests.CoreTests
         {
 
             //Act 
-            var street = new PropertySquare(color, name, rent, rentWithColor, rentOneHouse, rentTwoHouses,
+            var street = new Core.Models.Board.PropertySquare(color, name, rent, rentWithColor, rentOneHouse, rentTwoHouses,
                         rentThreeHouses, rentFourHouses, rentHotels, housesCost, hotelsCost,
                         price, mortgageValue, position);
 
@@ -108,7 +108,7 @@ namespace Monopoly.Tests.CoreTests
             foreach (var card in streetCards)
             {
                 Assert.NotNull(card);
-                Assert.IsType<PropertySquare>(card);
+                Assert.IsType<Core.Models.Board.PropertySquare>(card);
                 Assert.True(card.Rent > 0);
             }
         }

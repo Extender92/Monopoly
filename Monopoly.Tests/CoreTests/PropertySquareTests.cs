@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Tests.CoreTests
 {
-    internal class StreetTests
+    internal class PropertySquareTests
     {
+
     }
 }
