@@ -14,10 +14,12 @@ namespace Monopoly.Console.Builder
 {
     internal class SquareCardBuilder
     {
+        public static GameRules Rules { get; set; }
         public static string Currency { get; set; }
 
         internal static List<SquareCard> BuildAllSquareCards(List<Square> squares, GameRules gameRules)
         {
+            Rules = gameRules;
             Currency = gameRules.CurrencySymbol;
 
             List<SquareCard> squareCardList = new List<SquareCard>();
@@ -135,7 +137,7 @@ namespace Monopoly.Console.Builder
             {
                 BoardPosition = go.Position,
                 Name = go.Name,
-                Info = $"Collect {Game.Rules.Salary}{Currency} salary as you pass {go.Name}"
+                Info = $"Collect {Rules.Salary}{Currency} salary as you pass {go.Name}"
             };
 
             return goCard;
@@ -147,7 +149,7 @@ namespace Monopoly.Console.Builder
             {
                 Name = goToJail.Name,
                 BoardPosition = goToJail.Position,
-                Info = $"Go to jail!. Do not collect {Game.Rules.Salary}{Currency} salary for passing GO"
+                Info = $"Go to jail!. Do not collect {Rules.Salary}{Currency} salary for passing GO"
         };
 
             return goToJailCard;
@@ -168,11 +170,11 @@ namespace Monopoly.Console.Builder
         private static ParkingSquareCard BuildParkingCardFromParking(ParkingSquare parking)
         {
             string info = "";
-            if (Game.Rules.FreeParking == Parking.SetFee)
+            if (Rules.FreeParking == Parking.SetFee)
             {
                 info = $"Collect {(int)Parking.SetFee}{Currency}";
             }
-            else if (Game.Rules.FreeParking == Parking.Fines)
+            else if (Rules.FreeParking == Parking.Fines)
             {
                 info = $"Collect fines{Currency}";
             }

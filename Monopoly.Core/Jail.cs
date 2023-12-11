@@ -12,6 +12,13 @@ namespace Monopoly.Core
 {
     internal class Jail
     {
+        public Game TheGame { get; set; }
+
+        public Jail(Game game)
+        {
+            TheGame = game;
+        }
+
         private Dictionary<Player, PlayerJailInfo> playersInJail = new Dictionary<Player, PlayerJailInfo>();
 
         public int MaxTurnsInJail { get; } = 3;
@@ -23,7 +30,7 @@ namespace Monopoly.Core
             player.Position = JailPosition;
             player.InJail = true;
             playersInJail[player] = new PlayerJailInfo();
-            Game.Logs.CreateLog($"{player.Name} went to jail");
+            TheGame.Logs.CreateLog($"{player.Name} went to jail");
         }
 
         internal void TakeTurnInJail(Player player)
@@ -32,10 +39,10 @@ namespace Monopoly.Core
             {
                 bool playerWantsToBuyOut = false;
 
-                if (player.NumberOfGetOutOFJailCards > 0 || Game.Handler.CanAffordWithAssets(player, Fine))
+                if (player.NumberOfGetOutOFJailCards > 0 || TheGame.Handler.CanAffordWithAssets(player, Fine))
                     playerWantsToBuyOut = GameEvents.InvokeAskPlayerToBuyOutOfJail(player, new PlayerEventArgs(player));
 
-                Game.Handler.RollDice(player);
+                TheGame.Handler.RollDice(player);
 
                 if (playerWantsToBuyOut)
                 {
@@ -43,9 +50,9 @@ namespace Monopoly.Core
                     return;
                 }
 
-                if (Game.Handler.IsDiceDouble())
+                if (TheGame.Handler.IsDiceDouble())
                 {
-                    Game.Dice[0].ScrambleDie();
+                    TheGame.Dice[0].ScrambleDie();
                     ReleasePlayerFromJail(player);
                     return;
                 }
@@ -54,9 +61,9 @@ namespace Monopoly.Core
 
                 if (!(jailInfo.TurnsInJail < MaxTurnsInJail))
                 {
-                    if (Game.Handler.IsPlayerBankrupt(player, Fine))
+                    if (TheGame.Handler.IsPlayerBankrupt(player, Fine))
                     {
-                        Game.Handler.HandlePlayerBankruptcy(player);
+                        TheGame.Handler.HandlePlayerBankruptcy(player);
                         return;
                     }
                     BuyOutPlayerFromJail(player);
@@ -76,7 +83,7 @@ namespace Monopoly.Core
             }
             else
             {
-                while (!Game.Transactions.PayFines(player, Fine))
+                while (!TheGame.Transactions.PayFines(player, Fine))
                 {
                     GameEvents.InvokePlayerInsufficientFunds(player, Fine);
                 }
@@ -90,9 +97,9 @@ namespace Monopoly.Core
             playersInJail.Remove(player);
 
             player.InJail = false;
-            Game.Logs.CreateLog($"{player.Name} was released from jail");
+            TheGame.Logs.CreateLog($"{player.Name} was released from jail");
 
-            player.Position += Game.Handler.CalculateDiceSum();
+            player.Position += TheGame.Handler.CalculateDiceSum();
         }
 
         private class PlayerJailInfo

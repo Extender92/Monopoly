@@ -10,10 +10,10 @@
             Info = info;
         }
 
-        public override void LandOn(Player player)
+        public override void LandOn(Player player, Game game)
         {
-            if (Game.Rules.DoubleOnGo)
-                Game.Transactions.PlayerGetSalary(player);
+            if (game.Rules.DoubleOnGo)
+                game.Transactions.PlayerGetSalary(player);
         }
     }
 }

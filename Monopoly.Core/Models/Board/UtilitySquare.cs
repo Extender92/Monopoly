@@ -23,31 +23,31 @@ namespace Monopoly.Core.Models.Board
             MortgageValue = mortgageValue;
         }
 
-        public override void LandOn(Player player)
+        public override void LandOn(Player player, Game game)
         {
             if (Owner == null)
             {
-                if (Game.Handler.CanAffordWithAssets(player, Price))
+                if (game.Handler.CanAffordWithAssets(player, Price))
                 {
-                    Game.Transactions.HandleCanBuySquare(player, this);
+                    game.Transactions.HandleCanBuySquare(player, this);
                 }
             }
             else if (!IsMortgage)
             {
-                HandleRentPayment(player);
+                HandleRentPayment(player, game);
             }
         }
 
-        private void HandleRentPayment(Player player)
+        private void HandleRentPayment(Player player, Game game)
         {
-            int rent = CalculateRent();
+            int rent = CalculateRent(game);
 
-            while (!Game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
+            while (!game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
             {
-                if (Game.Handler.IsPlayerBankrupt(player, rent))
+                if (game.Handler.IsPlayerBankrupt(player, rent))
                 {
-                    int restOfPlayerMoney = Game.Handler.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
-                    Game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
+                    int restOfPlayerMoney = game.Handler.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
+                    game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
                     break;
                 }
 
@@ -55,12 +55,12 @@ namespace Monopoly.Core.Models.Board
             }
         }
 
-        private int CalculateRent()
+        private int CalculateRent(Game game)
         {
-            int ownedUtility = Game.Board.Squares.OfType<UtilitySquare>()
+            int ownedUtility = game.Board.Squares.OfType<UtilitySquare>()
                              .Count(square => square.Owner == Owner);
 
-            int diceSum = Game.Dice.Sum(die => die.GetDieResult());
+            int diceSum = game.Dice.Sum(die => die.GetDieResult());
 
             switch (ownedUtility)
             {

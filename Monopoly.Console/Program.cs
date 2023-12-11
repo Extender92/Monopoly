@@ -12,11 +12,29 @@ namespace Monopoly.Console
     {
         static void Main(string[] args)
         {
+            ConsolePositions Positions = new ConsolePositions();
+
             IConsoleWrapper consoleWrapper = new ConsoleWrapper();
+
             GameRules gameRules = SetupRules(consoleWrapper);
-            ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules);
-            gameSetup.Setup(consoleWrapper);
-            ConsoleGame.StartGame();
+
+            Game game = CoreGameSetup.Setup(gameRules);
+
+            ConsolePrinter consolePrinter = new ConsolePrinter(consoleWrapper, game.Board.Squares, gameRules);
+
+            TablePieceInputManager PieceInput = new TablePieceInputManager(consoleWrapper, consolePrinter);
+
+            ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules, PieceInput);
+
+            MenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
+
+            Input input = new Input(consoleWrapper, menu);
+
+            LogPrinter logPrint = new LogPrinter(consoleWrapper);
+
+            ConsoleGame consoleGame = gameSetup.Setup(game, consoleWrapper, consolePrinter, input, logPrint);
+
+            consoleGame.StartGame();
         }
 
         private static GameRules SetupRules(IConsoleWrapper consoleWrapper)
@@ -29,63 +47,63 @@ namespace Monopoly.Console
             return new GameRules(numberOfPlayers, numberOfDice, dieSides);
         }
 
-        public void TestCards()
-        {
-            while (true)
-            {
+        //public void TestCards()
+        //{
+        //    while (true)
+        //    {
 
-                foreach (var landedSquare in Game.Board.Squares)
-                {
-                    System.Console.Clear();
-                    ConsoleGame.Printer.PrepareAndPrintSquareCard(landedSquare.Position);
-                    System.Console.ReadLine();
-                }
-            }
-        }
+        //        foreach (var landedSquare in Game.Board.Squares)
+        //        {
+        //            System.Console.Clear();
+        //            ConsoleGame.Printer.PrepareAndPrintSquareCard(landedSquare.Position);
+        //            System.Console.ReadLine();
+        //        }
+        //    }
+        //}
 
-        public static void DrawChanceCards(GameRules rules)
-        {
-            List<string> chanceInfoLines = new List<string>
-            {
-                "Action",
-                "Description",
-            };
+        //public static void DrawChanceCards(GameRules rules)
+        //{
+        //    List<string> chanceInfoLines = new List<string>
+        //    {
+        //        "Action",
+        //        "Description",
+        //    };
 
-            int chanceInfoTextLength = chanceInfoLines.Max(line => line.Length) + 4;
+        //    int chanceInfoTextLength = chanceInfoLines.Max(line => line.Length) + 4;
 
-            int chancePositionX = 5;
-            int chancePositionY = 5;
+        //    int chancePositionX = 5;
+        //    int chancePositionY = 5;
 
-            int chanceHorizontalSize = 40;
-            int chanceVerticalSize = 5;
+        //    int chanceHorizontalSize = 40;
+        //    int chanceVerticalSize = 5;
 
-            foreach (var chanceCard in Core.Data.Data.GetChanceCardData(rules))
-            {
-                List<string> chanceInfo = new List<string>
-                {
-                    $"{chanceCard.Info}",
-                    $"{chanceCard.GetType}"
-                };
+        //    foreach (var chanceCard in Core.Data.Data.GetChanceCardData(rules))
+        //    {
+        //        List<string> chanceInfo = new List<string>
+        //        {
+        //            $"{chanceCard.Info}",
+        //            $"{chanceCard.GetType}"
+        //        };
 
-                string chanceHeader = chanceCard.Info;
+        //        string chanceHeader = chanceCard.Info;
 
-                chanceHorizontalSize = Math.Max(chanceHorizontalSize, Math.Max(chanceHeader.Length + 2, chanceInfoTextLength));
+        //        chanceHorizontalSize = Math.Max(chanceHorizontalSize, Math.Max(chanceHeader.Length + 2, chanceInfoTextLength));
 
-                for (int i = 0; i < chanceInfoLines.Count; i++)
-                {
-                    int space = chanceHorizontalSize - (chanceInfoLines[i].Length + chanceInfo[i].Length + 2);
-                    chanceInfo[i] = chanceInfoLines[i] + ":".PadRight(space) + chanceInfo[i];
-                }
+        //        for (int i = 0; i < chanceInfoLines.Count; i++)
+        //        {
+        //            int space = chanceHorizontalSize - (chanceInfoLines[i].Length + chanceInfo[i].Length + 2);
+        //            chanceInfo[i] = chanceInfoLines[i] + ":".PadRight(space) + chanceInfo[i];
+        //        }
 
-                chanceHeader = Helpers.StringHelper.CenterString(chanceHeader, chanceHorizontalSize);
+        //        chanceHeader = Helpers.StringHelper.CenterString(chanceHeader, chanceHorizontalSize);
 
-                ConsoleGame.Printer.PrintCard(chanceHeader, chanceHorizontalSize, chanceVerticalSize, chanceInfo, ConsoleColor.Green, ConsoleColor.Yellow);
+        //        ConsoleGame.Printer.PrintCard(chanceHeader, chanceHorizontalSize, chanceVerticalSize, chanceInfo, ConsoleColor.Green, ConsoleColor.Yellow);
 
-                System.Console.ReadLine();
+        //        System.Console.ReadLine();
 
-                // Clear the chanceInfo list for the next iteration
-                chanceInfo.Clear();
-            }
-        }
+        //        // Clear the chanceInfo list for the next iteration
+        //        chanceInfo.Clear();
+        //    }
+        //}
     }
 }

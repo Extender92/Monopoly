@@ -11,19 +11,35 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core
 {
-    internal static class Game
+    internal class Game
     {
-        public static GameHandler Handler = new GameHandler();
-        internal static LogHandler Logs { get; set; } = new LogHandler();
-        internal static GameBoard Board { get; set; }
-        internal static List<Player> Players  { get; set;}
-        internal static List<IDie> Dice { get; set; }
-        internal static GameRules Rules { get; set; }
-        internal static Transaction Transactions { get; set; }
-        internal static Jail TheJail { get; set; }
-        internal static FortuneCardHandler FortuneCard { get; set; }
-        internal static int Fines { get; set; }
+        internal GameHandler Handler {  get; set; }
+        internal LogHandler Logs { get; set; }
+        internal GameBoard Board { get; set; }
+        internal List<Player> Players  { get; set;}
+        internal List<IDie> Dice { get; set; }
+        internal GameRules Rules { get; set; }
+        internal Transaction Transactions { get; set; }
+        internal Jail TheJail { get; set; }
+        internal FortuneCardHandler FortuneCard { get; set; }
+        internal int Fines { get; set; }
 
-     
+        public Game(
+        List<Player> players,
+        List<IDie> dice,
+        GameRules rules)
+        {
+            Players = players;
+            Dice = dice;
+            Rules = rules;
+
+            Fines = 0;
+            Board = new GameBoard(rules);
+            Logs = new LogHandler();
+            FortuneCard = new FortuneCardHandler(rules);
+            TheJail = new Jail(this);
+            Handler = new GameHandler(this);
+            Transactions = new Transaction(this);
+        }
     }
 }

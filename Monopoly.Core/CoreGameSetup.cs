@@ -10,7 +10,7 @@ namespace Monopoly.Core
 {
     internal class CoreGameSetup
     {
-        internal static void Setup(GameRules gameRules)
+        internal static Game Setup(GameRules gameRules)
         {
             List<Player> players = new List<Player>();
             List<IDie> dice = new List<IDie>();
@@ -25,15 +25,9 @@ namespace Monopoly.Core
                 dice.Add(new Die(gameRules.DieSides));
             }
 
-            GameBoard gameBoard = new GameBoard(gameRules);
+            Game game = new Game(players, dice, gameRules);
 
-            Game.Board = gameBoard;
-            Game.Dice = dice;
-            Game.Players = players;
-            Game.Rules = gameRules;
-            Game.TheJail = new Jail();
-            Game.FortuneCard = new FortuneCardHandler(gameRules);
-            Game.Transactions = new Transaction();
+            return game;
         }
     }
 }

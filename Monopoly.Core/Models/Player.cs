@@ -18,9 +18,9 @@ namespace Monopoly.Core.Models
         public bool IsBankrupt { get; set; } = false;
 
 
-        public void LandOnSquare(Square square)
+        public void LandOnSquare(Square square, Game game)
         {
-            square.LandOn(this);
+            square.LandOn(this, game);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Monopoly.Core.Models;
+﻿using Monopoly.Core.Logs;
+using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ namespace Monopoly.Core.Events
             PlayerInsufficientFunds?.Invoke(player, new PlayerEventArgs(player, targetSum));
         }
 
-        public static void InvokeLogAdded(object sender, string logInfo)
+        public static void InvokeLogAdded(object sender, List<Log> logInfo)
         {
             LogAdded?.Invoke(sender, new LogEventArgs(logInfo));
         }

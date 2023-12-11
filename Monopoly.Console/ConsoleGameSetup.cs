@@ -16,13 +16,13 @@ namespace Monopoly.Console
         internal List<TablePiece> TablePieces {  get; set; }
         internal GameRules GameRules { get; set; }
 
-        public ConsoleGameSetup(GameRules gameRules)
+        public ConsoleGameSetup(GameRules gameRules, TablePieceInputManager tablePieceInputManager)
         {
-            _tablePieceSelector = new TablePieceInputManager();
+            _tablePieceSelector = tablePieceInputManager;
             GameRules = gameRules;
         }
 
-        public void Setup(IConsoleWrapper consoleWrapper) 
+        public ConsoleGame Setup(Game game, IConsoleWrapper consoleWrapper, ConsolePrinter consolePrinter, Input input, LogPrinter logPrint) 
         {
             CoreGameSetup.Setup(GameRules);
 
@@ -31,12 +31,13 @@ namespace Monopoly.Console
 
 
             TablePieces = new();
-            foreach (Player player in Game.Players)
+            foreach (Player player in game.Players)
             {
-                TablePieces.Add(_tablePieceSelector.GetTablePieceFromUserInput(player.Id, TablePieces));
+                TablePieces.Add(_tablePieceSelector.GetTablePieceFromUserInput(player.Id, TablePieces, input));
             }
 
-            ConsoleGame.TablePieces = TablePieces;
+            ConsoleGame consoleGame = new ConsoleGame(game, consolePrinter, TablePieces, input, logPrint);
+            return consoleGame;
         }
     }
 }

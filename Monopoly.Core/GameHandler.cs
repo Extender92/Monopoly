@@ -11,6 +11,13 @@ namespace Monopoly.Core
 {
     internal class GameHandler
     {
+        public Game TheGame { get; set; }
+
+        public GameHandler(Game theGame)
+        {
+            TheGame = theGame;
+        }
+
         internal void RoleDiceAndMovePlayer(Player player)
         {
             RollDice(player);
@@ -21,44 +28,44 @@ namespace Monopoly.Core
 
         internal void CheckIfPlayerGoPastGo(Player player)
         {
-            if (player.Position >= Game.Board.Squares.Count)
+            if (player.Position >= TheGame.Board.Squares.Count)
             {
-                player.Position -= (Game.Board.Squares.Count);
-                Game.Transactions.PlayerGetSalary(player);
+                player.Position -= (TheGame.Board.Squares.Count);
+                TheGame.Transactions.PlayerGetSalary(player);
             }
         }
 
         internal void RollDice(Player player)
         {
             string diceRoll = player.Name + " rolled:";
-            foreach (Die die in Game.Dice)
+            foreach (Die die in TheGame.Dice)
             {
                 die.Roll();
                 diceRoll += $" {die.GetDieResult()}";
             }
             diceRoll += " Total: " + CalculateDiceSum();
-            Game.Logs.CreateLog(diceRoll);
+            TheGame.Logs.CreateLog(diceRoll);
         }
 
         internal bool IsDiceDouble()
         {
-            if (Game.Dice.Count < 2)
+            if (TheGame.Dice.Count < 2)
             {
                 // At least two dice are required for a double
                 return false;
             }
 
             // Get the result of the first die
-            int firstDieResult = Game.Dice[0].GetDieResult();
+            int firstDieResult = TheGame.Dice[0].GetDieResult();
 
             // Check if all dice have the same result as the first die
-            return Game.Dice.All(die => die.GetDieResult() == firstDieResult);
+            return TheGame.Dice.All(die => die.GetDieResult() == firstDieResult);
         }
 
         internal int CalculateDiceSum()
         {
             int diceSum = 0;
-            foreach (Die die in Game.Dice)
+            foreach (Die die in TheGame.Dice)
             {
                 diceSum += die.GetDieResult();
             }
@@ -87,7 +94,7 @@ namespace Monopoly.Core
 
         public void ClearOwnershipForPlayer(Player player)
         {
-            foreach (var square in Game.Board.Squares)
+            foreach (var square in TheGame.Board.Squares)
                 if (square.Owner == player)
                 {
                     square.Owner = null;
@@ -112,7 +119,7 @@ namespace Monopoly.Core
         {
             int totalAssets = player.Money;
 
-            foreach (var square in Game.Board.Squares)
+            foreach (var square in TheGame.Board.Squares)
             {
                 if (square.Owner == player)
                 {

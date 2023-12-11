@@ -9,10 +9,16 @@ namespace Monopoly.Console.GUI
 {
     internal class TablePieceInputManager
     {
-        private IConsoleWrapper Console = new ConsoleWrapper();
-        private ConsolePrinter Printer = new ConsolePrinter(new ConsoleWrapper());
+        private IConsoleWrapper Console;
+        private ConsolePrinter Printer;
 
-        internal TablePiece GetTablePieceFromUserInput(int playerId, List<TablePiece> tablePieces)
+        public TablePieceInputManager(IConsoleWrapper consoleWrapper, ConsolePrinter consolePrinter)
+        {
+            Console = consoleWrapper;
+            Printer = consolePrinter;
+        }
+
+        internal TablePiece GetTablePieceFromUserInput(int playerId, List<TablePiece> tablePieces, Input playerInput)
         {
             TablePiece tablePiece = new TablePiece();
             do
@@ -44,7 +50,7 @@ namespace Monopoly.Console.GUI
                 Printer.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
                 Console.WriteLine("\n Do you want to continue?");
 
-            } while (!ConsoleGame.PlayerInput.GetUserConfirmation());
+            } while (!playerInput.GetUserConfirmation());
 
             tablePiece.PlayerId = playerId;
             return tablePiece;

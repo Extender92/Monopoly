@@ -15,9 +15,9 @@ namespace Monopoly.Core.Models.Board
             Name = name;
             Info = info;
         }
-        public override void LandOn(Player player)
+        public override void LandOn(Player player, Game game)
         {
-            IChanceCard chanceCard = Game.FortuneCard.DrawNextChanceCard();
+            IChanceCard chanceCard = game.FortuneCard.DrawNextChanceCard();
             chanceCard.ExecuteEffect(player);
         }
     }

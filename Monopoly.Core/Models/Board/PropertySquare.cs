@@ -45,31 +45,31 @@ namespace Monopoly.Core.Models.Board
             Houses = 0;
         }
 
-        public override void LandOn(Player player)
+        public override void LandOn(Player player, Game game)
         {
             if (Owner == null)
             {
-                if (Game.CanAffordWithAssets(player, Price))
+                if (game.Handler.CanAffordWithAssets(player, Price))
                 {
-                    Game.Transactions.HandleCanBuySquare(player, this);
+                    game.Transactions.HandleCanBuySquare(player, this);
                 }
             }
             else if (!IsMortgage)
             {
-                HandleRentPayment(player);
+                HandleRentPayment(player, game);
             }
         }
 
-        private void HandleRentPayment(Player player)
+        private void HandleRentPayment(Player player, Game game)
         {
-            int rent = CalculateRent();
+            int rent = CalculateRent(game.Board.Squares);
 
-            while (!Game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
+            while (!game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
             {
-                if (Game.IsPlayerBankrupt(player, rent))
+                if (game.Handler.IsPlayerBankrupt(player, rent))
                 {
-                    int restOfPlayerMoney = Game.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
-                    Game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
+                    int restOfPlayerMoney = game.Handler.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
+                    game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
                     break;
                 }
 
@@ -77,7 +77,7 @@ namespace Monopoly.Core.Models.Board
             }
         }
 
-        private int CalculateRent()
+        private int CalculateRent(List<Square> squares)
         {
             switch (Houses)
             {
@@ -96,7 +96,7 @@ namespace Monopoly.Core.Models.Board
                 case 5:
                     return RentHotel;
 
-                case 0 when OwnerHasColorGroup():
+                case 0 when OwnerHasColorGroup(squares):
                     return RentWithColorGroup;
 
                 default:
@@ -104,9 +104,9 @@ namespace Monopoly.Core.Models.Board
             }
         }
 
-        private bool OwnerHasColorGroup()
+        private bool OwnerHasColorGroup(List<Square> squares)
         {
-            var propertiesInColorGroup = Game.Board.Squares
+            var propertiesInColorGroup = squares
                 .OfType<PropertySquare>()
                 .Where(property => property.Color == Color);
 
