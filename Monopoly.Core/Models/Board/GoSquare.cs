@@ -3,9 +3,10 @@
     internal class GoSquare : Square
     {
 
-        public GoSquare(int position, string info)
+        public GoSquare(int position ,string name,  string info)
         {
             Position = position;
+            Name = name;
             Info = info;
         }
 

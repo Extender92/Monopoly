@@ -9,9 +9,10 @@ namespace Monopoly.Core.Models.Board
 {
     internal class ChanceSquare : Square
     {
-        public ChanceSquare(int position, string info)
+        public ChanceSquare(int position, string name, string info)
         {
             Position = position;
+            Name = name;
             Info = info;
         }
         public override void LandOn(Player player)

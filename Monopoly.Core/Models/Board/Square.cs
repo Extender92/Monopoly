@@ -14,6 +14,7 @@ namespace Monopoly.Core.Models.Board
         public Player? Owner { get; set; }
         public int Price { get; set; }
         public int MortgageValue { get; set; }
+        public bool IsMortgage {  get; set; }
 
         public abstract void LandOn(Player player);
     }

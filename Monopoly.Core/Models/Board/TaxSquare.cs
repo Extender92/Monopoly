@@ -9,9 +9,10 @@ namespace Monopoly.Core.Models.Board
 {
     internal class TaxSquare : Square
     {
-        public TaxSquare(int position, int tax, string info)
+        public TaxSquare(int position, int tax, string name, string info)
         {
             Position = position;
+            Name = name;
             Info = info;
             Price = tax;
         }
@@ -22,7 +23,8 @@ namespace Monopoly.Core.Models.Board
             {
                 if (Game.IsPlayerBankrupt(player, Price))
                 {
-                    break;
+                    Game.HandlePlayerBankruptcy(player);
+                    return;
                 }
 
                 GameEvents.InvokePlayerInsufficientFunds(player, Price);

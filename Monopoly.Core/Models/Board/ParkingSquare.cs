@@ -2,10 +2,10 @@
 {
     internal class ParkingSquare : Square
     {
-        public ParkingSquare(int position, string info)
+        public ParkingSquare(int position, string name)
         {
             Position = position;
-            Info = info;
+            Name = name;
         }
 
         public override void LandOn(Player player)

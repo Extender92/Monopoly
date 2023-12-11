@@ -26,7 +26,7 @@ namespace Monopoly.Tests.CoreTests
             string info = "Test info";
             int Position = 10;
             int Price = 150;
-            var tax = new TaxSquare(Position, Price, info);
+            var tax = new TaxSquare(Position, Price, "", info);
 
             // Assert
             Assert.Equal(expectedPosition, tax.Position);
@@ -87,7 +87,7 @@ namespace Monopoly.Tests.CoreTests
             // Act
             int position = 30;
             string info = "Go To Jail";
-            var jailSpace = new GoToJailSquare(position, info);
+            var jailSpace = new GoToJailSquare(position, "", info);
 
             // Assert
             Assert.Equal(expectedPosition, jailSpace.Position);
@@ -106,12 +106,12 @@ namespace Monopoly.Tests.CoreTests
             int position = 10;
             string info = "Visiting Jail";
             string inJail = "In Jail";
-            var jail = new JailSquare(position, info, inJail);
+            var jail = new JailSquare(position, "", info, inJail);
 
             // Assert
             Assert.Equal(expectedPosition, jail.Position);
             Assert.Equal(expectedInfo, jail.Info);
-            Assert.Equal(expectedInJail, jail.InJail);
+            Assert.Equal(expectedInJail, jail.InJailInfo);
         }
 
         [Fact]
@@ -124,7 +124,7 @@ namespace Monopoly.Tests.CoreTests
             // Act
             int position = 0;
             var info = "Go";
-            var goSpace = new GoSquare(position, info);
+            var goSpace = new GoSquare(position, "", info);
 
             // Assert
             Assert.Equal(ExpectedPosition, goSpace.Position);

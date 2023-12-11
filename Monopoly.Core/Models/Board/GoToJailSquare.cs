@@ -8,9 +8,10 @@ namespace Monopoly.Core.Models.Board
 {
     internal class GoToJailSquare : Square
     {
-        public GoToJailSquare(int position, string info)
+        public GoToJailSquare(int position, string name, string info)
         {
             Position = position;
+            Name = name;
             Info = info;
         }
 

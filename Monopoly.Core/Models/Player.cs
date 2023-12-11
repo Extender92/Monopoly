@@ -14,6 +14,8 @@ namespace Monopoly.Core.Models
         public int Money { get; set; } = 3000;
         public int Position { get; set; } = 0;
         public bool InJail { get; set; } = false;
+        public int NumberOfGetOutOFJailCards { get; set; } = 0;
+        public bool IsBankrupt { get; set; } = false;
 
 
         public void LandOnSquare(Square square)

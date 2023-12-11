@@ -36,7 +36,7 @@ namespace Monopoly.Core.Models.Board
                     Game.Transaction.HandleCanBuySquare(player, this);
                 }
             }
-            else
+            else if (!IsMortgage)
             {
                 HandleRentPayment(player);
             }
@@ -50,7 +50,7 @@ namespace Monopoly.Core.Models.Board
             {
                 if (Game.IsPlayerBankrupt(player, rent))
                 {
-                    int restOfPlayerMoney = Game.HandlePlayerBankruptcyAndGetMoney(player);
+                    int restOfPlayerMoney = Game.GetMoneyFromBancruptPlayerAndBankruptPlayer(player);
                     Game.Transaction.GetMoneyFromBank(Owner, restOfPlayerMoney);
                     break;
                 }
