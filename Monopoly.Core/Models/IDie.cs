@@ -5,5 +5,6 @@
         int GetDieResult();
         int GetDieType();
         void Roll();
+        void ScrambleDie();
     }
 }
