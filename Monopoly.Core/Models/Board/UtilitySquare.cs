@@ -27,7 +27,7 @@ namespace Monopoly.Core.Models.Board
         {
             if (Owner == null)
             {
-                if (Game.CanAffordWithAssets(player, Price))
+                if (Game.Handler.CanAffordWithAssets(player, Price))
                 {
                     Game.Transactions.HandleCanBuySquare(player, this);
                 }
@@ -44,9 +44,9 @@ namespace Monopoly.Core.Models.Board
 
             while (!Game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
             {
-                if (Game.IsPlayerBankrupt(player, rent))
+                if (Game.Handler.IsPlayerBankrupt(player, rent))
                 {
-                    int restOfPlayerMoney = Game.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
+                    int restOfPlayerMoney = Game.Handler.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
                     Game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
                     break;
                 }

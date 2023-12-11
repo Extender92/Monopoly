@@ -11,7 +11,7 @@ namespace Monopoly.Core
 {
     internal class GameHandler
     {
-        internal  void RoleDiceAndMovePlayer(Player player)
+        internal void RoleDiceAndMovePlayer(Player player)
         {
             RollDice(player);
             int diceSum = CalculateDiceSum();
@@ -28,7 +28,7 @@ namespace Monopoly.Core
             }
         }
 
-        internal  void RollDice(Player player)
+        internal void RollDice(Player player)
         {
             string diceRoll = player.Name + " rolled:";
             foreach (Die die in Game.Dice)
@@ -40,7 +40,7 @@ namespace Monopoly.Core
             Game.Logs.CreateLog(diceRoll);
         }
 
-        internal  bool IsDiceDouble()
+        internal bool IsDiceDouble()
         {
             if (Game.Dice.Count < 2)
             {
@@ -65,12 +65,12 @@ namespace Monopoly.Core
             return diceSum;
         }
 
-        internal static void Winning(Player player)
+        internal void Winning(Player player)
         {
             // Win method todo //
         }
 
-        internal static int GetMoneyFromBankruptPlayerAndBankruptPlayer(Player player)
+        internal int GetMoneyFromBankruptPlayerAndBankruptPlayer(Player player)
         {
             int remainingPlayerMoney = player.Money;
             player.Money = 0;
@@ -79,13 +79,13 @@ namespace Monopoly.Core
             return remainingPlayerMoney;
         }
 
-        internal static void HandlePlayerBankruptcy(Player player)
+        internal void HandlePlayerBankruptcy(Player player)
         {
             ClearOwnershipForPlayer(player);
             player.IsBankrupt = true;
         }
 
-        public static void ClearOwnershipForPlayer(Player player)
+        public void ClearOwnershipForPlayer(Player player)
         {
             foreach (var square in Game.Board.Squares)
                 if (square.Owner == player)
@@ -98,17 +98,17 @@ namespace Monopoly.Core
                 }
         }
 
-        internal static bool IsPlayerBankrupt(Player player, int sum)
+        internal bool IsPlayerBankrupt(Player player, int sum)
         {
             return !CanAffordWithAssets(player, sum);
         }
 
-        internal static bool CanAffordWithAssets(Player player, int sum)
+        internal bool CanAffordWithAssets(Player player, int sum)
         {
             return CalculatePlayerAssets(player) >= sum;
         }
 
-        private static int CalculatePlayerAssets(Player player)
+        private int CalculatePlayerAssets(Player player)
         {
             int totalAssets = player.Money;
 
@@ -131,12 +131,12 @@ namespace Monopoly.Core
             return totalAssets;
         }
 
-        private static int CalculateMortgageValue(Square square)
+        private int CalculateMortgageValue(Square square)
         {
             return square.MortgageValue;
         }
 
-        private static int CalculateHouseAndHotelValue(PropertySquare property)
+        private int CalculateHouseAndHotelValue(PropertySquare property)
         {
             const int hotelIndex = 5;
 
