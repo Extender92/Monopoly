@@ -12,6 +12,7 @@ namespace Monopoly.Console.Events
         {
             GameEvents.PlayerInsufficientFunds += HandlePlayerInsufficientFunds;
             GameEvents.AskPlayerToBuyPurchasableSquare += HandleAskIfPlayerWantsBuyPurchasableSquare;
+            GameEvents.AskPlayerToBuyOutOfJail += HandleAskPlayerToBuyOutOfJail;
         }
 
         private static void HandlePlayerInsufficientFunds(object sender, PlayerEventArgs e)
@@ -30,6 +31,13 @@ namespace Monopoly.Console.Events
             ConsolePrinter.PrintText(message);
             return Input.GetUserConfirmation();
         }
-    }
 
+        private static bool HandleAskPlayerToBuyOutOfJail(object sender, PlayerEventArgs e)
+        {
+            Player player = e.Player;
+            string message = $"Do you want to buy?";
+            ConsolePrinter.PrintText(message);
+            return Input.GetUserConfirmation();
+        }
+    }
 }
