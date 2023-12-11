@@ -1,10 +1,16 @@
-﻿using Monopoly.Console.Models;
+﻿using Monopoly.Console.Builder;
+using Monopoly.Console.Models;
+using Monopoly.Console.Models.Board;
+using Monopoly.Core;
+using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Security.Principal;
 using System.Text;
@@ -21,9 +27,10 @@ namespace Monopoly.Console.GUI
         public ConsolePrinter(ConsolePositions positions)
         {
             Positions = positions;
+            InitilizePositions();
         }
 
-        public ConsolePositions Positions { get; set; }
+        public static ConsolePositions Positions { get; set; }
 
         private static int BoardPosX { get; set; }
         private static int BoardPosY { get; set; }
@@ -33,11 +40,22 @@ namespace Monopoly.Console.GUI
         private static int TextPosY { get; set; }
         private static int CardPosX { get; set; }
         private static int CardPosY { get; set; }
+        public static int PlayerInformationX { get; set; }
+        public static int PlayerInformationY { get; set; }
+
+        internal void InitilizePositions()
+        {
+            SetBoardPosition();
+            SetTextPosition();
+            SetCardPosition();
+            SetLogPosition();
+            SetPlayerInformationPosition();
+        }
 
         internal void SetBoardPosition()
         {
-            BoardPosX = Positions.BoardXPos;
-            BoardPosY = Positions.BoardYPos;
+            BoardPosX = Positions.BoardPosX;
+            BoardPosY = Positions.BoardPosY;
         }
 
         internal void SetTextPosition()
@@ -56,6 +74,12 @@ namespace Monopoly.Console.GUI
         {
             LogPosX = Positions.LogPosX;
             LogPosY = Positions.LogPosY;
+        }
+
+        internal void SetPlayerInformationPosition()
+        {
+            PlayerInformationX = Positions.PlayerInformationX;
+            PlayerInformationY = Positions.PlayerInformationY;
         }
 
         private static IConsoleWrapper Console = new ConsoleWrapper();
@@ -139,7 +163,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        internal static void PrintCard(string header, int width, int height, List<string> info, ConsoleColor borderColor, ConsoleColor textColor)
+        internal static void PrintCard(string header, int width, int maxInfoVerticalLength, List<string> info, ConsoleColor borderColor = ConsoleColor.White, ConsoleColor textColor = ConsoleColor.White)
         {
             // Header Text
             // Row two
@@ -167,7 +191,7 @@ namespace Monopoly.Console.GUI
 
             // Body
             // For each row in Y length
-            for (int i = 0; i < height; i++)
+            for (int i = 0; i <= maxInfoVerticalLength; i++)
             {
                 Console.SetPosition(CardPosX, CardPosY + 3 + i);
                 Console.Write("│");
@@ -183,7 +207,7 @@ namespace Monopoly.Console.GUI
             }
 
             // Footer
-            Console.SetPosition(CardPosX, CardPosY + (height + 2));
+            Console.SetPosition(CardPosX, CardPosY + (maxInfoVerticalLength + 3));
             Console.Write('└' + new String('─', width) + '┘');
             Console.ResetColor();
         }
@@ -198,18 +222,37 @@ namespace Monopoly.Console.GUI
         internal static void PrintText(string text)
         {
             Console.ResetColor();
-            Console.SetPosition(1, 0);
+            Console.SetPosition(TextPosX, TextPosY);
             Console.Write(text);
         }
 
-        internal static void DisplayPlayerTurnAndWaitForInput(Player player)
+        internal static void WaitForInput(Player player)
         {
             Console.SetPosition(1, 0);
-            Console.WriteLine($"{player.Name}'s Turn\n Press Enter To Roll Dice");
+            Console.WriteLine($"{player.Name}'s Turn.\n Press Enter To Roll Dice");
             Console.ReadLine();
         }
 
-        internal static void PrintLogs(string header, List<string> logs, ConsoleColor borderColor, ConsoleColor textColor)
+        internal static void DisplayPlayersInformation(List<Player> players)
+        {
+            int playersPerLine = 2;
+            int playerInfoLineOffsetX = 22;
+            int playerInfoLineOffsetY = 1;
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                int lineNumber = i / playersPerLine;
+                int lineOffset = i % playersPerLine;
+
+                Console.SetPosition(PlayerInformationX + lineOffset * playerInfoLineOffsetX, PlayerInformationY + lineNumber * playerInfoLineOffsetY);
+
+                Console.Write($"{players[i].Name} Money: {players[i].Money}{Game.Rules.CurrencySymbol}");
+            }
+        }
+
+
+
+        internal static void PrintLogs(string header, List<string> logs, ConsoleColor borderColor = ConsoleColor.White, ConsoleColor textColor = ConsoleColor.White)
         {
             int width = logs.Max(x => x.Length) + 2;
             if (width < header.Length + 2) width = header.Length + 4;
@@ -234,9 +277,158 @@ namespace Monopoly.Console.GUI
             }
 
             // Footer
-            Console.SetPosition(LogPosX, LogPosY + (logs.Count));
+            Console.SetPosition(LogPosX, LogPosY + (logs.Count + 1));
             Console.Write('└' + new String('─', width) + '┘');
             Console.ResetColor();
         }
+
+        internal static void PrintNewestLogs(List<Log> logList, int maxAmountOfLogs)
+        {
+            // Ensure that maxAmountOfLogs is within the range of logList.Count
+            int startIndex = Math.Max(0, logList.Count - maxAmountOfLogs);
+
+            List<string> logStrings = logList.Count > 0
+                ? Helpers.StringHelper.CreateStringList(logList
+                    .Skip(startIndex)
+                    .Select(l => l.Info)
+                    .ToArray())
+                : new List<string> { "Logs is empty" };
+
+            logStrings.Reverse();  // Reverse the order of logStrings
+
+            PrintLogs("Logs", logStrings, ConsoleColor.Green, ConsoleColor.White);
+        }
+
+        //internal static void PreparePropertyCardThenPrintCard(int boardPosition)
+        //{
+        //    List<SquareCard> squareList = SquareCardBuilder.BuildAllSquareCards(Game.Board.Squares, Game.Rules);
+        //    SquareCard squareCard = squareList.First(s => s.BoardPosition == boardPosition);
+
+        //    var borderColor = ConsoleColor.White;
+
+        //    List<string> infoLines = new List<string>();
+        //    List<string> rents = new List<string>();
+
+        //    if (squareCard is PropertySquareCard propertySquareCard)
+        //    {
+        //        borderColor = propertySquareCard.BorderColor;
+        //        foreach (var line in propertySquareCard.Prop)
+        //        {
+        //            infoLines.Add(line);
+        //        }
+        //        foreach (var line in propertySquareCard.Rent)
+        //        {
+        //            rents.Add(line);
+        //        }
+        //    }
+
+        //    int infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
+
+        //    string header = squareCard.Name;
+
+
+        //    int CardHorizontalLength = 30;
+        //    int MaxInfoVerticalLength = 9;
+
+        //    CardHorizontalLength = Math.Max(CardHorizontalLength, Math.Max(header.Length + 2, infoTextLength));
+
+        //    List<string> info = new List<string>();
+
+        //    for (int i = 0; i < infoLines.Count; i++)
+        //    {
+        //        int space = CardHorizontalLength - (infoLines[i].Length + rents[i].Length + 2);
+        //        info.Add(infoLines[i] + ":".PadRight(space) + rents[i]);
+        //    }
+        //    info.Add("");
+
+        //    string infoText = squareCard.Info;
+        //    int length = CardHorizontalLength - 1;
+
+        //    List<string> stringList = Helpers.StringHelper.CenterStringInList(Helpers.StringHelper.GetListOfStringsFromString(infoText, length), length);
+        //    info = info.Concat(stringList).ToList();
+        //    header = Helpers.StringHelper.CenterString(header, CardHorizontalLength);
+
+        //    if (MaxInfoVerticalLength < info.Count) MaxInfoVerticalLength = info.Count;
+
+        //    PrintCard(header, CardHorizontalLength, MaxInfoVerticalLength, info, borderColor);
+        //}
+
+        //internal static void PrepareSquareCardThenPrintCard(int boardPosition)
+        //{
+        //    List<SquareCard> squareList = SquareCardBuilder.BuildAllSquareCards(Game.Board.Squares, Game.Rules);
+        //    SquareCard squareCard = squareList.First(s => s.BoardPosition == boardPosition);
+
+
+        //    List<string> infoLines = new List<string>();
+        //    List<string> rents = new List<string>();
+
+        //    int HorizontalSize = 30;
+        //    int VerticalSize = 9;
+
+        //    string infoText = squareCard.Info;
+
+        //    string header = Helpers.StringHelper.CenterString(squareCard.Name, HorizontalSize);
+
+        //    int length = HorizontalSize - 2;
+
+        //    var info = Helpers.StringHelper.CenterStringInList(Helpers.StringHelper.GetListOfStringsFromString(infoText, length), length);
+
+        //    PrintCard(header, HorizontalSize, VerticalSize, info);
+        //}
+
+
+        internal static void PrepareAndPrintPropertyCard(int boardPosition)
+        {
+            PrepareAndPrintSquareCard(boardPosition, isPropertyCard: true);
+        }
+
+        internal static void PrepareAndPrintSquareCard(int boardPosition, bool isPropertyCard = false)
+        {
+            List<SquareCard> squareList = SquareCardBuilder.BuildAllSquareCards(Game.Board.Squares, Game.Rules);
+            SquareCard squareCard = squareList.First(s => s.BoardPosition == boardPosition);
+
+            int cardHorizontalLength = 30;
+            int maxInfoVerticalLength = 9;
+
+            var borderColor = ConsoleColor.White;
+
+            List<string> infoLines = new List<string>();
+            List<string> rents = new List<string>();
+            int infoTextLength = 0;
+
+            if (isPropertyCard && squareCard is PropertySquareCard propertySquareCard)
+            {
+                borderColor = propertySquareCard.BorderColor;
+                infoLines.AddRange(propertySquareCard.Prop);
+                rents.AddRange(propertySquareCard.Rent);
+                infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
+            }
+
+
+            string header = squareCard.Name;
+
+            cardHorizontalLength = Math.Max(cardHorizontalLength, Math.Max(header.Length + 2, infoTextLength));
+
+            List<string> info = new List<string>();
+
+            for (int i = 0; i < infoLines.Count; i++)
+            {
+                int space = cardHorizontalLength - (infoLines[i].Length + rents[i].Length + 2);
+                info.Add($"{infoLines[i]}:{new string(' ', space)}{rents[i]}");
+            }
+            info.Add("");
+
+            string infoText = squareCard.Info;
+            int length = cardHorizontalLength - 1;
+
+            List<string> stringList = Helpers.StringHelper.CenterStringInList(Helpers.StringHelper.GetListOfStringsFromString(infoText, length), length);
+            info.AddRange(stringList);
+            header = Helpers.StringHelper.CenterString(header, cardHorizontalLength);
+
+            if (maxInfoVerticalLength < info.Count) maxInfoVerticalLength = info.Count;
+
+            PrintCard(header, cardHorizontalLength, maxInfoVerticalLength, info, borderColor);
+        }
+
     }
 }

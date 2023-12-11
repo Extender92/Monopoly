@@ -8,6 +8,6 @@ namespace Monopoly.Console.Models.Board
 {
     internal class UtilitySquareCard : SquareCard
     {
-        public string Info { get; set; }
+
     }
 }

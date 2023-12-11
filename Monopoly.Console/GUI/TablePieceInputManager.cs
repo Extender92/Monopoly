@@ -80,7 +80,8 @@ namespace Monopoly.Console.GUI
             List<ConsoleColor> colors = GetConsoleColors(tablePieces.Select(piece => piece.Color).ToList());
 
             List<string> menuChoices = colors.Select(x => x.ToString()).ToList();
-            int index = MenuOptionSelector.GetSelectedOption(menuChoices, 0, (menuChoices.Count / 2));
+
+            int index = MenuOptionSelector.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length), 0, (menuChoices.Count / 2));
             return colors[index];
         }
 

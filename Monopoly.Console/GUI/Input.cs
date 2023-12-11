@@ -15,7 +15,8 @@ namespace Monopoly.Console.GUI
         internal static bool GetUserConfirmation()
         {
             List<string> menuChoices = Helpers.StringHelper.CreateStringList("Yes", "No");
-            int index = MenuOptionSelector.GetSelectedOption(menuChoices);
+            
+            int index = MenuOptionSelector.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length));
             return index == 0; // True for yes and False for everything else
         }
     }

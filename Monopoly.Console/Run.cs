@@ -23,6 +23,7 @@ namespace Monopoly.Console
         {
             _console = new ConsoleWrapper();
             TablePieces = tablePieces;
+
         }
 
         internal void RunGame()
@@ -31,19 +32,45 @@ namespace Monopoly.Console
 
             System.Console.Clear();
             ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
-            while (true)
+
+            while (Game.Players.Count(p => !p.IsBankrupt) > 1)
             {
-                foreach (var player in Game.Players)
+                foreach (var player in Game.Players.Where(p => !p.IsBankrupt))
                 {
-                    ConsolePrinter.DisplayPlayerTurnAndWaitForInput(player);
+                    ConsolePrinter.WaitForInput(player);
                     Game.NextPlayerTakeTurn(player);
+                    Square landedSquare = Game.Board.GetSquareAtPosition(player.Position);
 
                     _console.Clear();
                     ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
+                    ConsolePrinter.DisplayPlayersInformation(Game.Players);
+                    PrintCard(landedSquare);
+                    ConsolePrinter.PrintNewestLogs(Game.Logs.LogList, 10);
 
-                    Square landedSquare = Game.Board.GetSquareAtPosition(player.Position);
-                    player.LandOnSquare(landedSquare);
+                    if (!player.IsBankrupt)
+                    {
+                        player.LandOnSquare(landedSquare);
+
+                        _console.Clear();
+                        ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
+                        ConsolePrinter.DisplayPlayersInformation(Game.Players);
+                        PrintCard(landedSquare);
+                        ConsolePrinter.PrintNewestLogs(Game.Logs.LogList, 10);
+                    }
                 }
+            }
+            Game.Winning(Game.Players.First(p => !p.IsBankrupt));
+        }
+
+        private void PrintCard(Square landedSquare)
+        {
+            if (landedSquare is PropertySquare)
+            {
+                ConsolePrinter.PrepareAndPrintPropertyCard(landedSquare.Position);
+            }
+            else
+            {
+                ConsolePrinter.PrepareAndPrintSquareCard(landedSquare.Position);
             }
         }
     }
