@@ -9,16 +9,16 @@ namespace Monopoly.Core.Models.Board
 {
     internal class GameBoard
     {
-        private List<Square> Squares; // Array or list of all squares on the board
+        internal List<Square> Squares; // Array or list of all squares on the board
 
         public GameBoard(GameRules gameRules)
         {
             Squares = SquareBuilder.GetBoardSquares(gameRules);
         }
 
-        public void HandlePlayerLanding(Player player, int position)
+        public void HandlePlayerLanding(Player player)
         {
-            Squares.First(s => s.Position == position).LandOn(player);
+            Squares.First(s => s.Position == player.Position).LandOn(player);
         }
 
         internal Square GetSquareAtPosition(int position)

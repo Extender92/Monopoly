@@ -3,15 +3,17 @@
     internal class GoSquare : Square
     {
 
-        public GoSquare()
+        public GoSquare(int position ,string name,  string info)
         {
-            Position = 0;
-            Info = "Go";
+            Position = position;
+            Name = name;
+            Info = info;
         }
+
         public override void LandOn(Player player)
         {
-            
-            // Logic for when a player lands on a GoSquare
+            if (Game.Rules.DoubleOnGo)
+                Game.Transactions.PlayerGetSalary(player);
         }
     }
 }

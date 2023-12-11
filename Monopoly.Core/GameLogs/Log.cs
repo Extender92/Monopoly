@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monopoly.Console.Models.Board
+namespace Monopoly.Core.Logs
 {
-    internal class UtilitySquareCard : SquareCard
+    internal class Log
     {
-
+        public int Id { get; set; }
+        public string Info { get; set; }
     }
 }

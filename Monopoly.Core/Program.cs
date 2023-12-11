@@ -87,51 +87,51 @@ namespace Monopoly.Core
 
         }
 
-        public static void PlayGame(List<Player> players, List<PropertySquare> streetCards)
-        {
-            // Simple game loop
-            foreach (Player player in players)
-            {
-                Random random = new Random();
-                Console.WriteLine($"Player {player.Name}'s turn.");
-                Console.WriteLine($"Current Money: {player.Money}");
+        //public static void PlayGame(List<Player> players, List<PropertySquare> streetCards)
+        //{
+        //    // Simple game loop
+        //    foreach (Player player in players)
+        //    {
+        //        Random random = new Random();
+        //        Console.WriteLine($"Player {player.Name}'s turn.");
+        //        Console.WriteLine($"Current Money: {player.Money}");
 
-                // Simulate player moving on the board
-                player.Position = (player.Position + random.Next(0, 6)) % streetCards.Count;
+        //        // Simulate player moving on the board
+        //        player.Position = (player.Position + random.Next(0, 6)) % streetCards.Count;
 
-                PropertySquare currentStreet = streetCards[player.Position];
-                Console.WriteLine($"Landed on {currentStreet.Name}");
+        //        PropertySquare currentStreet = streetCards[player.Position];
+        //        Console.WriteLine($"Landed on {currentStreet.Name}");
 
-                if (currentStreet.Owner == null)
-                {
-                    Console.WriteLine($"Do you want to buy {currentStreet.Name} for {currentStreet.Price}? (Y/N)");
-                    string input = Console.ReadLine();
-                    if (input.ToUpper() == "Y")
-                    {
-                        player.Buy(currentStreet);
-                        Console.WriteLine($"{currentStreet.Name} is now owned by {player.Name}");
-                    }
-                }
-                else if (currentStreet.Owner != player)
-                {
-                    Console.WriteLine($"You need to pay rent to {currentStreet.Owner.Name}.");
-                    player.PayRent(currentStreet);
-                    Console.WriteLine($"Remaining Money: {player.Money}");
-                }
-                else
-                {
-                    Console.WriteLine($"Do you want to sell {currentStreet.Name}? (Y/N)");
-                    string input = Console.ReadLine();
-                    if (input.ToUpper() == "Y")
-                    {
-                        player.Sell(currentStreet);
-                        Console.WriteLine($"{currentStreet.Name} is no longer owned by {player.Name}");
-                    }
-                }
+        //        if (currentStreet.Owner == null)
+        //        {
+        //            Console.WriteLine($"Do you want to buy {currentStreet.Name} for {currentStreet.Price}? (Y/N)");
+        //            string input = Console.ReadLine();
+        //            if (input.ToUpper() == "Y")
+        //            {
+        //                player.Buy(currentStreet);
+        //                Console.WriteLine($"{currentStreet.Name} is now owned by {player.Name}");
+        //            }
+        //        }
+        //        else if (currentStreet.Owner != player)
+        //        {
+        //            Console.WriteLine($"You need to pay rent to {currentStreet.Owner.Name}.");
+        //            player.PayRent(currentStreet);
+        //            Console.WriteLine($"Remaining Money: {player.Money}");
+        //        }
+        //        else
+        //        {
+        //            Console.WriteLine($"Do you want to sell {currentStreet.Name}? (Y/N)");
+        //            string input = Console.ReadLine();
+        //            if (input.ToUpper() == "Y")
+        //            {
+        //                player.Sell(currentStreet);
+        //                Console.WriteLine($"{currentStreet.Name} is no longer owned by {player.Name}");
+        //            }
+        //        }
 
-                Console.WriteLine("Press Enter to continue to the next turn...");
-                Console.ReadLine();
-            }
-        }
+        //        Console.WriteLine("Press Enter to continue to the next turn...");
+        //        Console.ReadLine();
+        //    }
+        //}
     }
 }

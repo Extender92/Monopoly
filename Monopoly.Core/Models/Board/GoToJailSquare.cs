@@ -8,15 +8,16 @@ namespace Monopoly.Core.Models.Board
 {
     internal class GoToJailSquare : Square
     {
-        public GoToJailSquare()
+        public GoToJailSquare(int position, string name, string info)
         {
-            Position = 30;
-            Info = "Go To Jail";
+            Position = position;
+            Name = name;
+            Info = info;
         }
 
         public override void LandOn(Player player)
         {
-            // Logic for when a player lands on
+            Game.TheJail.PlayerGoToJail(player);
         }
     }
 }

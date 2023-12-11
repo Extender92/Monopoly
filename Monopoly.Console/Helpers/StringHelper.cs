@@ -40,15 +40,19 @@ namespace Monopoly.Console.Helpers
             {
                 int lastSpaceIndex = text.LastIndexOf(' ', maxLength);
 
-                if (lastSpaceIndex == -1)
+                // Check for a dot ('.') and split accordingly
+                int lastDotIndex = text.LastIndexOf('.', maxLength);
+                int splitIndex = (lastDotIndex != -1) ? lastDotIndex : lastSpaceIndex;
+
+                if (splitIndex == -1)
                 {
-                    list.Add(text.Substring(0, maxLength));
+                    list.Add(text.Substring(0, maxLength).Trim());
                     text = text.Substring(maxLength).TrimStart();
                 }
                 else
                 {
-                    list.Add(text.Substring(0, lastSpaceIndex).Trim());
-                    text = text.Substring(lastSpaceIndex + 1).TrimStart();
+                    list.Add(text.Substring(0, splitIndex).Trim());
+                    text = text.Substring(splitIndex + 1).TrimStart();
                 }
             }
 

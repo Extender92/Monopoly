@@ -25,21 +25,22 @@ namespace Monopoly.Console.GUI
                 do
                 {
                     tablePiece.Piece = GetUserSelectedPieceKey(playerId, tablePieces);
-                    _console.Write("\n You entered: " + tablePiece.Piece + "\n Do you want to continue?");
+                    _console.Write(" You entered: " + tablePiece.Piece);
 
-                } while (!Input.GetUserConfirmation());
+                    //_console.Write("\n Do you want to continue?");
+                } while (/*!Input.GetUserConfirmation()*/ false);
 
                 do
                 {
                     tablePiece.Color = GetUserSelectedColor(playerId, tablePieces);
 
-                    _console.Write("\n You selected color: ");
-                    ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
-                    _console.WriteLine("\n Do you want to continue?");
+                    //_console.Write("\n You selected color: ");
+                    //ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
 
-                } while (!Input.GetUserConfirmation());
+                    //_console.WriteLine("\n Do you want to continue?");
+                } while (/*!Input.GetUserConfirmation()*/ false);
 
-                _console.Write("\n You entered: ");
+                _console.Write(" You entered: ");
                 ConsolePrinter.PrintColoredText(tablePiece.Piece, tablePiece.Color);
                 _console.Write(" With color: ");
                 ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
@@ -79,7 +80,8 @@ namespace Monopoly.Console.GUI
             List<ConsoleColor> colors = GetConsoleColors(tablePieces.Select(piece => piece.Color).ToList());
 
             List<string> menuChoices = colors.Select(x => x.ToString()).ToList();
-            int index = MenuOptionSelector.GetSelectedOption(menuChoices, 0, (menuChoices.Count / 2));
+
+            int index = MenuOptionSelector.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length), 0, (menuChoices.Count / 2));
             return colors[index];
         }
 

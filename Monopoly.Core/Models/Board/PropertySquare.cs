@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Monopoly.Core.Events;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -10,7 +11,6 @@ namespace Monopoly.Core.Models.Board
     internal class PropertySquare : Square
     {
         public ConsoleColor Color { get; set; }
-        public string Name { get; set; }
         public int Rent { get; set; }
         public int RentWithColorGroup { get; set; }
         public int RentOneHouse { get; set; }
@@ -20,10 +20,8 @@ namespace Monopoly.Core.Models.Board
         public int RentHotel { get; set; }
         public int BuildHouseCost { get; set; }
         public int BuildHotelCost { get; set; }
-        public int Price { get; set; }
-        public int MortgageValue { get; set; }
+        public int Houses {  get; set; }
 
-        public Player Owner { get; set; }
 
         public PropertySquare(ConsoleColor color, string name, int rent, int rentWithColorGroup,
                int rentOneHouse, int rentTwoHouses, int rentThreeHouses, int rentFourHouses,
@@ -44,12 +42,93 @@ namespace Monopoly.Core.Models.Board
             Price = price;
             MortgageValue = mortgageValue;
             Position = position;
+            Houses = 0;
         }
 
         public override void LandOn(Player player)
         {
-            // Logic for when a player lands on a property square
+            if (Owner == null)
+            {
+                if (Game.CanAffordWithAssets(player, Price))
+                {
+                    Game.Transactions.HandleCanBuySquare(player, this);
+                }
+            }
+            else if (!IsMortgage)
+            {
+                HandleRentPayment(player);
+            }
+        }
+
+        private void HandleRentPayment(Player player)
+        {
+            int rent = CalculateRent();
+
+            while (!Game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
+            {
+                if (Game.IsPlayerBankrupt(player, rent))
+                {
+                    int restOfPlayerMoney = Game.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
+                    Game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
+                    break;
+                }
+
+                GameEvents.InvokePlayerInsufficientFunds(player, Price);
+            }
+        }
+
+        private int CalculateRent()
+        {
+            switch (Houses)
+            {
+                case 1:
+                    return RentOneHouse;
+
+                case 2:
+                    return RentTwoHouses;
+
+                case 3:
+                    return RentThreeHouses;
+
+                case 4:
+                    return RentFourHouses;
+
+                case 5:
+                    return RentHotel;
+
+                case 0 when OwnerHasColorGroup():
+                    return RentWithColorGroup;
+
+                default:
+                    return Rent;
+            }
+        }
+
+        private bool OwnerHasColorGroup()
+        {
+            var propertiesInColorGroup = Game.Board.Squares
+                .OfType<PropertySquare>()
+                .Where(property => property.Color == Color);
+
+            return propertiesInColorGroup.All(property => property.Owner == Owner);
+        }
+
+        internal string GetHouseCountAsString()
+        {
+            const int hotelThreshold = 5;
+            if (Houses == 0)
+            {
+                return "there is no house";
+            }
+            else if (Houses == 1)
+            {
+                return "1 house";
+            }
+            else if (Houses == hotelThreshold)
+            {
+                return "1 hotel";
+            }
+            return $"{Houses} houses";
         }
     }
-
 }
