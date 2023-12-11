@@ -1,4 +1,5 @@
 ﻿using Monopoly.Core.Events;
+using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 using System;
@@ -12,6 +13,7 @@ namespace Monopoly.Core
 {
     internal static class Game
     {
+        internal static LogHandler Logs { get; set; } = new LogHandler();
         internal static GameBoard Board { get; set; }
         internal static List<Player> Players  { get; set;}
         internal static List<IDie> Dice { get; set; }
@@ -23,13 +25,18 @@ namespace Monopoly.Core
 
         internal static void NextPlayerTakeTurn(Player player)
         {
-            int diceSum = RollDiceAndReturnSum();
+            if (player.InJail)
+            {
+                Jail.TakeTurnInJail(player);
+            }
+            RollDice();
+            int diceSum = CalculateDiceSum();
 
             player.Position += diceSum;
             CheckIfPlayerGoPastGo(player);
         }
 
-        private static void CheckIfPlayerGoPastGo(Player player)
+        internal static void CheckIfPlayerGoPastGo(Player player)
         {
             if (player.Position >= Board.Squares.Count)
             {
@@ -38,12 +45,34 @@ namespace Monopoly.Core
             }
         }
 
-        internal static int RollDiceAndReturnSum()
+        internal static void RollDice()
+        {
+            foreach (Die die in Dice)
+            {
+                die.Roll();
+            }
+        }
+
+        internal static bool IsDiceDouble()
+        {
+            if (Dice.Count < 2)
+            {
+                // At least two dice are required for a double
+                return false;
+            }
+
+            // Get the result of the first die
+            int firstDieResult = Dice[0].GetDieResult();
+
+            // Check if all dice have the same result as the first die
+            return Dice.All(die => die.GetDieResult() == firstDieResult);
+        }
+
+        internal static int CalculateDiceSum()
         {
             int diceSum = 0;
             foreach (Die die in Dice)
             {
-                die.Roll();
                 diceSum += die.GetDieResult();
             }
             return diceSum;
@@ -51,18 +80,22 @@ namespace Monopoly.Core
 
         internal static void Winning(Player player)
         {
-            if (player is null) { return; }
             // Win method todo //
         }
 
-        internal static int HandlePlayerBankruptcyAndGetMoney(Player player)
+        internal static int GetMoneyFromBancruptPlayerAndBankruptPlayer(Player player)
         {
             int remainingPlayerMoney = player.Money;
             player.Money = 0;
             remainingPlayerMoney += CalculatePlayerAssets(player);
-            ClearOwnershipForPlayer(player);
-            Players.Remove(player);
+            HandlePlayerBankruptcy(player);
             return remainingPlayerMoney;
+        }
+
+        internal static void HandlePlayerBankruptcy(Player player)
+        {
+            ClearOwnershipForPlayer(player);
+            player.IsBankrupt = true;
         }
 
         public static void ClearOwnershipForPlayer(Player player)
@@ -84,18 +117,21 @@ namespace Monopoly.Core
 
         internal static bool CanAffordWithAssets(Player player, int sum)
         {
-            return CalculatePlayerAssets(player) < sum;
+            return !(CalculatePlayerAssets(player) < sum);
         }
 
         private static int CalculatePlayerAssets(Player player)
         {
-            int totalAssets = 0;
+            int totalAssets = player.Money;
 
             foreach (var square in Board.Squares)
             {
                 if (square.Owner == player)
                 {
-                    totalAssets += CalculateMortgageValue(square);
+                    if (!square.IsMortgage)
+                    {
+                        totalAssets += CalculateMortgageValue(square);
+                    }
 
                     if (square is PropertySquare property)
                     {
@@ -114,13 +150,13 @@ namespace Monopoly.Core
 
         private static int CalculateHouseAndHotelValue(PropertySquare property)
         {
-            const int hotelValue = 5;
+            const int hotelIndex = 5;
 
             int value = 0;
 
             for (int i = 1; i <= property.Houses; i++)
             {
-                if (i == hotelValue)
+                if (i == hotelIndex)
                 {
                     value += property.BuildHotelCost / 2;
                 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ namespace Monopoly.Core
         internal void PlayerGetSalary(Player player)
         {
             player.Money += Game.Rules.Salary;
+            Game.Logs.CreateLog($"{player.Name} collected salary {Game.Rules.Salary}{Game.Rules.CurrencySymbol}");
         }
 
         public bool BuyPurchasableSquare(Player player, Square square)
@@ -23,6 +25,7 @@ namespace Monopoly.Core
             {
                 player.Money -= square.Price;
                 square.Owner = player;
+                Game.Logs.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{Game.Rules.CurrencySymbol}");
                 return true;
             }
             return false;
@@ -30,22 +33,34 @@ namespace Monopoly.Core
 
         public bool PayRentFromPlayerToPlayer(Player fromPlayer, int rent, Player toPlayer)
         {
-            if (fromPlayer.Money < rent)
+            if (fromPlayer.Money >= rent)
             {
                 fromPlayer.Money -= rent;
                 toPlayer.Money += rent;
+                Game.Logs.CreateLog($"{fromPlayer.Name} payed rent {rent}{Game.Rules.CurrencySymbol} to {toPlayer.Name}");
                 return true;
             }
             return false;
         }
 
-        public void MortgageProperty()
+        public void MortgageProperty(Player player, Square square)
         {
-
+            GetMoneyFromBank(player, square.MortgageValue);
+            square.IsMortgage = true;
+            Game.Logs.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{Game.Rules.CurrencySymbol}");
         }
 
-        public bool RepayMortgageProperty()
+        public bool RepayMortgageProperty(Player player, Square square)
         {
+            int interestRate = Game.Rules.MortgageInterestRate;
+            int sumToPay = (int)(square.MortgageValue * (1 + interestRate / 100.0));
+            if (sumToPay <= player.Money)
+            {
+                player.Money -= sumToPay;
+                square.IsMortgage = false;
+                Game.Logs.CreateLog($"{player.Name} repayed mortgage {sumToPay}{Game.Rules.CurrencySymbol} for {square.Name}");
+                return true;
+            }
             return false;
         }
 
@@ -78,11 +93,12 @@ namespace Monopoly.Core
         internal void GetMoneyFromBank(Player player, int sum)
         {
             player.Money += sum;
+            Game.Logs.CreateLog($"{player.Name} collected money from bank {sum}{Game.Rules.CurrencySymbol}");
         }
 
         internal bool PayTax(Player player, int sum)
         {
-            if (sum > player.Money)
+            if (sum <= player.Money)
             {
                 player.Money -= sum;
                 return true;
@@ -90,15 +106,16 @@ namespace Monopoly.Core
             return false;
         }
 
-        internal bool PayFines(Player player, int sum)
+        internal bool PayFines(Player player, int fines)
         {
-            if (sum > player.Money)
+            if (fines <= player.Money)
             {
                 if (Game.Rules.FreeParking == GameRules.Parking.Fines)
                 {
-                    Game.Fines += sum;
+                    Game.Fines += fines;
                 }
-                player.Money -= sum;
+                player.Money -= fines;
+                Game.Logs.CreateLog($"{player.Name} payed fines {fines}{Game.Rules.CurrencySymbol}");
                 return true;
             }
             return false;
