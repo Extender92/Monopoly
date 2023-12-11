@@ -1,5 +1,6 @@
 ﻿using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -69,7 +70,20 @@ namespace Monopoly.Tests.CoreTests
         }
 
 
+        [Fact]
+        public void LandOnSquareCallLandOnMethodOfSquare()
+        {
+            // Arrange
+            var player = new Player("Jane", 2);
+            var mockSquare = new Mock<Square>();
 
+            // Act
+            player.LandOnSquare(mockSquare.Object);
+
+            // Assert
+           
+            mockSquare.Verify(square => square.LandOn(player), Times.Once);
+        }
         //[Fact]
         //public void BuyShouldDeductMoneyAndSetOwner()
         //{
