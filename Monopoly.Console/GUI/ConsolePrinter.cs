@@ -25,6 +25,8 @@ namespace Monopoly.Console.GUI
         private const int SideLength = 10;
         private const int HorizontalBuffer = 3;
 
+        private static IConsoleWrapper Console = new ConsoleWrapper();
+
         public ConsolePrinter(ConsolePositions positions)
         {
             Positions = positions;
@@ -83,16 +85,14 @@ namespace Monopoly.Console.GUI
             PlayerInformationY = Positions.PlayerInformationY;
         }
 
-        private static IConsoleWrapper Console = new ConsoleWrapper();
-
-        internal static void PrintGameBoard(List<Player> players, List<TablePiece> tablePieces)
+        internal static void PrintGameBoard(List<TablePiece> tablePieces)
         {
-            int playerBuffer = players.Count / 2;
+            int playerBuffer = Game.Players.Count / 2;
             int startPosition = 0;
 
             for (int side = 0; side < TotalSides; side++)
             {
-                PrintSingleSide(playerBuffer, side, startPosition, players, tablePieces);
+                PrintSingleSide(playerBuffer, side, startPosition, Game.Players, tablePieces);
                 startPosition += SideLength;
             }
         }
@@ -234,19 +234,33 @@ namespace Monopoly.Console.GUI
             Console.Write(text);
         }
 
-        internal static void WaitForInput(Player player)
+        internal static void WaitForInputToEndTurn(Player player)
         {
+            DisplayPlayersInformation(player);
+            Console.SetPosition(1, 0);
+            Console.WriteLine($"{player.Name}'s Turn.\n Press Enter To End Turn");
+            Console.ReadLine();
+        }
+
+        internal static void WaitForInputToStartTurn(Player player)
+        {
+            DisplayPlayersInformation(player);
             Console.SetPosition(1, 0);
             Console.WriteLine($"{player.Name}'s Turn.\n Press Enter To Continue");
             Console.ReadLine();
         }
 
-        internal static void DisplayPlayersInformation(List<Player> players)
+        internal static void DisplayPlayersInformation(Player player)
         {
-            for (int i = 0; i < players.Count; i++)
+            for (int i = 0; i < Game.Players.Count; i++)
             {
                 Console.SetPosition(PlayerInformationX, PlayerInformationY + i);
-                Console.Write($"{players[i].Name} Money: {players[i].Money}{Game.Rules.CurrencySymbol}");
+                if (Game.Players[i] == player)
+                {
+                    Console.SetTextColor(ConsoleColor.Yellow);
+                }
+                Console.Write($"{Game.Players[i].Name} Money: {Game.Players[i].Money}{Game.Rules.CurrencySymbol}");
+                Console.ResetColor();
             }
         }
 
@@ -282,13 +296,13 @@ namespace Monopoly.Console.GUI
             Console.ResetColor();
         }
 
-        internal static void PrintNewestLogs(List<Log> logList, int maxAmountOfLogs)
+        internal static void PrintNewestLogs(int maxAmountOfLogs)
         {
             // Ensure that maxAmountOfLogs is within the range of logList.Count
-            int startIndex = Math.Max(0, logList.Count - maxAmountOfLogs);
+            int startIndex = Math.Max(0, Game.Logs.LogList.Count - maxAmountOfLogs);
 
-            List<string> logStrings = logList.Count > 0
-                ? Helpers.StringHelper.CreateStringList(logList
+            List<string> logStrings = Game.Logs.LogList.Count > 0
+                ? Helpers.StringHelper.CreateStringList(Game.Logs.LogList
                     .Skip(startIndex)
                     .Select(l => l.Info)
                     .ToArray())
@@ -300,12 +314,7 @@ namespace Monopoly.Console.GUI
         }
 
 
-        internal static void PrepareAndPrintPropertyCard(int boardPosition)
-        {
-            PrepareAndPrintSquareCard(boardPosition, isPropertyCard: true);
-        }
-
-        internal static void PrepareAndPrintSquareCard(int boardPosition, bool isPropertyCard = false)
+        internal static void PrepareAndPrintSquareCard(int boardPosition)
         {
             List<SquareCard> squareList = SquareCardBuilder.BuildAllSquareCards(Game.Board.Squares, Game.Rules);
             SquareCard squareCard = squareList.First(s => s.BoardPosition == boardPosition);
@@ -319,11 +328,17 @@ namespace Monopoly.Console.GUI
             List<string> rents = new List<string>();
             int infoTextLength = 0;
 
-            if (isPropertyCard && squareCard is PropertySquareCard propertySquareCard)
+            if (squareCard is PropertySquareCard propertySquareCard)
             {
                 borderColor = propertySquareCard.BorderColor;
                 infoLines.AddRange(propertySquareCard.Prop);
                 rents.AddRange(propertySquareCard.Rent);
+                infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
+            }
+            else if (squareCard is RailroadSquareCard railroadSquareCard)
+            {
+                infoLines.AddRange(railroadSquareCard.Prop);
+                rents.AddRange(railroadSquareCard.Rent);
                 infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
             }
 
@@ -352,6 +367,5 @@ namespace Monopoly.Console.GUI
 
             PrintCard(header, cardHorizontalLength, maxInfoVerticalLength, info, borderColor);
         }
-
     }
 }

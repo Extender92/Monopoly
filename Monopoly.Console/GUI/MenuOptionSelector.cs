@@ -48,7 +48,7 @@ namespace Monopoly.Console.GUI
 
             } while (key != ConsoleKey.Enter);
 
-            Console.Clear();
+            //Console.Clear();
             return index;
         }
     }

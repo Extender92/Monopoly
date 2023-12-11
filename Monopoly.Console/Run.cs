@@ -17,7 +17,7 @@ namespace Monopoly.Console
     {
         private readonly IConsoleWrapper _console;
 
-        private List<TablePiece> TablePieces { get; set; }
+        internal List<TablePiece> TablePieces { get; set; }
 
         public Run(List<TablePiece> tablePieces)
         {
@@ -31,47 +31,37 @@ namespace Monopoly.Console
             ConsoleEventHandler.SubscribeToEvents();
 
             System.Console.Clear();
-            ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
+            ConsolePrinter.PrintGameBoard(TablePieces);
 
             while (Game.Players.Count(p => !p.IsBankrupt) > 1)
             {
                 foreach (var player in Game.Players.Where(p => !p.IsBankrupt))
                 {
-                    ConsolePrinter.WaitForInput(player);
+                    ConsolePrinter.WaitForInputToStartTurn(player);
                     Game.NextPlayerTakeTurn(player);
                     Square landedSquare = Game.Board.GetSquareAtPosition(player.Position);
 
-                    _console.Clear();
-                    ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
-                    ConsolePrinter.DisplayPlayersInformation(Game.Players);
-                    PrintCard(landedSquare);
-                    ConsolePrinter.PrintNewestLogs(Game.Logs.LogList, 10);
+                    Printer(landedSquare, player);
 
                     if (!player.IsBankrupt)
                     {
                         player.LandOnSquare(landedSquare);
 
-                        _console.Clear();
-                        ConsolePrinter.PrintGameBoard(Game.Players, TablePieces);
-                        ConsolePrinter.DisplayPlayersInformation(Game.Players);
-                        PrintCard(landedSquare);
-                        ConsolePrinter.PrintNewestLogs(Game.Logs.LogList, 10);
+                        Printer(landedSquare, player);
                     }
+                    ConsolePrinter.WaitForInputToEndTurn(player);
                 }
             }
             Game.Winning(Game.Players.First(p => !p.IsBankrupt));
         }
 
-        private void PrintCard(Square landedSquare)
+        private void Printer(Square landedSquare, Player player)
         {
-            if (landedSquare is PropertySquare)
-            {
-                ConsolePrinter.PrepareAndPrintPropertyCard(landedSquare.Position);
-            }
-            else
-            {
-                ConsolePrinter.PrepareAndPrintSquareCard(landedSquare.Position);
-            }
+            _console.Clear();
+            ConsolePrinter.PrintGameBoard(TablePieces);
+            ConsolePrinter.DisplayPlayersInformation(player);
+            ConsolePrinter.PrepareAndPrintSquareCard(landedSquare.Position);
+            ConsolePrinter.PrintNewestLogs(10);
         }
     }
 }
