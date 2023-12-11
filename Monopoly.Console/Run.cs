@@ -37,7 +37,7 @@ namespace Monopoly.Console
             {
                 foreach (var player in Game.Players.Where(p => !p.IsBankrupt))
                 {
-                    ConsolePrinter.WaitForInput(player);
+                    ConsolePrinter.WaitForInputToStartTurn(player);
                     Game.NextPlayerTakeTurn(player);
                     Square landedSquare = Game.Board.GetSquareAtPosition(player.Position);
 
@@ -49,6 +49,7 @@ namespace Monopoly.Console
 
                         Printer(landedSquare, player);
                     }
+                    ConsolePrinter.WaitForInputToEndTurn(player);
                 }
             }
             Game.Winning(Game.Players.First(p => !p.IsBankrupt));

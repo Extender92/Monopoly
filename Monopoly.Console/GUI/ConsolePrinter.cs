@@ -234,7 +234,15 @@ namespace Monopoly.Console.GUI
             Console.Write(text);
         }
 
-        internal static void WaitForInput(Player player)
+        internal static void WaitForInputToEndTurn(Player player)
+        {
+            DisplayPlayersInformation(player);
+            Console.SetPosition(1, 0);
+            Console.WriteLine($"{player.Name}'s Turn.\n Press Enter To End Turn");
+            Console.ReadLine();
+        }
+
+        internal static void WaitForInputToStartTurn(Player player)
         {
             DisplayPlayersInformation(player);
             Console.SetPosition(1, 0);
