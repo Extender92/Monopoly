@@ -17,6 +17,7 @@ namespace Monopoly.Core
         public int Salary {  get; set; }
         public bool DoubleOnGo { get; set; }
         public Parking FreeParking { get; set; }
+        public int MortgageInterestRate { get; set; }
 
 
         public GameRules(int numberOfPlayers, int numberOfDice, int dieSides)
@@ -26,6 +27,7 @@ namespace Monopoly.Core
             DieSides = dieSides;
             GameLanguage = Language.UK;
             Salary = 200;
+            MortgageInterestRate = 10;
             SetCurrencySymbol();
         }
 
@@ -34,10 +36,10 @@ namespace Monopoly.Core
             switch (GameLanguage)
             {
                 case GameRules.Language.UK:
-                    CurrencySymbol = "$";
+                    CurrencySymbol = "£";
                     break;
                 case GameRules.Language.US:
-                    CurrencySymbol = "£";
+                    CurrencySymbol = "$";
                     break;
                 default:
                     CurrencySymbol = "M";

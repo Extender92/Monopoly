@@ -8,19 +8,16 @@ namespace Monopoly.Core.Logs
 {
     internal class LogHandler
     {
-        public List<Log> Logs { get; set; }
-
-        public LogHandler()
-        {
-            List<Log> logs = new List<Log>();
-        }
+        public List<Log> LogList { get; } = new List<Log>();
 
         internal void CreateLog(string text)
         {
-            Log log = new Log();
-            log.Id = Logs.Count;
-            log.Info = text;
-            Logs.Add(log);
+            Log log = new Log
+            {
+                Id = LogList.Count,
+                Info = text
+            };
+            LogList.Add(log);
         }
     }
 }
