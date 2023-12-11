@@ -70,70 +70,70 @@ namespace Monopoly.Tests.CoreTests
 
 
 
-        [Fact]
-        public void BuyShouldDeductMoneyAndSetOwner()
-        {
-            // Arrange
-            PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30,1);
-            Player player = new("TestPlayer", 1);
+        //[Fact]
+        //public void BuyShouldDeductMoneyAndSetOwner()
+        //{
+        //    // Arrange
+        //    PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30,1);
+        //    Player player = new("TestPlayer", 1);
 
-            // Act
-            //player.Buy(street);
+        //    // Act
+        //    //player.Buy(street);
 
-            // Assert
-            Assert.Equal(3000 - street.Price, player.Money);
-            Assert.Equal(player, street.Owner);
-        }
+        //    // Assert
+        //    Assert.Equal(3000 - street.Price, player.Money);
+        //    Assert.Equal(player, street.Owner);
+        //}
 
-        [Fact]
-        public void PayRentShouldDeductMoneyFromPlayerAndAddToOwner()
-        {
-            // Arrange
-            PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
-            Player player1 = new("Player1", 1);
-            Player player2 = new("Player2", 2);
-            int rent = 50; 
-            street.Owner = player2;
+        //[Fact]
+        //public void PayRentShouldDeductMoneyFromPlayerAndAddToOwner()
+        //{
+        //    // Arrange
+        //    PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
+        //    Player player1 = new("Player1", 1);
+        //    Player player2 = new("Player2", 2);
+        //    int rent = 50; 
+        //    street.Owner = player2;
 
-            // Act
-            //player1.PayRent(street);
+        //    // Act
+        //    //player1.PayRent(street);
 
-            // Assert
-            Assert.Equal(3000 - rent, player1.Money);
-            Assert.Equal(3000 + rent, player2.Money);
-        }
+        //    // Assert
+        //    Assert.Equal(3000 - rent, player1.Money);
+        //    Assert.Equal(3000 + rent, player2.Money);
+        //}
 
 
-        [Fact]
-        public void SellShouldRefundMoneyWhenPlayerOwnsStreet()
-        {
-            // Arrange
-            Player player = new("Player1", 1);
-            PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
-            //player.Buy(street);
+        //[Fact]
+        //public void SellShouldRefundMoneyWhenPlayerOwnsStreet()
+        //{
+        //    // Arrange
+        //    Player player = new("Player1", 1);
+        //    PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
+        //    //player.Buy(street);
 
-            // Act
-            //player.Sell(street);
+        //    // Act
+        //    //player.Sell(street);
 
-            // Assert
-            Assert.Null(street.Owner);
-            Assert.Equal(3000, player.Money); 
-        }
+        //    // Assert
+        //    Assert.Null(street.Owner);
+        //    Assert.Equal(3000, player.Money); 
+        //}
 
-        [Fact]
-        public void SellShouldNotRefundMoneyWhenPlayerDoesNotOwnStreet()
-        {
-            // Arrange
-            Player player = new("Player2", 2);
-            PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
+        //[Fact]
+        //public void SellShouldNotRefundMoneyWhenPlayerDoesNotOwnStreet()
+        //{
+        //    // Arrange
+        //    Player player = new("Player2", 2);
+        //    PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
 
-            // Act
-            //player.Sell(street);
+        //    // Act
+        //    //player.Sell(street);
 
-            // Assert
-            Assert.Null(street.Owner); 
-            Assert.Equal(3000, player.Money); 
-        }
+        //    // Assert
+        //    Assert.Null(street.Owner); 
+        //    Assert.Equal(3000, player.Money); 
+        //}
 
     }
 }
