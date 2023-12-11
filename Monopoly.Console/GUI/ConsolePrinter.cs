@@ -28,7 +28,7 @@ namespace Monopoly.Console.GUI
         public ConsolePrinter(ConsolePositions positions)
         {
             Positions = positions;
-            InitilizePositions();
+            InitializePositions();
         }
 
         public static ConsolePositions Positions { get; set; }
@@ -44,7 +44,7 @@ namespace Monopoly.Console.GUI
         public static int PlayerInformationX { get; set; }
         public static int PlayerInformationY { get; set; }
 
-        internal void InitilizePositions()
+        internal void InitializePositions()
         {
             SetBoardPosition();
             SetTextPosition();
@@ -298,83 +298,6 @@ namespace Monopoly.Console.GUI
 
             PrintLogs("Logs", logStrings, ConsoleColor.Green, ConsoleColor.White);
         }
-
-        //internal static void PreparePropertyCardThenPrintCard(int boardPosition)
-        //{
-        //    List<SquareCard> squareList = SquareCardBuilder.BuildAllSquareCards(Game.Board.Squares, Game.Rules);
-        //    SquareCard squareCard = squareList.First(s => s.BoardPosition == boardPosition);
-
-        //    var borderColor = ConsoleColor.White;
-
-        //    List<string> infoLines = new List<string>();
-        //    List<string> rents = new List<string>();
-
-        //    if (squareCard is PropertySquareCard propertySquareCard)
-        //    {
-        //        borderColor = propertySquareCard.BorderColor;
-        //        foreach (var line in propertySquareCard.Prop)
-        //        {
-        //            infoLines.Add(line);
-        //        }
-        //        foreach (var line in propertySquareCard.Rent)
-        //        {
-        //            rents.Add(line);
-        //        }
-        //    }
-
-        //    int infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
-
-        //    string header = squareCard.Name;
-
-
-        //    int CardHorizontalLength = 30;
-        //    int MaxInfoVerticalLength = 9;
-
-        //    CardHorizontalLength = Math.Max(CardHorizontalLength, Math.Max(header.Length + 2, infoTextLength));
-
-        //    List<string> info = new List<string>();
-
-        //    for (int i = 0; i < infoLines.Count; i++)
-        //    {
-        //        int space = CardHorizontalLength - (infoLines[i].Length + rents[i].Length + 2);
-        //        info.Add(infoLines[i] + ":".PadRight(space) + rents[i]);
-        //    }
-        //    info.Add("");
-
-        //    string infoText = squareCard.Info;
-        //    int length = CardHorizontalLength - 1;
-
-        //    List<string> stringList = Helpers.StringHelper.CenterStringInList(Helpers.StringHelper.GetListOfStringsFromString(infoText, length), length);
-        //    info = info.Concat(stringList).ToList();
-        //    header = Helpers.StringHelper.CenterString(header, CardHorizontalLength);
-
-        //    if (MaxInfoVerticalLength < info.Count) MaxInfoVerticalLength = info.Count;
-
-        //    PrintCard(header, CardHorizontalLength, MaxInfoVerticalLength, info, borderColor);
-        //}
-
-        //internal static void PrepareSquareCardThenPrintCard(int boardPosition)
-        //{
-        //    List<SquareCard> squareList = SquareCardBuilder.BuildAllSquareCards(Game.Board.Squares, Game.Rules);
-        //    SquareCard squareCard = squareList.First(s => s.BoardPosition == boardPosition);
-
-
-        //    List<string> infoLines = new List<string>();
-        //    List<string> rents = new List<string>();
-
-        //    int HorizontalSize = 30;
-        //    int VerticalSize = 9;
-
-        //    string infoText = squareCard.Info;
-
-        //    string header = Helpers.StringHelper.CenterString(squareCard.Name, HorizontalSize);
-
-        //    int length = HorizontalSize - 2;
-
-        //    var info = Helpers.StringHelper.CenterStringInList(Helpers.StringHelper.GetListOfStringsFromString(infoText, length), length);
-
-        //    PrintCard(header, HorizontalSize, VerticalSize, info);
-        //}
 
 
         internal static void PrepareAndPrintPropertyCard(int boardPosition)

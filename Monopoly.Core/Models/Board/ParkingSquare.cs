@@ -17,11 +17,11 @@
                     break;
 
                 case GameRules.Parking.SetFee:
-                    Game.Transaction.GetMoneyFromBank(player, (int)GameRules.Parking.SetFee);
+                    Game.Transactions.GetMoneyFromBank(player, (int)GameRules.Parking.SetFee);
                     break;
 
                 case GameRules.Parking.Fines:
-                    Game.Transaction.GetMoneyFromBank(player, Game.Fines);
+                    Game.Transactions.GetMoneyFromBank(player, Game.Fines);
                     Game.Fines = 0;
                     break;
 

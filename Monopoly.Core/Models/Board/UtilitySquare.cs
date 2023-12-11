@@ -9,8 +9,8 @@ namespace Monopoly.Core.Models.Board
 {
     internal class UtilitySquare : Square
     {
-        public int RentOneUtitlty { get; set; }
-        public int RentTwoUtitlty {  get; set; }
+        public int RentOneUtility { get; set; }
+        public int RentTwoUtility {  get; set; }
 
 
         public UtilitySquare(int position, string name, int price, int rentOneUtitlty, int rentTwoUtitlty, int mortgageValue)
@@ -18,8 +18,8 @@ namespace Monopoly.Core.Models.Board
             Position = position;
             Name = name;
             Price = price;
-            RentOneUtitlty = rentOneUtitlty;
-            RentTwoUtitlty = rentTwoUtitlty;
+            RentOneUtility = rentOneUtitlty;
+            RentTwoUtility = rentTwoUtitlty;
             MortgageValue = mortgageValue;
         }
 
@@ -29,7 +29,7 @@ namespace Monopoly.Core.Models.Board
             {
                 if (Game.CanAffordWithAssets(player, Price))
                 {
-                    Game.Transaction.HandleCanBuySquare(player, this);
+                    Game.Transactions.HandleCanBuySquare(player, this);
                 }
             }
             else if (!IsMortgage)
@@ -42,12 +42,12 @@ namespace Monopoly.Core.Models.Board
         {
             int rent = CalculateRent();
 
-            while (!Game.Transaction.PayRentFromPlayerToPlayer(player, rent, Owner))
+            while (!Game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
             {
                 if (Game.IsPlayerBankrupt(player, rent))
                 {
-                    int restOfPlayerMoney = Game.GetMoneyFromBancruptPlayerAndBankruptPlayer(player);
-                    Game.Transaction.GetMoneyFromBank(Owner, restOfPlayerMoney);
+                    int restOfPlayerMoney = Game.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
+                    Game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
                     break;
                 }
 
@@ -65,10 +65,10 @@ namespace Monopoly.Core.Models.Board
             switch (ownedUtility)
             {
                 case 1:
-                    return diceSum * RentOneUtitlty;
+                    return diceSum * RentOneUtility;
 
                 case 2:
-                    return diceSum * RentTwoUtitlty;
+                    return diceSum * RentTwoUtility;
 
                 default:
                     throw new InvalidOperationException($"Invalid number of utility owned: {ownedUtility}");

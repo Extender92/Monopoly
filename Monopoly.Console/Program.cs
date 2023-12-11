@@ -48,35 +48,6 @@ namespace Monopoly.Console
             }
         }
 
-        public static void PrintColors()
-        {
-            // Get an array with the values of ConsoleColor enumeration members.
-            ConsoleColor[] colors = (ConsoleColor[])ConsoleColor.GetValues(typeof(ConsoleColor));
-            // Save the current background and foreground colors.
-            ConsoleColor currentBackground = System.Console.BackgroundColor;
-            ConsoleColor currentForeground = System.Console.ForegroundColor;
-
-            // Display all foreground colors except the one that matches the background.
-            System.Console.WriteLine("All the foreground colors except {0}, the background color:",
-                              currentBackground);
-            foreach (var color in colors)
-            {
-                if (color == currentBackground) continue;
-
-                System.Console.ForegroundColor = color;
-                System.Console.WriteLine("   The foreground color is {0}.", color);
-            }
-            System.Console.WriteLine();
-            // Restore the foreground color.
-            System.Console.ForegroundColor = currentForeground;
-
-            
-            // Restore the original console colors.
-            System.Console.ResetColor();
-            System.Console.WriteLine("\nOriginal colors restored...");
-        }
-
-
         public static void DrawChanceCards(GameRules rules)
         {
             List<string> chanceInfoLines = new List<string>

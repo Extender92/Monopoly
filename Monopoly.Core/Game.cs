@@ -18,8 +18,8 @@ namespace Monopoly.Core
         internal static List<Player> Players  { get; set;}
         internal static List<IDie> Dice { get; set; }
         internal static GameRules Rules { get; set; }
-        internal static Transaction Transaction { get; set; }
-        internal static Jail Jail { get; set; }
+        internal static Transaction Transactions { get; set; }
+        internal static Jail TheJail { get; set; }
         internal static FortuneCardHandler FortuneCard { get; set; }
         internal static int Fines { get; set; }
 
@@ -27,7 +27,7 @@ namespace Monopoly.Core
         {
             if (player.InJail)
             {
-                Jail.TakeTurnInJail(player);
+                TheJail.TakeTurnInJail(player);
             }
             else
             {
@@ -43,20 +43,20 @@ namespace Monopoly.Core
             if (player.Position >= Board.Squares.Count)
             {
                 player.Position -= (Board.Squares.Count);
-                Transaction.PlayerGetSalary(player);
+                Transactions.PlayerGetSalary(player);
             }
         }
 
         internal static void RollDice(Player player)
         {
-            string diceroll = player.Name + " rolled:";
-            foreach (Die die in Dice)
+            string diceRoll = player.Name + " rolled:";
+            foreach (Die die in Game.Dice)
             {
                 die.Roll();
-                diceroll += $" {die.GetDieResult()}";
+                diceRoll += $" {die.GetDieResult()}";
             }
-            diceroll += " Total: " + CalculateDiceSum();
-            Game.Logs.CreateLog(diceroll);
+            diceRoll += " Total: " + CalculateDiceSum();
+            Game.Logs.CreateLog(diceRoll);
         }
 
         internal static bool IsDiceDouble()
@@ -89,7 +89,7 @@ namespace Monopoly.Core
             // Win method todo //
         }
 
-        internal static int GetMoneyFromBancruptPlayerAndBankruptPlayer(Player player)
+        internal static int GetMoneyFromBankruptPlayerAndBankruptPlayer(Player player)
         {
             int remainingPlayerMoney = player.Money;
             player.Money = 0;

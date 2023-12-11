@@ -33,7 +33,7 @@ namespace Monopoly.Core.Models.Board
             {
                 if (Game.CanAffordWithAssets(player, Price))
                 {
-                    Game.Transaction.HandleCanBuySquare(player, this);
+                    Game.Transactions.HandleCanBuySquare(player, this);
                 }
             }
             else if (!IsMortgage)
@@ -46,12 +46,12 @@ namespace Monopoly.Core.Models.Board
         {
             int rent = CalculateRent();
 
-            while (!Game.Transaction.PayRentFromPlayerToPlayer(player, rent, Owner))
+            while (!Game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
             {
                 if (Game.IsPlayerBankrupt(player, rent))
                 {
-                    int restOfPlayerMoney = Game.GetMoneyFromBancruptPlayerAndBankruptPlayer(player);
-                    Game.Transaction.GetMoneyFromBank(Owner, restOfPlayerMoney);
+                    int restOfPlayerMoney = Game.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
+                    Game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
                     break;
                 }
 

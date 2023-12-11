@@ -19,7 +19,7 @@ namespace Monopoly.Core.Models.Board
 
         public override void LandOn(Player player)
         {
-            while(!Game.Transaction.PayTax(player, Price))
+            while(!Game.Transactions.PayTax(player, Price))
             {
                 if (Game.IsPlayerBankrupt(player, Price))
                 {

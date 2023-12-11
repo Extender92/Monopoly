@@ -13,7 +13,7 @@
         public override void LandOn(Player player)
         {
             if (Game.Rules.DoubleOnGo)
-                Game.Transaction.PlayerGetSalary(player);
+                Game.Transactions.PlayerGetSalary(player);
         }
     }
 }

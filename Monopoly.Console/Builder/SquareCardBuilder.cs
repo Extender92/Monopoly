@@ -232,8 +232,8 @@ namespace Monopoly.Console.Builder
             {
                 Name = utility.Name,
                 BoardPosition = utility.Position,
-                Info = $"If one utility is owned rent is {utility.RentOneUtitlty} times amount shown on dice. if both utilities are owned rent is" +
-                $" {utility.RentTwoUtitlty} times amount shown on dice. Mortgage value: {utility.MortgageValue}{Currency}"
+                Info = $"If one utility is owned rent is {utility.RentOneUtility} times amount shown on dice. if both utilities are owned rent is" +
+                $" {utility.RentTwoUtility} times amount shown on dice. Mortgage value: {utility.MortgageValue}{Currency}"
             };
 
             return utilityCard;

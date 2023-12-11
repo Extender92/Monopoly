@@ -153,8 +153,8 @@ namespace Monopoly.Tests.CoreTests
             Assert.Equal(expectedPosition, utility.Position);
             Assert.Equal(expectedInfo, utility.Info);
             Assert.Equal(expectedPrice, utility.Price);
-            Assert.Equal(expectedRentOneUtility, utility.RentOneUtitlty);
-            Assert.Equal(expectedRentTwoUtility, utility.RentTwoUtitlty);
+            Assert.Equal(expectedRentOneUtility, utility.RentOneUtility);
+            Assert.Equal(expectedRentTwoUtility, utility.RentTwoUtility);
         }
 
         [Fact]

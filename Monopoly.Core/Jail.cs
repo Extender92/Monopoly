@@ -75,7 +75,7 @@ namespace Monopoly.Core
             }
             else
             {
-                while (!Game.Transaction.PayFines(player, Fine))
+                while (!Game.Transactions.PayFines(player, Fine))
                 {
                     GameEvents.InvokePlayerInsufficientFunds(player, Fine);
                 }
