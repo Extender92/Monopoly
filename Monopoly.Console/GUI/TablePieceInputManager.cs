@@ -30,10 +30,10 @@ namespace Monopoly.Console.GUI
                     Console.Clear();
                     tablePiece.Color = GetUserSelectedColor(playerId, tablePieces);
 
-                    //_console.Write("\n You selected color: ");
+                    //Console.Write("\n You selected color: ");
                     //ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
 
-                    //_console.WriteLine("\n Do you want to continue?");
+                    //Console.WriteLine("\n Do you want to continue?");
                 } while (/*!Input.GetUserConfirmation()*/ false);
 
                 Console.Clear();
