@@ -38,8 +38,8 @@ namespace Monopoly.Console.GUI
             CardPosY = 5;
             MenuPosX = 10;
             MenuPosY = 2;
-            PlayerInformationX = 74;
-            PlayerInformationY = 0;
+            PlayerInformationX = BoardPosX + 6;
+            PlayerInformationY = BoardPosY + 2;
         }
     }
 }

@@ -4,6 +4,7 @@ using Monopoly.Console.Models.Board;
 using Monopoly.Core;
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
+using Monopoly.Core.Models.Board;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -107,11 +108,17 @@ namespace Monopoly.Console.GUI
 
             for (int i = 0; i < SideLength; i++)
             {
-                var playersOnCurrentPosition = players.Where(player => player.Position == startSidePosition + i).ToList();
+                var currentSquare = Game.Board.Squares.First(s => s.Position == startSidePosition + i);
+                var playersOnCurrentPosition = players.Where(player => player.Position == currentSquare.Position).ToList();
+                ConsoleColor ownerColor = ConsoleColor.White;
+                if (currentSquare is PropertySquare property && property.Owner != null)
+                {
+                    ownerColor = tablePieces.First(t => t.PlayerId == property.Owner.Id).Color;
+                }
 
                 GetPositionCoordinates(side, i, playerBuffer, out x, out y);
                 Console.SetPosition(x, y);
-                PrintPositionContent(playersOnCurrentPosition, tablePieces);
+                PrintPositionContent(playersOnCurrentPosition, tablePieces, ownerColor);
             }
         }
 
@@ -146,12 +153,13 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        private static void PrintPositionContent(List<Player> playersOnCurrentPosition, List<TablePiece> tablePieces)
+        private static void PrintPositionContent(List<Player> playersOnCurrentPosition, List<TablePiece> tablePieces, ConsoleColor ownerColor = ConsoleColor.White)
         {
-            Console.Write("[");
-            Console.Write(playersOnCurrentPosition.Count > 0 ? "" : " ");
+            string firstPart = "[";
+            firstPart += playersOnCurrentPosition.Count > 0 ? "" : " ";
+            PrintColoredText(firstPart, ownerColor);
             PrintPlayers(playersOnCurrentPosition, tablePieces);
-            Console.Write("]");
+            PrintColoredText("]", ownerColor);
         }
 
         private static void PrintPlayers(List<Player> players, List<TablePiece> tablePieces)
@@ -229,23 +237,15 @@ namespace Monopoly.Console.GUI
         internal static void WaitForInput(Player player)
         {
             Console.SetPosition(1, 0);
-            Console.WriteLine($"{player.Name}'s Turn.\n Press Enter To Roll Dice");
+            Console.WriteLine($"{player.Name}'s Turn.\n Press Enter To Continue");
             Console.ReadLine();
         }
 
         internal static void DisplayPlayersInformation(List<Player> players)
         {
-            int playersPerLine = 2;
-            int playerInfoLineOffsetX = 22;
-            int playerInfoLineOffsetY = 1;
-
             for (int i = 0; i < players.Count; i++)
             {
-                int lineNumber = i / playersPerLine;
-                int lineOffset = i % playersPerLine;
-
-                Console.SetPosition(PlayerInformationX + lineOffset * playerInfoLineOffsetX, PlayerInformationY + lineNumber * playerInfoLineOffsetY);
-
+                Console.SetPosition(PlayerInformationX, PlayerInformationY + i);
                 Console.Write($"{players[i].Name} Money: {players[i].Money}{Game.Rules.CurrencySymbol}");
             }
         }
