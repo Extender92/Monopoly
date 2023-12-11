@@ -12,20 +12,23 @@ namespace Monopoly.Console
     {
         static void Main(string[] args)
         {
-            int numberOfDice = 2;
-            int dieSides = 6;
-            System.Console.WriteLine("How many players?");
-            List<string> menuChoices = Helpers.StringHelper.CreateStringList("2", "3", "4", "5", "6", "7", "8");
-            int index = MenuOptionSelector.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length), 0, 3);
-            int numberOfPlayers = index + 2;
 
-            GameRules gameRules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
+            GameRules gameRules = SetupRules();
             ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules);
             gameSetup.Setup();
             Run run = new Run(gameSetup.TablePieces);
 
             run.RunGame();
         }
+
+        private static GameRules SetupRules()
+        {
+            int numberOfDice = 2;
+            int dieSides = 6;
+            int numberOfPlayers = Input.GetNumberOfPlayers();
+            return new GameRules(numberOfPlayers, numberOfDice, dieSides);
+        }
+
 
         public static void TestCards()
         {
@@ -35,14 +38,7 @@ namespace Monopoly.Console
                 foreach (var landedSquare in Game.Board.Squares)
                 {
                     System.Console.Clear();
-                    if (landedSquare is PropertySquare)
-                    {
-                        ConsolePrinter.PrepareAndPrintPropertyCard(landedSquare.Position);
-                    }
-                    else
-                    {
-                        ConsolePrinter.PrepareAndPrintSquareCard(landedSquare.Position);
-                    }
+                    ConsolePrinter.PrepareAndPrintSquareCard(landedSquare.Position);
                     System.Console.ReadLine();
                 }
             }
@@ -91,7 +87,6 @@ namespace Monopoly.Console
                 // Clear the chanceInfo list for the next iteration
                 chanceInfo.Clear();
             }
-
         }
     }
 }

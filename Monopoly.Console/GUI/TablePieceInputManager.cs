@@ -9,13 +9,7 @@ namespace Monopoly.Console.GUI
 {
     internal class TablePieceInputManager
     {
-        private readonly IConsoleWrapper _console;
-
-        public TablePieceInputManager()
-        {
-            _console = new ConsoleWrapper();
-        }
-
+        private IConsoleWrapper Console = new ConsoleWrapper();
 
         internal TablePiece GetTablePieceFromUserInput(int playerId, List<TablePiece> tablePieces)
         {
@@ -25,7 +19,7 @@ namespace Monopoly.Console.GUI
                 do
                 {
                     tablePiece.Piece = GetUserSelectedPieceKey(playerId, tablePieces);
-                    _console.Write(" You entered: " + tablePiece.Piece);
+                    Console.Write(" You entered: " + tablePiece.Piece);
 
                     //_console.Write("\n Do you want to continue?");
                 } while (/*!Input.GetUserConfirmation()*/ false);
@@ -40,11 +34,11 @@ namespace Monopoly.Console.GUI
                     //_console.WriteLine("\n Do you want to continue?");
                 } while (/*!Input.GetUserConfirmation()*/ false);
 
-                _console.Write(" You entered: ");
+                Console.Write(" You entered: ");
                 ConsolePrinter.PrintColoredText(tablePiece.Piece, tablePiece.Color);
-                _console.Write(" With color: ");
+                Console.Write(" With color: ");
                 ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
-                _console.WriteLine("\n Do you want to continue?");
+                Console.WriteLine("\n Do you want to continue?");
 
             } while (!Input.GetUserConfirmation());
 
@@ -58,9 +52,9 @@ namespace Monopoly.Console.GUI
 
             while (string.IsNullOrEmpty(keyInput) || keyInput.Length != 1 || !char.IsLetter(keyInput[0]) || IsKeyInUse(keyInput, tablePieces))
             {
-                _console.Write($"\nPlayer {playerId + 1}, enter a key to select your board piece: ");
-                keyInput = _console.ReadKey().ToUpper();
-                _console.Clear();
+                Console.Write($"\nPlayer {playerId + 1}, enter a key to select your board piece: ");
+                keyInput = Console.ReadKey().ToUpper();
+                Console.Clear();
             }
 
             return keyInput;
@@ -75,7 +69,7 @@ namespace Monopoly.Console.GUI
 
         private ConsoleColor GetUserSelectedColor(int playerId, List<TablePiece> tablePieces)
         {
-            _console.Write($"\n Player {playerId + 1}, select a color for your board piece: ");
+            Console.Write($"\n Player {playerId + 1}, select a color for your board piece: ");
 
             List<ConsoleColor> colors = GetConsoleColors(tablePieces.Select(piece => piece.Color).ToList());
 
