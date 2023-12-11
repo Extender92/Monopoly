@@ -16,9 +16,9 @@ namespace Monopoly.Console
             GameRules gameRules = SetupRules();
             ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules);
             gameSetup.Setup();
-            Run run = new Run(gameSetup.TablePieces);
+            ConsoleGame run = new ConsoleGame(gameSetup.TablePieces);
 
-            run.RunGame();
+            run.StartGame();
         }
 
         private static GameRules SetupRules()

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Console.Models
 {
-    internal class Chance : DrawCards
+    internal class Chance : FortuneCard
     {
     }
 }
