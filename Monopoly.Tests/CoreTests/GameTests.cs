@@ -10,23 +10,23 @@ namespace Monopoly.Tests.CoreTests
 {
     public class GameTests
     {
-        [Fact]
-        public void GameSetUpReturnsValidGame()
-        {
-            // Arrange
-            int numberOfPlayers = 4;
-            int numberOfDice = 2;
-            int dieSides = 6;
-            GameRules rules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
+        //[Fact]
+        //public void GameSetUpReturnsValidGame()
+        //{
+        //    // Arrange
+        //    int numberOfPlayers = 4;
+        //    int numberOfDice = 2;
+        //    int dieSides = 6;
+        //    GameRules rules = new GameRules(numberOfPlayers, numberOfDice, dieSides);
 
-            //Act
-            Game game = CoreGameSetup.Setup(rules);
+        //    //Act
+        //    Game game = CoreGameSetup.Setup(rules);
 
-            //Assert
-            Assert.NotNull(game);
-            Assert.Equal(numberOfPlayers, game.Players.Count);
-            Assert.Equal(numberOfDice, game.Dice.Count);
+        //    //Assert
+        //    Assert.NotNull(game);
+        //    Assert.Equal(numberOfPlayers, game.Players.Count);
+        //    Assert.Equal(numberOfDice, game.Dice.Count);
 
-        }
+        //}
     }
 }

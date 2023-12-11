@@ -33,7 +33,7 @@ namespace Monopoly.Tests.ConsoleTests
             var mockConsole = new Mock<IConsoleWrapper>();
             mockConsole.Setup(c => c.ReadLine()).Returns(input);
 
-            // Arrange
+            // Act
             var actual = mockConsole.Object.ReadLine();
 
             //Assert

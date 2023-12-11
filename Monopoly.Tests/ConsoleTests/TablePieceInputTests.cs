@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Tests.ConsoleTests
 {
-    internal class PrintTests
+    internal class TablePieceInputTests
     {
     }
 }
