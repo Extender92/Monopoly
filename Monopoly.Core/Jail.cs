@@ -35,13 +35,15 @@ namespace Monopoly.Core
                 if (player.NumberOfGetOutOFJailCards > 0 || Game.CanAffordWithAssets(player, Fine))
                     playerWantsToBuyOut = GameEvents.InvokeAskPlayerToBuyOutOfJail(player, new PlayerEventArgs(player));
 
+                Game.RollDice(player);
+
                 if (playerWantsToBuyOut)
                 {
                     BuyOutPlayerFromJail(player);
                     return;
                 }
 
-                if (RollDiceInJailAndCheckForDouble(player))
+                if (Game.IsDiceDouble())
                 {
                     ReleasePlayerFromJail(player);
                     return;
@@ -56,29 +58,29 @@ namespace Monopoly.Core
                         Game.HandlePlayerBankruptcy(player);
                         return;
                     }
-                    ReleasePlayerFromJail(player);
+                    BuyOutPlayerFromJail(player);
                 }
             }
             else
             {
-                throw new Exception($"{player.Name} is not in jail!");
+                throw new InvalidOperationException($"{player.Name} is not in jail!");
             }
         }
 
         private void BuyOutPlayerFromJail(Player player)
         {
-            while (!Game.Transaction.PayFines(player, Fine))
+            if (player.NumberOfGetOutOFJailCards > 0)
             {
-                GameEvents.InvokePlayerInsufficientFunds(player, Fine);
+                player.NumberOfGetOutOFJailCards--;
             }
-            Game.RollDice();
+            else
+            {
+                while (!Game.Transaction.PayFines(player, Fine))
+                {
+                    GameEvents.InvokePlayerInsufficientFunds(player, Fine);
+                }
+            }
             ReleasePlayerFromJail(player);
-        }
-
-        private bool RollDiceInJailAndCheckForDouble(Player player)
-        {
-            Game.RollDice();
-            return Game.IsDiceDouble();
         }
 
         private void ReleasePlayerFromJail(Player player)

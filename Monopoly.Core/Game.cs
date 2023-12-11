@@ -29,11 +29,13 @@ namespace Monopoly.Core
             {
                 Jail.TakeTurnInJail(player);
             }
-            RollDice();
-            int diceSum = CalculateDiceSum();
-
-            player.Position += diceSum;
-            CheckIfPlayerGoPastGo(player);
+            else
+            {
+                RollDice(player);
+                int diceSum = CalculateDiceSum();
+                player.Position += diceSum;
+                CheckIfPlayerGoPastGo(player);
+            }
         }
 
         internal static void CheckIfPlayerGoPastGo(Player player)
@@ -45,12 +47,16 @@ namespace Monopoly.Core
             }
         }
 
-        internal static void RollDice()
+        internal static void RollDice(Player player)
         {
+            string diceroll = player.Name + " rolled:";
             foreach (Die die in Dice)
             {
                 die.Roll();
+                diceroll += $" {die.GetDieResult()}";
             }
+            diceroll += " Total: " + CalculateDiceSum();
+            Game.Logs.CreateLog(diceroll);
         }
 
         internal static bool IsDiceDouble()
@@ -117,7 +123,7 @@ namespace Monopoly.Core
 
         internal static bool CanAffordWithAssets(Player player, int sum)
         {
-            return !(CalculatePlayerAssets(player) < sum);
+            return CalculatePlayerAssets(player) >= sum;
         }
 
         private static int CalculatePlayerAssets(Player player)
