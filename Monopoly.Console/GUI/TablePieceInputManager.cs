@@ -18,6 +18,7 @@ namespace Monopoly.Console.GUI
             {
                 do
                 {
+                    Console.Clear();
                     tablePiece.Piece = GetUserSelectedPieceKey(playerId, tablePieces);
                     Console.Write(" You entered: " + tablePiece.Piece);
 
@@ -26,6 +27,7 @@ namespace Monopoly.Console.GUI
 
                 do
                 {
+                    Console.Clear();
                     tablePiece.Color = GetUserSelectedColor(playerId, tablePieces);
 
                     //_console.Write("\n You selected color: ");
@@ -34,6 +36,7 @@ namespace Monopoly.Console.GUI
                     //_console.WriteLine("\n Do you want to continue?");
                 } while (/*!Input.GetUserConfirmation()*/ false);
 
+                Console.Clear();
                 Console.Write(" You entered: ");
                 ConsolePrinter.PrintColoredText(tablePiece.Piece, tablePiece.Color);
                 Console.Write(" With color: ");
@@ -52,7 +55,7 @@ namespace Monopoly.Console.GUI
 
             while (string.IsNullOrEmpty(keyInput) || keyInput.Length != 1 || !char.IsLetter(keyInput[0]) || IsKeyInUse(keyInput, tablePieces))
             {
-                Console.Write($"\nPlayer {playerId + 1}, enter a key to select your board piece: ");
+                Console.Write($" Player {playerId + 1}, enter a key to select your board piece: ");
                 keyInput = Console.ReadKey().ToUpper();
                 Console.Clear();
             }
@@ -69,7 +72,7 @@ namespace Monopoly.Console.GUI
 
         private ConsoleColor GetUserSelectedColor(int playerId, List<TablePiece> tablePieces)
         {
-            Console.Write($"\n Player {playerId + 1}, select a color for your board piece: ");
+            Console.Write($" Player {playerId + 1}, select a color for your board piece: ");
 
             List<ConsoleColor> colors = GetConsoleColors(tablePieces.Select(piece => piece.Color).ToList());
 
