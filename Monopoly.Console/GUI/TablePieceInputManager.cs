@@ -85,7 +85,7 @@ namespace Monopoly.Console.GUI
 
             List<string> menuChoices = colors.Select(x => x.ToString()).ToList();
 
-            MenuOptionSelector menu = new MenuOptionSelector(Console);
+            IMenuOptionSelector menu = new MenuOptionSelector(Console);
 
             int index = menu.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length), 0, (menuChoices.Count / 2));
             return colors[index];

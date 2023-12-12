@@ -92,7 +92,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        private void PrintSingleSide(int playerBuffer, int side, int startSidePosition, List<Player> players, List<TablePiece> tablePieces)
+        internal void PrintSingleSide(int playerBuffer, int side, int startSidePosition, List<Player> players, List<TablePiece> tablePieces)
         {
             int x, y;
 
@@ -117,7 +117,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        private void GetPositionCoordinates(int side, int positionIndex, int playerBuffer, out int x, out int y)
+        internal void GetPositionCoordinates(int side, int positionIndex, int playerBuffer, out int x, out int y)
         {
             x = BoardPosX;
             y = BoardPosY;
@@ -148,7 +148,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        private void PrintPositionContent(List<Player> playersOnCurrentPosition, List<TablePiece> tablePieces, ConsoleColor ownerColor = ConsoleColor.White)
+        internal void PrintPositionContent(List<Player> playersOnCurrentPosition, List<TablePiece> tablePieces, ConsoleColor ownerColor = ConsoleColor.White)
         {
             string firstPart = "[";
             firstPart += playersOnCurrentPosition.Count > 0 ? "" : " ";
@@ -157,7 +157,7 @@ namespace Monopoly.Console.GUI
             PrintColoredText("]", ownerColor);
         }
 
-        private void PrintPlayers(List<Player> players, List<TablePiece> tablePieces)
+        internal void PrintPlayers(List<Player> players, List<TablePiece> tablePieces)
         {
             foreach (Player player in players)
             {
@@ -202,7 +202,7 @@ namespace Monopoly.Console.GUI
                 Console.SetTextColor(textColor);
                 Console.Write(i >= info.Count ?
                     new String(' ', width) :
-                    " " + info[i]);
+                    " " + info[i] + " ");
 
                 Console.SetTextColor(borderColor);
                 Console.SetPosition((CardPosX + width + 1), CardPosY + 3 + i);
@@ -227,13 +227,6 @@ namespace Monopoly.Console.GUI
             Console.ResetColor();
             Console.SetPosition(TextPosX, TextPosY);
             Console.Write(text);
-        }
-
-        internal void PrintTextWithCurrencySymbol(string text)
-        {
-            Console.ResetColor();
-            Console.SetPosition(TextPosX, TextPosY);
-            Console.Write(text + _rules.CurrencySymbol);
         }
 
         internal void WaitForInputToEndTurn(Player player, List<Player> players)
@@ -266,7 +259,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-
+        // Needs refactoring and Testing
         internal void PrepareAndPrintSquareCard(int boardPosition)
         {
             List<SquareCard> squareList = SquareCardBuilder.BuildAllSquareCards(_squares, _rules);

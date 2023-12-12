@@ -26,7 +26,7 @@ namespace Monopoly.Console
         {
             CoreGameSetup.Setup(GameRules);
 
-            MenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
+            IMenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
             menu.SetPositions();
 
 

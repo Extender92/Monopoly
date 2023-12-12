@@ -109,5 +109,44 @@ namespace Monopoly.Tests.ConsoleTests
             // Assert
             mockConsole.Verify(c => c.SetPosition(10, 20), Times.Once);
         }
+
+        [Fact]
+        public void WriteShouldCallSystemConsoleWrite()
+        {
+            // Arrange
+            var mockConsole = new Mock<IConsoleWrapper>();
+
+            // Act
+            mockConsole.Object.Write("Test");
+
+            // Assert
+            mockConsole.Verify(c => c.Write("Test"), Times.Once);
+        }
+
+        [Fact]
+        public void GetPressedKeyShouldCallSystemConsoleReadKeyWithInterceptTrue()
+        {
+            // Arrange
+            var mockConsole = new Mock<IConsoleWrapper>();
+
+            // Act
+            mockConsole.Object.GetPressedKey();
+
+            // Assert
+            mockConsole.Verify(c => c.GetPressedKey(), Times.Once);
+        }
+
+        [Fact]
+        public void ShowCursorShouldCallSystemConsoleCursorVisible()
+        {
+            // Arrange
+            var mockConsole = new Mock<IConsoleWrapper>();
+
+            // Act
+            mockConsole.Object.ShowCursor(true);
+
+            // Assert
+            mockConsole.Verify(c => c.ShowCursor(true), Times.Once);
+        }
     }
 }
