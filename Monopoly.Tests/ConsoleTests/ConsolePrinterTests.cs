@@ -124,7 +124,7 @@ namespace Monopoly.Tests.ConsoleTests
             consoleMock.Verify(c => c.Write(It.IsAny<string>()), Times.AtLeastOnce);
             consoleMock.Verify(c => c.ResetColor(), Times.AtLeastOnce);
 
-            // Should print [ ] Square lenght - 1 for [KG] where players is
+            // Should print [ ] Square length - 1 for [KG] where players is
             string expectedOutput = "[KG]" + string.Concat(Enumerable.Repeat("[ ]", squares.Count - 1));
 
             Assert.Equal(expectedOutput, output.ToString().Trim());
