@@ -17,7 +17,7 @@ namespace Monopoly.Tests.ConsoleTests
         {
             // Arrange
             var consoleMock = new Mock<IConsoleWrapper>();
-            var logPrinter = new LogPrinter(consoleMock.Object);
+            var logPrinter = new ConsoleLogPrinter(consoleMock.Object);
 
             var output = new StringWriter();
             System.Console.SetOut(output);
@@ -31,6 +31,12 @@ namespace Monopoly.Tests.ConsoleTests
 
 
             // Assert
+            consoleMock.Verify(c => c.SetPosition(It.IsAny<int>(), It.IsAny<int>()), Times.AtLeastOnce);
+            consoleMock.Verify(c => c.SetTextColor(ConsoleColor.Yellow), Times.AtLeastOnce);
+            consoleMock.Verify(c => c.SetTextColor(ConsoleColor.Magenta), Times.Exactly(logs.Count));
+            consoleMock.Verify(c => c.ResetColor(), Times.Once);
+            consoleMock.Verify(c => c.Write(It.IsAny<string>()), Times.AtLeastOnce);
+
             string expectedOutput =
                 "┌─ Test Header ─┐" +
                 "│ Log Entry 1 │" +
@@ -38,14 +44,10 @@ namespace Monopoly.Tests.ConsoleTests
                 "│ Log Entry 3 │" +
                 "└───────────────┘";
 
-
             Assert.Equal(expectedOutput, output.ToString());
 
-            consoleMock.Verify(c => c.SetPosition(It.IsAny<int>(), It.IsAny<int>()), Times.AtLeastOnce);
-            consoleMock.Verify(c => c.SetTextColor(ConsoleColor.Yellow), Times.AtLeastOnce);
-            consoleMock.Verify(c => c.SetTextColor(ConsoleColor.Magenta), Times.Exactly(logs.Count));
-            consoleMock.Verify(c => c.ResetColor(), Times.Once);
-            consoleMock.Verify(c => c.Write(It.IsAny<string>()), Times.AtLeastOnce);
+            // Clean up: Restore console output
+            System.Console.SetOut(System.Console.Out);
         }
 
         [Fact]
@@ -53,35 +55,54 @@ namespace Monopoly.Tests.ConsoleTests
         {
             // Arrange
             var consoleMock = new Mock<IConsoleWrapper>();
-            var logPrinter = new LogPrinter(consoleMock.Object);
+            var logPrinter = new ConsoleLogPrinter(consoleMock.Object);
 
             var output = new StringWriter();
             System.Console.SetOut(output);
             consoleMock.Setup(c => c.Write(It.IsAny<string>())).Callback<string>(s => output.Write(s));
 
-            var maxAmountOfLogs = 3;
+            var maxAmountOfLogs = 10;
             var logList = new List<Log>();
             logList.Add(new Log { Info = "Log Entry 1" });
             logList.Add(new Log { Info = "Log Entry 2" });
             logList.Add(new Log { Info = "Log Entry 3" });
+            logList.Add(new Log { Info = "Log Entry 4" });
+            logList.Add(new Log { Info = "Log Entry 5" });
+            logList.Add(new Log { Info = "Log Entry 6" });
+            logList.Add(new Log { Info = "Log Entry 7" });
+            logList.Add(new Log { Info = "Log Entry 8" });
+            logList.Add(new Log { Info = "Log Entry 9" });
+            logList.Add(new Log { Info = "Log Entry 10" });
+            logList.Add(new Log { Info = "Log Entry 11" });
+            logList.Add(new Log { Info = "Log Entry 12" });
 
             // Act
             logPrinter.PrintNewestLogs(maxAmountOfLogs, logList);
 
             // Assert
-            string expectedOutput =
-                "┌─ Logs ──────┐" +
-                "│ Log Entry 3 │" +
-                "│ Log Entry 2 │" +
-                "│ Log Entry 1 │" +
-                "└─────────────┘";
-
-            Assert.Equal(expectedOutput, output.ToString());
-
             consoleMock.Verify(c => c.SetPosition(It.IsAny<int>(), It.IsAny<int>()), Times.AtLeastOnce);
             consoleMock.Verify(c => c.SetTextColor(It.IsAny<ConsoleColor>()), Times.AtLeastOnce);
             consoleMock.Verify(c => c.ResetColor(), Times.AtLeastOnce);
             consoleMock.Verify(c => c.Write(It.IsAny<string>()), Times.AtLeastOnce);
+
+            string expectedOutput =
+                "┌─ Logs ───────┐" +
+                "│ Log Entry 12 │" +
+                "│ Log Entry 11 │" +
+                "│ Log Entry 10 │" +
+                "│ Log Entry 9 │" +
+                "│ Log Entry 8 │" +
+                "│ Log Entry 7 │" +
+                "│ Log Entry 6 │" +
+                "│ Log Entry 5 │" +
+                "│ Log Entry 4 │" +
+                "│ Log Entry 3 │" +
+                "└──────────────┘";
+
+            Assert.Equal(expectedOutput, output.ToString());
+
+            // Clean up: Restore console output
+            System.Console.SetOut(System.Console.Out);
         }
     }
 }

@@ -30,9 +30,11 @@ namespace Monopoly.Console
 
             Input input = new Input(consoleWrapper, menu);
 
-            LogPrinter logPrint = new LogPrinter(consoleWrapper);
+            ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
 
-            ConsoleGame consoleGame = gameSetup.Setup(game, consoleWrapper, consolePrinter, input, logPrint);
+            ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game.Board.Squares, gameRules);
+
+            ConsoleGame consoleGame = gameSetup.Setup(game, consoleWrapper, consolePrinter, input, logPrinter, cardPrinter);
 
             consoleGame.StartGame();
         }

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Console.GUI
 {
-    internal class LogPrinter
+    internal class ConsoleLogPrinter
     {
         internal IConsoleWrapper Console { get; set; }
         public int LogPosX { get; set; }
         public int LogPosY { get; set; }
 
-        public LogPrinter(IConsoleWrapper console)
+        public ConsoleLogPrinter(IConsoleWrapper console)
         {
             Console = console;
             SetLogPosition();

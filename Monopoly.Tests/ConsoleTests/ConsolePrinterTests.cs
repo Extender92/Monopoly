@@ -1,4 +1,5 @@
-﻿using Monopoly.Console.GUI;
+﻿using Microsoft.VisualStudio.TestPlatform.Utilities;
+using Monopoly.Console.GUI;
 using Monopoly.Console.Models;
 using Monopoly.Core;
 using Monopoly.Core.Models;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -81,8 +83,8 @@ namespace Monopoly.Tests.ConsoleTests
         {
             List<Player> players = 
             [
-                new Player("player 1", 0),
-                new Player("player 2", 1)
+                new Player("Player 1", 0),
+                new Player("Player 2", 1)
             ];
             return players;
         }
@@ -315,38 +317,12 @@ namespace Monopoly.Tests.ConsoleTests
             // Assert
             consoleMock.Verify(c => c.SetPosition(It.IsAny<int>(), It.IsAny<int>()), Times.AtLeastOnce);
             consoleMock.Verify(c => c.SetTextColor(ConsoleColor.Yellow), Times.Once);
-            consoleMock.Verify(c => c.Write($"{players[0].Name} Money: {players[0].Money}{rules.CurrencySymbol}"), Times.Once);
+            consoleMock.Verify(c => c.Write($"{players[0].Name} Money: 3000£"), Times.Once);
             consoleMock.Verify(c => c.ResetColor(), Times.AtLeastOnce);
 
             // Ensure that the output contains the expected information
-            string expectedOutput = $"player 1 Money: 3000{rules.CurrencySymbol}player 2 Money: 3000{rules.CurrencySymbol}";
+            string expectedOutput = $"Player 1 Money: 3000£Player 2 Money: 3000£";
             Assert.Equal(expectedOutput, output.ToString().Trim());
-
-            // Clean up: Restore console output
-            System.Console.SetOut(System.Console.Out);
-        }
-
-        [Fact]
-        public void WaitForInputToStartTurn_PrintInfoAndWaitsForPlayerInput()
-        {
-            // Arrange
-            var consoleMock = new Mock<IConsoleWrapper>();
-
-            var squares = GenerateMockSquares();
-            var rules = GenerateMockGameRules();
-
-            var consolePrinter = new ConsolePrinter(consoleMock.Object, squares, rules);
-
-            List<Player> players = GenerateMockPlayers();
-
-            // Act
-            consolePrinter.WaitForInputToStartTurn(players[0], players);
-
-            // Assert
-            consoleMock.Verify(c => c.SetPosition(It.IsAny<int>(), It.IsAny<int>()), Times.AtLeastOnce);
-            consoleMock.Verify(c => c.Write(It.IsAny<string>()), Times.AtLeastOnce);
-            consoleMock.Verify(c => c.WriteLine($"{players[0].Name}'s Turn.\n Press Enter To Continue"), Times.Once);
-            consoleMock.Verify(c => c.ReadLine(), Times.Once);
 
             // Clean up: Restore console output
             System.Console.SetOut(System.Console.Out);
@@ -392,8 +368,9 @@ namespace Monopoly.Tests.ConsoleTests
             consoleMock.Verify(c => c.Write("Test Text"), Times.Once);
         }
 
+
         [Fact]
-        public void WaitForInputToEndTurn_PrintInfoAndWaitsForPlayerInput()
+        public void PrintTextWaitForInput_ShouldPrintTextAndReadLine()
         {
             // Arrange
             var consoleMock = new Mock<IConsoleWrapper>();
@@ -405,33 +382,29 @@ namespace Monopoly.Tests.ConsoleTests
 
             var consolePrinter = new ConsolePrinter(consoleMock.Object, squares, rules);
 
-            List<Player> players = new List<Player>
-            {
-                new Player("player 1", 0),
-                new Player("player 2", 1)
-            };
+            string text = "Test text";
 
             // Act
-            consolePrinter.WaitForInputToEndTurn(players[0], players);
+            consolePrinter.PrintTextWaitForInput(text);
 
             // Assert
-            consoleMock.Verify(c => c.SetPosition(It.IsAny<int>(), It.IsAny<int>()), Times.AtLeastOnce);
-            consoleMock.Verify(c => c.Write(It.IsAny<string>()), Times.AtLeastOnce);
-            consoleMock.Verify(c => c.WriteLine($"{players[0].Name}'s Turn.\n Press Enter To End Turn"), Times.Once);
+            consoleMock.Verify(c => c.Write(text), Times.Once);
             consoleMock.Verify(c => c.ReadLine(), Times.Once);
+
+            // Ensure that the output contains the expected information
+            string expectedOutput = "Test text";
+            Assert.Equal(expectedOutput, output.ToString().Trim());
 
             // Clean up: Restore console output
             System.Console.SetOut(System.Console.Out);
         }
 
         [Fact]
-        public void PrintCard_PrintsCardCorrectly()
+        public void EndPlayerTurnInfo_ShouldDisplayPlayerInfoAndPrintTextWaitForInput()
         {
             // Arrange
             var consoleMock = new Mock<IConsoleWrapper>();
-
             var output = new StringWriter();
-
             consoleMock.Setup(c => c.Write(It.IsAny<string>())).Callback<string>(s => output.Write(s));
 
             var squares = GenerateMockSquares();
@@ -439,22 +412,50 @@ namespace Monopoly.Tests.ConsoleTests
 
             var consolePrinter = new ConsolePrinter(consoleMock.Object, squares, rules);
 
+            List<Player> players = GenerateMockPlayers();
+
             // Act
-            consolePrinter.PrintCard("Test Card", 14, 3, new List<string> { "Info Line 1", "Info Line 2", "Info Line 3" }, ConsoleColor.Red, ConsoleColor.Green);
+            consolePrinter.EndPlayerTurnInfo(players[0], players);
 
             // Assert
-            string expectedOutput =
-                "Test Card" +
-                "┌──────────────┐" +
-                "││" +
-                "├──────────────┤" +
-                "│ Info Line 1 │" +
-                "│ Info Line 2 │" +
-                "│ Info Line 3 │" +
-                "│              │" +
-                "└──────────────┘";
+            consoleMock.Verify(c => c.Write(It.IsAny<string>()), Times.AtLeastOnce);
+            consoleMock.Verify(c => c.ReadLine(), Times.Once);
 
-            Assert.Equal(expectedOutput, output.ToString().Replace("\r", "").Trim());
+            // Ensure that the output contains the expected information
+            string expectedOutput = $"Player 1 Money: 3000£Player 2 Money: 3000£" +
+                $"Player 1's Turn.\n Press Enter To End Turn";
+            Assert.Equal(expectedOutput, output.ToString().Trim());
+
+            // Clean up: Restore console output
+            System.Console.SetOut(System.Console.Out);
+        }
+
+        [Fact]
+        public void StartPlayerTurnInfo_ShouldDisplayPlayerInfoAndPrintTextWaitForInput()
+        {
+            // Arrange
+            var consoleMock = new Mock<IConsoleWrapper>();
+            var output = new StringWriter();
+            consoleMock.Setup(c => c.Write(It.IsAny<string>())).Callback<string>(s => output.Write(s));
+
+            var squares = GenerateMockSquares();
+            var rules = GenerateMockGameRules();
+
+            var consolePrinter = new ConsolePrinter(consoleMock.Object, squares, rules);
+
+            List<Player> players = GenerateMockPlayers();
+
+            // Act
+            consolePrinter.StartPlayerTurnInfo(players[0], players);
+
+            // Assert
+            consoleMock.Verify(c => c.Write(It.IsAny<string>()), Times.AtLeastOnce);
+            consoleMock.Verify(c => c.ReadLine(), Times.Once);
+
+            // Ensure that the output contains the expected information
+            string expectedOutput = $"Player 1 Money: 3000£Player 2 Money: 3000£" +
+                $"Player 1's Turn.\n Press Enter To Continue";
+            Assert.Equal(expectedOutput, output.ToString().Trim());
 
             // Clean up: Restore console output
             System.Console.SetOut(System.Console.Out);
