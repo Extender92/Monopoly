@@ -26,7 +26,7 @@ namespace Monopoly.Console
 
             ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules, PieceInput);
 
-            MenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
+            IMenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
 
             Input input = new Input(consoleWrapper, menu);
 
@@ -39,7 +39,7 @@ namespace Monopoly.Console
 
         private static GameRules SetupRules(IConsoleWrapper consoleWrapper)
         {
-            MenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
+            IMenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
             Input input = new Input(consoleWrapper, menu);
             int numberOfDice = 2;
             int dieSides = 6;

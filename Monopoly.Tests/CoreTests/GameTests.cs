@@ -14,6 +14,5 @@ namespace Monopoly.Tests.CoreTests
 {
     public class GameTests
     {
-
     }
 }

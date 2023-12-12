@@ -12,10 +12,10 @@ namespace Monopoly.Console.GUI
 {
     internal class Input
     {
-        private IConsoleWrapper Console {  get; set; }
-        private MenuOptionSelector Menu {  get; set; }
+        private IConsoleWrapper Console { get; set; }
+        private IMenuOptionSelector Menu { get; set; }
 
-        public Input(IConsoleWrapper consoleWrapper, MenuOptionSelector menu)
+        public Input(IConsoleWrapper consoleWrapper, IMenuOptionSelector menu)
         {
             Console = consoleWrapper;
             Menu = menu;

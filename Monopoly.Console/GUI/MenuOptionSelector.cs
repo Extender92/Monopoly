@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Console.GUI
 {
-    internal class MenuOptionSelector
+    public interface IMenuOptionSelector
+    {
+        int GetSelectedOption(List<string> options, int spacingPerLine = 18, int index = 0, int optionsPerLine = 1, bool canCancel = false, ConsoleColor selectColor = ConsoleColor.Red);
+        void SetPositions();
+    }
+
+    internal class MenuOptionSelector : IMenuOptionSelector
     {
         public int StartX { get; set; } = 10;
         public int StartY { get; set; } = 2;
@@ -18,7 +24,7 @@ namespace Monopoly.Console.GUI
             Console = consoleWrapper;
         }
 
-        internal void SetPositions()
+        public void SetPositions()
         {
             StartX = ConsolePositions.MenuPosX;
             StartY = ConsolePositions.MenuPosY;

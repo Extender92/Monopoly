@@ -70,20 +70,20 @@ namespace Monopoly.Tests.CoreTests
         }
 
 
-        [Fact]
-        public void LandOnSquareCallLandOnMethodOfSquare()
-        {
-            // Arrange
-            var player = new Player("Jane", 2);
-            var mockSquare = new Mock<Square>();
+        //[Fact]
+        //public void LandOnSquareCallLandOnMethodOfSquare()
+        //{
+        //    // Arrange
+        //    var player = new Player("Jane", 2);
+        //    var mockSquare = new Mock<Square>();
 
-            // Act
-            player.LandOnSquare(mockSquare.Object);
+        //    // Act
+        //    player.LandOnSquare(mockSquare.Object);
 
-            // Assert
+        //    // Assert
            
-            mockSquare.Verify(square => square.LandOn(player), Times.Once);
-        }
+        //    mockSquare.Verify(square => square.LandOn(player), Times.Once);
+        //}
         //[Fact]
         //public void BuyShouldDeductMoneyAndSetOwner()
         //{

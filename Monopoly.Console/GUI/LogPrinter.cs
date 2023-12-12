@@ -28,7 +28,7 @@ namespace Monopoly.Console.GUI
         internal void PrintLogs(string header, List<string> logs, ConsoleColor borderColor = ConsoleColor.White, ConsoleColor textColor = ConsoleColor.White)
         {
             int width = logs.Max(x => x.Length) + 2;
-            if (width < header.Length + 2) width = header.Length + 4;
+            if (width < header.Length + 3) width = header.Length + 4;
 
             // Border and Header Text
             Console.SetTextColor(borderColor);
