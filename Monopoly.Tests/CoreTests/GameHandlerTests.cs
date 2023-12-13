@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models.Board;
+using System.Numerics;
 
 namespace Monopoly.Tests.CoreTests
 {
@@ -240,6 +241,228 @@ namespace Monopoly.Tests.CoreTests
             Assert.False(result);
         }
 
-        
+        [Fact]
+        public void GetMoneyFromBankruptPlayerAndBankruptPlayer_ShouldReturnRemainingMoneyAndHandleBankruptcyOnOnlyOnePlaye()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var playerOne = new Player("TestPlayer", 0) { Money = 200 };
+            var playerTwo = new Player("TestPlayer", 0) { Money = 200 };
+            var squareList = new List<Square>
+            {
+                new PropertySquare(ConsoleColor.Blue, "Square1", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50 ,1) { Owner = playerOne },
+                new RailroadSquare(2, "Square2", 150, 75, 80, 85, 90, 75){ Owner = playerOne },
+                new UtilitySquare(3, "Square3", 200, 100, 110, 100){ Owner = playerTwo },
+                new PropertySquare(ConsoleColor.Blue, "Square4", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50 ,4){ Owner = playerTwo },
+                new RailroadSquare(5, "Square5", 150, 75, 80, 85, 90, 75),
+                new UtilitySquare(6, "Square6", 200, 100, 110, 100) { Owner = playerOne }
+            };
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            game.Board = new GameBoard(gameRules);
+            game.Board.Squares = squareList;
+
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            int remainingMoney = gameHandler.GetMoneyFromBankruptPlayerAndBankruptPlayer(playerOne);
+
+            // Assert
+            Assert.Equal(425, remainingMoney); // Initial money + assets should be money: 200 + mortgage: 225 = 425
+            Assert.Equal(0, playerOne.Money); // Player money should be set to 0
+            Assert.True(playerOne.IsBankrupt); // Player should be bankrupt
+        }
+
+        [Fact]
+        public void HandlePlayerBankruptcy_ShouldClearOwnershipAndSetPlayerBankruptOnOnlyOnePlaye()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var playerOne = new Player("TestPlayer", 0);
+            var playerTwo = new Player("TestPlayer", 0);
+            var squareList = new List<Square>
+            {
+                new PropertySquare(ConsoleColor.Blue, "Square1", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50 ,1) { Owner = playerOne },
+                new RailroadSquare(2, "Square2", 150, 75, 80, 85, 90, 75){ Owner = playerOne },
+                new UtilitySquare(3, "Square3", 200, 100, 110, 100){ Owner = playerTwo },
+                new PropertySquare(ConsoleColor.Blue, "Square4", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50 ,4){ Owner = playerTwo },
+                new RailroadSquare(5, "Square5", 150, 75, 80, 85, 90, 75),
+                new UtilitySquare(6, "Square6", 200, 100, 110, 100) { Owner = playerOne }
+            };
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            game.Board = new GameBoard(gameRules);
+            game.Board.Squares = squareList;
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            gameHandler.HandlePlayerBankruptcy(playerOne);
+
+            // Assert
+            Assert.Null(squareList[0].Owner); // Ownership should be cleared
+            Assert.Null(squareList[1].Owner); 
+            Assert.Null(squareList[5].Owner); 
+
+            Assert.True(playerOne.IsBankrupt); // Player should be bankrupt
+
+            Assert.True(squareList[2].Owner == playerTwo); // Should not clear ownership of other players
+            Assert.True(squareList[3].Owner == playerTwo);
+        }
+
+        [Fact]
+        public void ClearOwnershipForPlayer_ShouldClearOwnershipAndHousesOnOnlyOnePlayer()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var playerOne = new Player("TestPlayer", 0);
+            var playerTwo = new Player("TestPlayer", 0);
+            var squareList = new List<Square>
+            {
+                new PropertySquare(ConsoleColor.Blue, "Square1", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50 ,1) { Owner = playerOne, Houses = 3 },
+                new RailroadSquare(2, "Square2", 150, 75, 80, 85, 90, 75){ Owner = playerOne },
+                new UtilitySquare(3, "Square3", 200, 100, 110, 100){ Owner = playerTwo },
+                new PropertySquare(ConsoleColor.Blue, "Square4", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50 ,4){ Owner = playerTwo, Houses = 2 },
+                new RailroadSquare(5, "Square5", 150, 75, 80, 85, 90, 75),
+                new UtilitySquare(6, "Square6", 200, 100, 110, 100) { Owner = playerOne }
+            };
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            game.Board = new GameBoard(gameRules);
+            game.Board.Squares = squareList;
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            gameHandler.ClearOwnershipForPlayer(playerOne);
+
+            // Assert
+            Assert.Null(squareList[0].Owner); // Ownership should be cleared
+            Assert.Null(squareList[1].Owner);
+            Assert.Null(squareList[5].Owner);
+
+            Assert.IsType<PropertySquare>(squareList[0]);
+            Assert.Equal(0, ((PropertySquare)squareList[0]).Houses);// Houses should be set to 0
+
+            Assert.True(squareList[2].Owner == playerTwo); // Should not clear ownership of other players
+            Assert.True(squareList[3].Owner == playerTwo);
+
+            Assert.Equal(2, ((PropertySquare)squareList[3]).Houses);// Houses should be set to 2 and not removed
+        }
+
+        [Fact]
+        public void IsPlayerBankrupt_ShouldReturnTrueWhenPlayerCannotAfford()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var player = new Player("TestPlayer", 0) { Money = 100 };
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            bool isBankrupt = gameHandler.IsPlayerBankrupt(player, 150);
+
+            // Assert
+            Assert.True(isBankrupt);
+        }
+
+        [Fact]
+        public void IsPlayerBankrupt_ShouldReturnFalseWhenPlayerCanAfford()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var player = new Player("TestPlayer", 0) { Money = 200 };
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            bool isBankrupt = gameHandler.IsPlayerBankrupt(player, 150);
+
+            // Assert
+            Assert.False(isBankrupt);
+        }
+
+        [Fact]
+        public void CanAffordWithAssets_ShouldReturnTrueWhenPlayerCanAfford()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var player = new Player("TestPlayer", 0) { Money = 200 };
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            bool canAfford = gameHandler.CanAffordWithAssets(player, 150);
+
+            // Assert
+            Assert.True(canAfford);
+        }
+
+        [Fact]
+        public void CanAffordWithAssets_ShouldReturnFalseWhenPlayerCannotAfford()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var player = new Player("TestPlayer", 0) { Money = 100 };
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            bool canAfford = gameHandler.CanAffordWithAssets(player, 150);
+
+            // Assert
+            Assert.False(canAfford);
+        }
+
+        [Fact]
+        public void CalculatePlayerAssets_ShouldCalculateCorrectTotalAssets()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var player = new Player("TestPlayer", 0) { Money = 100 };
+            var property = new PropertySquare(ConsoleColor.Blue, "Square1", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50, 1) { Owner = player, IsMortgage = false };
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            game.Board = new GameBoard(gameRules);
+            game.Board.Squares = new List<Square> { property };
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            int totalAssets = gameHandler.CalculatePlayerAssets(player);
+
+            // Assert
+            Assert.Equal(150, totalAssets); // Money: 100 + Mortgage Value 50 = 150
+        }
+
+        [Fact]
+        public void CalculateMortgageValue_ShouldReturnCorrectMortgageValue()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var property = new PropertySquare(ConsoleColor.Blue, "Square1", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50, 1);
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            game.Board = new GameBoard(gameRules);
+            game.Board.Squares = new List<Square> { property };
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            int mortgageValue = gameHandler.CalculateMortgageValue(property);
+
+            // Assert
+            Assert.Equal(50, mortgageValue);
+        }
+
+        [Fact]
+        public void CalculateHouseAndHotelValue_ShouldReturnCorrectValueForHousesAndHotels()
+        {
+            // Arrange
+            var gameRules = new GameRules(2, 2, 6);
+            var property = new PropertySquare(ConsoleColor.Blue, "Square1", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50, 1);
+            property.Houses = 3;
+            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            game.Board = new GameBoard(gameRules);
+            game.Board.Squares = new List<Square> { property };
+            var gameHandler = new GameHandler(game);
+
+            // Act
+            int value = gameHandler.CalculateHouseAndHotelValue(property);
+
+            // Assert
+            Assert.Equal(75, value); // 3 houses * (50 / 2) = 75
+        }
     }
 }
