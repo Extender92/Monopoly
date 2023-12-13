@@ -14,7 +14,7 @@ namespace Monopoly.Core
     internal class Game
     {
         internal GameHandler Handler {  get; set; }
-        internal LogHandler Logs { get; set; }
+        internal ILogHandler Logs { get; set; }
         internal GameBoard Board { get; set; }
         internal List<Player> Players  { get; set;}
         internal List<IDie> Dice { get; set; }
