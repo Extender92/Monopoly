@@ -242,7 +242,7 @@ namespace Monopoly.Tests.CoreTests
         }
 
         [Fact]
-        public void GetMoneyFromBankruptPlayerAndBankruptPlayer_ShouldReturnRemainingMoneyAndHandleBankruptcyOnOnlyOnePlaye()
+        public void GetMoneyFromBankruptPlayerAndBankruptPlayer_ShouldReturnRemainingMoneyAndHandleBankruptcyOnOnlyOnePlayer()
         {
             // Arrange
             var gameRules = new GameRules(2, 2, 6);
@@ -273,7 +273,7 @@ namespace Monopoly.Tests.CoreTests
         }
 
         [Fact]
-        public void HandlePlayerBankruptcy_ShouldClearOwnershipAndSetPlayerBankruptOnOnlyOnePlaye()
+        public void HandlePlayerBankruptcy_ShouldClearOwnershipAndSetPlayerBankruptOnOnlyOnePlayer()
         {
             // Arrange
             var gameRules = new GameRules(2, 2, 6);

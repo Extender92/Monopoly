@@ -47,3 +47,4 @@ IMenu
 Concat
 IEnumerable
 sut
+ILog
