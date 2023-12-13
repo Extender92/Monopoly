@@ -42,9 +42,10 @@ namespace Monopoly.Tests.CoreTests
             GameRules gameRules = new GameRules(2, 2, 6);
             Game game = CoreGameSetup.Setup(gameRules);
             var gameHandler = new GameHandler(game);
+            game.Dice = new List<IDie> { dieMock.Object };
 
             Player player = game.Players[0];
-            player.Position = 36;
+            player.Position = 37;
             int salary = game.Rules.Salary;
             int startingMoney = 3000;
             player.Money = startingMoney;
