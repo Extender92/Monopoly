@@ -6,35 +6,33 @@ namespace Monopoly.Tests.CoreTests
     public class DiceTests
     {
         [Fact]
-        public void GetDieResultReturnsValidResult()
+        public void GetDieResult_ReturnsValidResult()
         {
             // Arrange
             var mockDie = new Mock<IDie>();
-            var expectedDieResult = 4;
-            mockDie.Setup(d => d.GetDieResult()).Returns(expectedDieResult);
+            mockDie.Setup(d => d.GetDieResult()).Returns(3); 
             var sut = mockDie.Object;
 
             // Act
             int result = sut.GetDieResult();
 
             // Assert
-            Assert.Equal(expectedDieResult, result);
+            Assert.Equal(3, result);
         }
 
         [Fact]
-        public void GetDieTypeReturnDieSides()
+        public void GetDieTypeReturnsValidType()
         {
-            //Arrange
-            var expectedDieSides = 6;
+            // Arrange
             var mockDie = new Mock<IDie>();
-            mockDie.Setup(d => d.GetDieType()).Returns(expectedDieSides);
+            mockDie.Setup(d => d.GetDieType()).Returns(6); 
             var sut = mockDie.Object;
 
-            //Act
+            // Act
             int result = sut.GetDieType();
 
-            //Assert
-            Assert.Equal(expectedDieSides, result);
+            // Assert
+            Assert.Equal(6, result); 
         }
         [Fact]
         public void ScrambleDieCanRollAndGetResult()
@@ -51,5 +49,7 @@ namespace Monopoly.Tests.CoreTests
             // Assert
             Assert.Equal(3, result);
         }
+
+
     }
 }
