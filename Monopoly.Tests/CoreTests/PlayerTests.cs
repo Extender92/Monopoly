@@ -36,23 +36,28 @@ namespace Monopoly.Tests.CoreTests
         }
 
         [Theory]
-        [InlineData("Player 1")]
-        [InlineData("Player 2")]
-        [InlineData("Player 3")]
-        [InlineData("Player 4")]
-        public void CanCrateFourNewPlayers(string playerName)
+        [InlineData("Player 1", 0)]
+        [InlineData("Player 2", 1)]
+        [InlineData("Player 3", 2)]
+        [InlineData("Player 4", 3)]
+        public void CanCreateFourNewPlayers(string playerName, int playerId)
         {
-            //Arrange
-            var expectedNumberOfPlayers = 1;
-            var expectedPlayerNames = playerName;
+            // Arrange
+            var expectedNumberOfPlayers = 4;
 
-            //Act
-            var player = new Player(playerName, 0);
-            var players = new List<Player> { player };
+            // Act
+            var players = new List<Player>();
+            for (int i = 0; i < expectedNumberOfPlayers; i++)
+            {
+                players.Add(new Player(playerName, playerId + i));
+            }
 
-            //Assert
+            // Assert
             Assert.Equal(expectedNumberOfPlayers, players.Count);
-            Assert.Equal(expectedPlayerNames, player.Name);
+            foreach (var player in players)
+            {
+                Assert.Equal(playerName, player.Name);
+            }
         }
 
         [Fact]
@@ -66,88 +71,9 @@ namespace Monopoly.Tests.CoreTests
             player.Position = expectedPosition;
 
             //Assert
+            Assert.True(player.Position >= 0, "Position should not be negative.");
             Assert.Equal(expectedPosition, player.Position);
-        }
-
-
-        //[Fact]
-        //public void LandOnSquareCallLandOnMethodOfSquare()
-        //{
-        //    // Arrange
-        //    var player = new Player("Jane", 2);
-        //    var mockSquare = new Mock<Square>();
-
-        //    // Act
-        //    player.LandOnSquare(mockSquare.Object);
-
-        //    // Assert
-           
-        //    mockSquare.Verify(square => square.LandOn(player), Times.Once);
-        //}
-        //[Fact]
-        //public void BuyShouldDeductMoneyAndSetOwner()
-        //{
-        //    // Arrange
-        //    PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30,1);
-        //    Player player = new("TestPlayer", 1);
-
-        //    // Act
-        //    //player.Buy(street);
-
-        //    // Assert
-        //    Assert.Equal(3000 - street.Price, player.Money);
-        //    Assert.Equal(player, street.Owner);
-        //}
-
-        //[Fact]
-        //public void PayRentShouldDeductMoneyFromPlayerAndAddToOwner()
-        //{
-        //    // Arrange
-        //    PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
-        //    Player player1 = new("Player1", 1);
-        //    Player player2 = new("Player2", 2);
-        //    int rent = 50; 
-        //    street.Owner = player2;
-
-        //    // Act
-        //    //player1.PayRent(street);
-
-        //    // Assert
-        //    Assert.Equal(3000 - rent, player1.Money);
-        //    Assert.Equal(3000 + rent, player2.Money);
-        //}
-
-
-        //[Fact]
-        //public void SellShouldRefundMoneyWhenPlayerOwnsStreet()
-        //{
-        //    // Arrange
-        //    Player player = new("Player1", 1);
-        //    PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
-        //    //player.Buy(street);
-
-        //    // Act
-        //    //player.Sell(street);
-
-        //    // Assert
-        //    Assert.Null(street.Owner);
-        //    Assert.Equal(3000, player.Money); 
-        //}
-
-        //[Fact]
-        //public void SellShouldNotRefundMoneyWhenPlayerDoesNotOwnStreet()
-        //{
-        //    // Arrange
-        //    Player player = new("Player2", 2);
-        //    PropertySquare street = new(ConsoleColor.Magenta, "Old Kent Road", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1);
-
-        //    // Act
-        //    //player.Sell(street);
-
-        //    // Assert
-        //    Assert.Null(street.Owner); 
-        //    Assert.Equal(3000, player.Money); 
-        //}
+        }  
 
     }
 }
