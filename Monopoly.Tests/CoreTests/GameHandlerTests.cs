@@ -44,7 +44,7 @@ namespace Monopoly.Tests.CoreTests
             var gameHandler = new GameHandler(game);
 
             Player player = game.Players[0];
-            player.Position = 37;
+            player.Position = 36;
             int salary = game.Rules.Salary;
             int startingMoney = 3000;
             player.Money = startingMoney;
