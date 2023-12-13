@@ -118,7 +118,7 @@ namespace Monopoly.Tests.CoreTests
         }
 
         [Fact]
-        public void RollDice_ShouldLRollDiceAndLogRollAndTotal()
+        public void RollDice_ShouldRollDiceAndLogRollAndTotal()
         {
             // Arrange
             var player = new Player("TestPlayer", 0);
