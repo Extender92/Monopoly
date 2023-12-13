@@ -56,7 +56,7 @@ namespace Monopoly.Tests.CoreTests
             // Assert
             Assert.Equal(1, player.Position); // Player position should be adjusted to 1 after passing Go
             Assert.True(player.Money > startingMoney); // Player should have received salary
-            Assert.Equal(player.Money, startingMoney + salary); // Player should have recieved correct ammount of money
+            Assert.Equal(player.Money, startingMoney + salary); // Player should have received correct amount of money
         }
     }
 }

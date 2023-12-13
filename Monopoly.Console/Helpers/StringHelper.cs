@@ -29,7 +29,7 @@ namespace Monopoly.Console.Helpers
 
         internal static List<string> GetListOfStringsFromString(string text, int maxLength)
         {
-            // Split string every maxLenght or every first . after letters
+            // Split string every maxLength or every first . after letters
             // "letter..test" leaves [0]"letter." [1]"test"
 
             const int startIndex = 0;
