@@ -11,9 +11,9 @@ namespace Monopoly.Core
 {
     internal class GameHandler
     {
-        public Game TheGame { get; set; }
+        internal Game TheGame { get; set; }
 
-        public GameHandler(Game theGame)
+        internal GameHandler(Game theGame)
         {
             TheGame = theGame;
         }
@@ -38,7 +38,7 @@ namespace Monopoly.Core
         internal void RollDice(Player player)
         {
             string diceRoll = player.Name + " rolled:";
-            foreach (Die die in TheGame.Dice)
+            foreach (IDie die in TheGame.Dice)
             {
                 die.Roll();
                 diceRoll += $" {die.GetDieResult()}";
@@ -65,7 +65,7 @@ namespace Monopoly.Core
         internal int CalculateDiceSum()
         {
             int diceSum = 0;
-            foreach (Die die in TheGame.Dice)
+            foreach (IDie die in TheGame.Dice)
             {
                 diceSum += die.GetDieResult();
             }
@@ -92,7 +92,7 @@ namespace Monopoly.Core
             player.IsBankrupt = true;
         }
 
-        public void ClearOwnershipForPlayer(Player player)
+        internal void ClearOwnershipForPlayer(Player player)
         {
             foreach (var square in TheGame.Board.Squares)
                 if (square.Owner == player)
@@ -115,7 +115,7 @@ namespace Monopoly.Core
             return CalculatePlayerAssets(player) >= sum;
         }
 
-        private int CalculatePlayerAssets(Player player)
+        internal int CalculatePlayerAssets(Player player)
         {
             int totalAssets = player.Money;
 
@@ -138,12 +138,12 @@ namespace Monopoly.Core
             return totalAssets;
         }
 
-        private int CalculateMortgageValue(Square square)
+        internal int CalculateMortgageValue(Square square)
         {
             return square.MortgageValue;
         }
 
-        private int CalculateHouseAndHotelValue(PropertySquare property)
+        internal int CalculateHouseAndHotelValue(PropertySquare property)
         {
             const int hotelIndex = 5;
 

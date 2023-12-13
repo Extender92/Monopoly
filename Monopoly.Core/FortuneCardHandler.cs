@@ -10,22 +10,22 @@ namespace Monopoly.Core
 {
     internal class FortuneCardHandler
     {
-        private Queue<IChanceCard> ChanceQueue { get; set; }
-        private Queue<ICommunityChestCard> CommunityChestQueue { get; set; }
+        internal Queue<IChanceCard> ChanceQueue { get; set; }
+        internal Queue<ICommunityChestCard> CommunityChestQueue { get; set; }
 
         public FortuneCardHandler(GameRules gameRules)
         {
             InitializeQueues(gameRules);
         }
 
-        private void InitializeQueues(GameRules gameRules)
+        internal void InitializeQueues(GameRules gameRules)
         {
             ChanceQueue = new Queue<IChanceCard>(Data.FortuneCardBuilder.GetChanceCards(gameRules));
             CommunityChestQueue = new Queue<ICommunityChestCard>(Data.FortuneCardBuilder.GetCommunityChestCards(gameRules));
             ShuffleQueues();
         }
 
-        private void ShuffleQueues()
+        internal void ShuffleQueues()
         {
             Random random = new Random();
             ChanceQueue = new Queue<IChanceCard>(ChanceQueue.OrderBy(c => random.Next()));

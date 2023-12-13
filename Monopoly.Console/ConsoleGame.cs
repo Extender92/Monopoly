@@ -18,18 +18,19 @@ namespace Monopoly.Console
     {
         internal Game TheGame;
         internal ConsolePrinter Printer { get; set; }
+        internal ConsoleLogPrinter LogPrinter { get; set; }
+        internal ConsoleCardPrinter CardPrinter { get; set; }
         internal List<TablePiece> TablePieces { get; set; }
         internal Input PlayerInput { get; set; }
-        internal LogPrinter LogPrint { get; set; }
 
-        public ConsoleGame(Game game, ConsolePrinter consolePrinter, List<TablePiece> tablePieces, Input input, LogPrinter logPrint)
+        public ConsoleGame(Game game, ConsolePrinter consolePrinter, List<TablePiece> tablePieces, Input input, ConsoleLogPrinter logPrinter, ConsoleCardPrinter cardPrinter)
         {
             TheGame = game;
             Printer = consolePrinter;
             TablePieces = tablePieces;
             PlayerInput = input;
-            LogPrint = logPrint;
-
+            LogPrinter = logPrinter;
+            CardPrinter = cardPrinter;
         }
 
 
@@ -46,7 +47,7 @@ namespace Monopoly.Console
                 {
                     do
                     {
-                        Printer.WaitForInputToStartTurn(player, TheGame.Players);
+                        Printer.StartPlayerTurnInfo(player, TheGame.Players);
 
                         if (player.InJail)
                         {
@@ -74,7 +75,7 @@ namespace Monopoly.Console
                             }
                         }
 
-                        Printer.WaitForInputToEndTurn(player, TheGame.Players);
+                        Printer.EndPlayerTurnInfo(player, TheGame.Players);
                     } while (TheGame.Handler.IsDiceDouble() && !player.IsBankrupt);
                 }
             }
@@ -86,8 +87,8 @@ namespace Monopoly.Console
             Printer.Console.Clear();
             Printer.PrintGameBoard(TablePieces, TheGame.Players);
             Printer.DisplayPlayersInformation(player, TheGame.Players);
-            Printer.PrepareAndPrintSquareCard(landedSquare.Position);
-            LogPrint.PrintNewestLogs(10, TheGame.Logs.LogList);
+            CardPrinter.PrepareAndPrintSquareCard(landedSquare.Position);
+            LogPrinter.PrintNewestLogs(10, TheGame.Logs.LogList);
         }
     }
 }

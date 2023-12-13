@@ -22,7 +22,7 @@ namespace Monopoly.Console
             GameRules = gameRules;
         }
 
-        public ConsoleGame Setup(Game game, IConsoleWrapper consoleWrapper, ConsolePrinter consolePrinter, Input input, LogPrinter logPrint) 
+        public ConsoleGame Setup(Game game, IConsoleWrapper consoleWrapper, ConsolePrinter consolePrinter, Input input, ConsoleLogPrinter logPrint, ConsoleCardPrinter cardPrinter) 
         {
             CoreGameSetup.Setup(GameRules);
 
@@ -36,7 +36,7 @@ namespace Monopoly.Console
                 TablePieces.Add(_tablePieceSelector.GetTablePieceFromUserInput(player.Id, TablePieces, input));
             }
 
-            ConsoleGame consoleGame = new ConsoleGame(game, consolePrinter, TablePieces, input, logPrint);
+            ConsoleGame consoleGame = new ConsoleGame(game, consolePrinter, TablePieces, input, logPrint, cardPrinter);
             return consoleGame;
         }
     }

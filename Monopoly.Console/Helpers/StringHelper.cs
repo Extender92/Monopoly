@@ -29,6 +29,11 @@ namespace Monopoly.Console.Helpers
 
         internal static List<string> GetListOfStringsFromString(string text, int maxLength)
         {
+            // Split string every maxLength or every first . after letters
+            // "letter..test" leaves [0]"letter." [1]"test"
+
+            const int startIndex = 0;
+
             List<string> list = new List<string>();
 
             if (string.IsNullOrEmpty(text))
@@ -39,21 +44,19 @@ namespace Monopoly.Console.Helpers
             while (text.Length > maxLength)
             {
                 int lastSpaceIndex = text.LastIndexOf(' ', maxLength);
+                int dotIndex = text.IndexOf('.', startIndex, maxLength);
 
-                // Check for a dot ('.') and split accordingly
-                int lastDotIndex = text.LastIndexOf('.', maxLength);
-                int splitIndex = (lastDotIndex != -1) ? lastDotIndex : lastSpaceIndex;
+                // Check for consecutive dots
+                if (dotIndex != -1 && dotIndex + 1 < text.Length && text[dotIndex + 1] == '.')
+                {
+                    // Include the first dot if two dots in row to the current string
+                    dotIndex++;
+                }
 
-                if (splitIndex == -1)
-                {
-                    list.Add(text.Substring(0, maxLength).Trim());
-                    text = text.Substring(maxLength).TrimStart();
-                }
-                else
-                {
-                    list.Add(text.Substring(0, splitIndex).Trim());
-                    text = text.Substring(splitIndex + 1).TrimStart();
-                }
+                int splitIndex = (dotIndex != -1) ? dotIndex : lastSpaceIndex;
+
+                list.Add(text.Substring(0, splitIndex).Trim());
+                text = text.Substring(splitIndex + 1).TrimStart();
             }
 
             list.Add(text.Trim());

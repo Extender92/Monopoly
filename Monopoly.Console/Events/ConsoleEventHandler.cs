@@ -49,7 +49,7 @@ namespace Monopoly.Console.Events
         private static void LogHandler_LogAdded(object sender, LogEventArgs e)
         {
             // Print the newest logs when a new log is added
-            _consoleGame.LogPrint.PrintNewestLogs(10, e.LogList);
+            _consoleGame.LogPrinter.PrintNewestLogs(10, e.LogList);
         }
     }
 }

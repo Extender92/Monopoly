@@ -34,7 +34,6 @@ namespace Monopoly.Console.GUI
             Console = consoleWrapper;
             _squares = squares;
             _rules = rules;
-
             InitializePositions();
         }
 
@@ -42,8 +41,6 @@ namespace Monopoly.Console.GUI
         private int BoardPosY { get; set; }
         private int TextPosX { get; set; }
         private int TextPosY { get; set; }
-        private int CardPosX { get; set; }
-        private int CardPosY { get; set; }
         public int PlayerInformationX { get; set; }
         public int PlayerInformationY { get; set; }
 
@@ -51,7 +48,6 @@ namespace Monopoly.Console.GUI
         {
             SetBoardPosition();
             SetTextPosition();
-            SetCardPosition();
             SetPlayerInformationPosition();
         }
 
@@ -66,13 +62,6 @@ namespace Monopoly.Console.GUI
             TextPosX = ConsolePositions.TextPosX;
             TextPosY = ConsolePositions.TextPosY;
         }
-
-        internal void SetCardPosition()
-        {
-            CardPosX = ConsolePositions.CardPosX;
-            CardPosY = ConsolePositions.CardPosY;
-        }
-
 
         internal void SetPlayerInformationPosition()
         {
@@ -105,11 +94,11 @@ namespace Monopoly.Console.GUI
             {
                 var currentSquare = _squares.First(s => s.Position == startSidePosition + i);
                 var playersOnCurrentPosition = players.Where(player => player.Position == currentSquare.Position).ToList();
-                ConsoleColor ownerColor = ConsoleColor.White;
-                if (currentSquare is PropertySquare property && property.Owner != null)
-                {
-                    ownerColor = tablePieces.First(t => t.PlayerId == property.Owner.Id).Color;
-                }
+
+                ConsoleColor ownerColor = currentSquare.Owner?.Id != null
+                    ? tablePieces.FirstOrDefault(t => t.PlayerId == currentSquare.Owner.Id)?.Color ?? ConsoleColor.White
+                    : ConsoleColor.White;
+
 
                 GetPositionCoordinates(side, i, playerBuffer, out x, out y);
                 Console.SetPosition(x, y);
@@ -166,55 +155,6 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        internal void PrintCard(string header, int width, int maxInfoVerticalLength, List<string> info, ConsoleColor borderColor = ConsoleColor.White, ConsoleColor textColor = ConsoleColor.White)
-        {
-            // Header Text
-            // Row two
-            Console.SetTextColor(textColor);
-            Console.SetPosition(CardPosX + 1, CardPosY + 1);
-            Console.Write(header);
-
-            // Header Border
-            // Row one
-            Console.SetTextColor(borderColor);
-            Console.SetPosition(CardPosX, CardPosY);
-            Console.Write('┌' + new String('─', width) + '┐');
-
-            // Header Border
-            // Row two
-            Console.SetPosition(CardPosX, CardPosY + 1);
-            Console.Write("│");
-            Console.SetPosition((CardPosX + width + 1), CardPosY + 1);
-            Console.Write("│");
-
-            // Header Border
-            // Row Three
-            Console.SetPosition(CardPosX, CardPosY + 2);
-            Console.Write('├' + new String('─', width) + '┤');
-
-            // Body
-            // For each row in Y length
-            for (int i = 0; i <= maxInfoVerticalLength; i++)
-            {
-                Console.SetPosition(CardPosX, CardPosY + 3 + i);
-                Console.Write("│");
-
-                Console.SetTextColor(textColor);
-                Console.Write(i >= info.Count ?
-                    new String(' ', width) :
-                    " " + info[i] + " ");
-
-                Console.SetTextColor(borderColor);
-                Console.SetPosition((CardPosX + width + 1), CardPosY + 3 + i);
-                Console.Write("│");
-            }
-
-            // Footer
-            Console.SetPosition(CardPosX, CardPosY + (maxInfoVerticalLength + 3));
-            Console.Write('└' + new String('─', width) + '┘');
-            Console.ResetColor();
-        }
-
         internal void PrintColoredText(string text, ConsoleColor color)
         {
             Console.SetTextColor(color);
@@ -229,20 +169,22 @@ namespace Monopoly.Console.GUI
             Console.Write(text);
         }
 
-        internal void WaitForInputToEndTurn(Player player, List<Player> players)
+        internal void PrintTextWaitForInput(string s)
         {
-            DisplayPlayersInformation(player, players);
-            Console.SetPosition(1, 0);
-            Console.WriteLine($"{player.Name}'s Turn.\n Press Enter To End Turn");
+            PrintText(s);
             Console.ReadLine();
         }
 
-        internal void WaitForInputToStartTurn(Player player, List<Player> players)
+        internal void EndPlayerTurnInfo(Player player, List<Player> players)
         {
             DisplayPlayersInformation(player, players);
-            Console.SetPosition(1, 0);
-            Console.WriteLine($"{player.Name}'s Turn.\n Press Enter To Continue");
-            Console.ReadLine();
+            PrintTextWaitForInput($"{player.Name}'s Turn.\n Press Enter To End Turn");
+        }
+
+        internal void StartPlayerTurnInfo(Player player, List<Player> players)
+        {
+            DisplayPlayersInformation(player, players);
+            PrintTextWaitForInput($"{player.Name}'s Turn.\n Press Enter To Continue");
         }
 
         internal void DisplayPlayersInformation(Player player, List<Player> players)
@@ -257,61 +199,6 @@ namespace Monopoly.Console.GUI
                 Console.Write($"{players[i].Name} Money: {players[i].Money}{_rules.CurrencySymbol}");
                 Console.ResetColor();
             }
-        }
-
-        // Needs refactoring and Testing
-        internal void PrepareAndPrintSquareCard(int boardPosition)
-        {
-            List<SquareCard> squareList = SquareCardBuilder.BuildAllSquareCards(_squares, _rules);
-            SquareCard squareCard = squareList.First(s => s.BoardPosition == boardPosition);
-
-            int cardHorizontalLength = 30;
-            int maxInfoVerticalLength = 9;
-
-            var borderColor = ConsoleColor.White;
-
-            List<string> infoLines = new List<string>();
-            List<string> rents = new List<string>();
-            int infoTextLength = 0;
-
-            if (squareCard is PropertySquareCard propertySquareCard)
-            {
-                borderColor = propertySquareCard.BorderColor;
-                infoLines.AddRange(propertySquareCard.Prop);
-                rents.AddRange(propertySquareCard.Rent);
-                infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
-            }
-            else if (squareCard is RailroadSquareCard railroadSquareCard)
-            {
-                infoLines.AddRange(railroadSquareCard.Prop);
-                rents.AddRange(railroadSquareCard.Rent);
-                infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
-            }
-
-
-            string header = squareCard.Name;
-
-            cardHorizontalLength = Math.Max(cardHorizontalLength, Math.Max(header.Length + 2, infoTextLength));
-
-            List<string> info = new List<string>();
-
-            for (int i = 0; i < infoLines.Count; i++)
-            {
-                int space = cardHorizontalLength - (infoLines[i].Length + rents[i].Length + 2);
-                info.Add($"{infoLines[i]}:{new string(' ', space)}{rents[i]}");
-            }
-            info.Add("");
-
-            string infoText = squareCard.Info;
-            int length = cardHorizontalLength - 1;
-
-            List<string> stringList = Helpers.StringHelper.CenterStringInList(Helpers.StringHelper.GetListOfStringsFromString(infoText, length), length);
-            info.AddRange(stringList);
-            header = Helpers.StringHelper.CenterString(header, cardHorizontalLength);
-
-            if (maxInfoVerticalLength < info.Count) maxInfoVerticalLength = info.Count;
-
-            PrintCard(header, cardHorizontalLength, maxInfoVerticalLength, info, borderColor);
         }
     }
 }
