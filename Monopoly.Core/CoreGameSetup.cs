@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 
@@ -25,7 +26,8 @@ namespace Monopoly.Core
                 dice.Add(new Die(gameRules.DieSides));
             }
 
-            Game game = new Game(players, dice, gameRules);
+            ILogHandler logs = new LogHandler();
+            Game game = new Game(players, dice, gameRules, logs);
 
             return game;
         }
