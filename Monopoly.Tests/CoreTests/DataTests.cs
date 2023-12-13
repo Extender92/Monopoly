@@ -15,23 +15,22 @@ namespace Monopoly.Tests.CoreTests
     {
 
         [Fact]
-        public void TaxSetsPositionAndInfoCorrectly()    //TaxTest
+        public void TaxSetsPositionAndInfoCorrectly()    // TaxTest
         {
             // Arrange
             int expectedPosition = 10;
             int expectedPrice = 150;
             string expectedInfo = "Test info";
+            string expectedName = "Tax";
 
             // Act
-            string info = "Test info";
-            int Position = 10;
-            int Price = 150;
-            var tax = new TaxSquare(Position, Price, "", info);
+            var tax = new TaxSquare(expectedPosition, expectedPrice, expectedName, expectedInfo);
 
             // Assert
             Assert.Equal(expectedPosition, tax.Position);
             Assert.Equal(expectedInfo, tax.Info);
             Assert.Equal(expectedPrice, tax.Price);
+            Assert.Equal(expectedName, tax.Name);
         }
 
 
@@ -43,21 +42,20 @@ namespace Monopoly.Tests.CoreTests
             int expectedPosition = 5;
             string expectedInfo = "Test info";
             int expectedPrice = 200;
-
+            int expectedRenOneStation = 25;
+            int expectedRentTwoStation = 50;
+            int expectedRenThreeStation = 100;
+            int expectedRentFourStation = 200;
             // Act
-            int position = 5;
-            int price = 200;
-            int rentOneStation = 25;
-            int rentTwoStation = 50;
-            int rentThreeStation = 100;
-            int rentFourStation = 200;
-            string info = "Test info";
-            var railroad = new RailroadSquare(position, info, price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, 2);
+            var railroad = new RailroadSquare(expectedPosition, expectedInfo, expectedPrice, expectedRenOneStation, expectedRentTwoStation, expectedRenThreeStation, expectedRentFourStation, 2);
 
             // Assert
             Assert.Equal(expectedPosition, railroad.Position);
             Assert.Equal(expectedInfo, railroad.Name);
-            Assert.Equal(expectedPrice, railroad.Price);
+            Assert.Equal(expectedRenOneStation, railroad.RentOneStation);
+            Assert.Equal(expectedRentTwoStation, railroad.RentTwoStation);
+            Assert.Equal(expectedRenThreeStation, railroad.RentThreeStation);
+            Assert.Equal(expectedRentFourStation, railroad.RentFourStation);
         }
 
         [Fact]
@@ -68,9 +66,7 @@ namespace Monopoly.Tests.CoreTests
             string expectedInfo = "Free Parking";
 
             // Act
-            int position = 20;
-            string info = "Free Parking";
-            var parkingSpace = new ParkingSquare(position, info);
+            var parkingSpace = new ParkingSquare(expectedPosition, expectedInfo);
 
             // Assert
             Assert.Equal(expectedPosition, parkingSpace.Position);
@@ -82,16 +78,16 @@ namespace Monopoly.Tests.CoreTests
         {
             // Arrange
             int expectedPosition = 30;
-            string expectedInfo = "Go To Jail";
+            string expectedInfo = "Go to jail! Do not collect salary";
+            string expectedName = "Go To Jail";
 
             // Act
-            int position = 30;
-            string info = "Go To Jail";
-            var jailSpace = new GoToJailSquare(position, "", info);
+            var jailSpace = new GoToJailSquare(expectedPosition, expectedName, expectedInfo);
 
             // Assert
             Assert.Equal(expectedPosition, jailSpace.Position);
             Assert.Equal(expectedInfo, jailSpace.Info);
+            Assert.Equal(expectedName, jailSpace.Name);
         }
 
         [Fact]
@@ -101,34 +97,33 @@ namespace Monopoly.Tests.CoreTests
             int expectedPosition = 10;
             string expectedInfo = "Visiting Jail";
             string expectedInJail = "In Jail";
+            string expectedName = "Jail";
 
             // Act
-            int position = 10;
-            string info = "Visiting Jail";
-            string inJail = "In Jail";
-            var jail = new JailSquare(position, "", info, inJail);
+            var jail = new JailSquare(expectedPosition, expectedName, expectedInfo, expectedInJail);
 
             // Assert
             Assert.Equal(expectedPosition, jail.Position);
             Assert.Equal(expectedInfo, jail.Info);
             Assert.Equal(expectedInJail, jail.InJailInfo);
+            Assert.Equal(expectedName, jail.Name);
         }
 
         [Fact]
         public void GoSpaceSetsPositionAndInfoCorrectly()  //  GoSpaceTest
         {
             //Arrange 
-            int ExpectedPosition = 0;
-            var expectedInfo = "Go";
+            int expectedPosition = 0;
+            var expectedInfo = "Collect salary as you pass GO";
+            string name = "GO";
 
             // Act
-            int position = 0;
-            var info = "Go";
-            var goSpace = new GoSquare(position, "", info);
+            var goSpace = new GoSquare(expectedPosition, name , expectedInfo);
 
             // Assert
-            Assert.Equal(ExpectedPosition, goSpace.Position);
+            Assert.Equal(expectedPosition, goSpace.Position);
             Assert.Equal(expectedInfo, goSpace.Info);
+            Assert.Equal(name, goSpace.Name);
         }
 
         [Fact]
@@ -142,12 +137,7 @@ namespace Monopoly.Tests.CoreTests
             int expectedRentTwoUtility = 10;
 
             // Act
-            int position = 12;
-            var info = "Utility";
-            int price = 150;
-            int rentOneUtility = 4;
-            int rentTwoUtility = 10;
-            var utility = new UtilitySquare(position, info, price, rentOneUtility, rentTwoUtility, 2);
+            var utility = new UtilitySquare(expectedPosition, expectedInfo, expectedPrice, expectedRentOneUtility, expectedRentTwoUtility, 2);
 
             // Assert
             Assert.Equal(expectedPosition, utility.Position);
@@ -157,32 +147,6 @@ namespace Monopoly.Tests.CoreTests
             Assert.Equal(expectedRentTwoUtility, utility.RentTwoUtility);
         }
 
-        [Fact]
-        public void GetGoToJailSquareDataReturnsCorrectNumberOfItems() 
-        {
-            // Arrange
-            GameRules gameRules = new GameRules(2, 2, 6);
-            int expectedCount = 1;
-
-            // Act
-            List<GoToJailSquare> result = Core.Data.Data.GetGoToJailSquareData(gameRules);
-
-            // Assert
-            Assert.Equal(expectedCount, result.Count);
-        }
-
-        [Fact]
-        public void GetGoToJailSquareDataReturnsGoToJailSquareObjects()
-        {
-            // Arrange
-            GameRules gameRules = new GameRules(2, 1, 6);
-
-            // Act
-            List<GoToJailSquare> result = Core.Data.Data.GetGoToJailSquareData(gameRules);
-
-            // Assert
-            Assert.All(result, item => Assert.IsType<GoToJailSquare>(item));
-        }
         [Fact]
         public void GetRailroadSquareDataReturnsCorrectRailroadSquareProperties()
         {

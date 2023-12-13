@@ -6,20 +6,19 @@ namespace Monopoly.Tests.CoreTests
     public class DiceTests
     {
         [Fact]
-        public void RollShouldSetResultToDieType()
+        public void GetDieResultReturnsValidResult()
         {
             // Arrange
-            var expectedDieSides = 6;
             var mockDie = new Mock<IDie>();
-            mockDie.Setup(d => d.GetDieType()).Returns(expectedDieSides);
+            var expectedDieResult = 4;
+            mockDie.Setup(d => d.GetDieResult()).Returns(expectedDieResult);
+            var sut = mockDie.Object;
 
             // Act
-            mockDie.Object.Roll();
-            var actual = mockDie.Object.GetDieResult();
+            int result = sut.GetDieResult();
 
             // Assert
-            mockDie.Verify(x => x.GetDieResult(), Times.Once);
-
+            Assert.Equal(expectedDieResult, result);
         }
 
         [Fact]
@@ -29,29 +28,28 @@ namespace Monopoly.Tests.CoreTests
             var expectedDieSides = 6;
             var mockDie = new Mock<IDie>();
             mockDie.Setup(d => d.GetDieType()).Returns(expectedDieSides);
+            var sut = mockDie.Object;
 
             //Act
-            var actual = mockDie.Object.GetDieType();
+            int result = sut.GetDieType();
 
             //Assert
-            Assert.Equal(expectedDieSides, actual);
+            Assert.Equal(expectedDieSides, result);
         }
         [Fact]
-        public void RollReturnRandomResult()
+        public void ScrambleDieCanRollAndGetResult()
         {
-            //Arrange
-            var expectedDieSides = 6;
+            // Arrange
             var mockDie = new Mock<IDie>();
-            mockDie.Setup(die => die.GetDieResult()).Returns(expectedDieSides);
-            var die = new Die(expectedDieSides);
+            mockDie.Setup(d => d.ScrambleDie()).Callback(() => mockDie.Setup(d => d.GetDieResult()).Returns(3));
+            var sut = mockDie.Object;
 
-            //Act
-            die.Roll();
-            var actual = mockDie.Object.GetDieResult();
+            // Act
+            sut.ScrambleDie();
+            int result = sut.GetDieResult();
 
-            //Assert
-            Assert.Equal(expectedDieSides, actual);
-
+            // Assert
+            Assert.Equal(3, result);
         }
     }
 }
