@@ -14,7 +14,7 @@ namespace Monopoly.Core
     internal class Game
     {
         internal GameHandler Handler {  get; set; }
-        internal LogHandler Logs { get; set; }
+        internal ILogHandler Logs { get; set; }
         internal GameBoard Board { get; set; }
         internal List<Player> Players  { get; set;}
         internal List<IDie> Dice { get; set; }
@@ -27,15 +27,16 @@ namespace Monopoly.Core
         public Game(
         List<Player> players,
         List<IDie> dice,
-        GameRules rules)
+        GameRules rules,
+        ILogHandler logs)
         {
             Players = players;
             Dice = dice;
             Rules = rules;
+            Logs = logs;
 
             Fines = 0;
             Board = new GameBoard(rules);
-            Logs = new LogHandler();
             FortuneCard = new FortuneCardHandler(rules);
             TheJail = new Jail(this);
             Handler = new GameHandler(this);
