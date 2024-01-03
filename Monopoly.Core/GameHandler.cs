@@ -37,13 +37,13 @@ namespace Monopoly.Core
 
         internal void RollDice(Player player)
         {
-            string diceRoll = player.Name + " rolled:";
+            string diceRoll = $"{player.Name} rolled:";
             foreach (IDie die in CurrentGame.Dice)
             {
                 die.Roll();
                 diceRoll += $" {die.GetDieResult()}";
             }
-            diceRoll += " Total: " + CalculateDiceSum();
+            diceRoll += $" Total: {CalculateDiceSum()}";
             CurrentGame.Logs.CreateLog(diceRoll);
         }
 
