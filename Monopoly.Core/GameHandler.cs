@@ -11,11 +11,11 @@ namespace Monopoly.Core
 {
     internal class GameHandler
     {
-        internal Game TheGame { get; set; }
+        internal Game CurrentGame { get; set; }
 
-        internal GameHandler(Game theGame)
+        internal GameHandler(Game currentGame)
         {
-            TheGame = theGame;
+            CurrentGame = currentGame;
         }
 
         internal void RoleDiceAndMovePlayer(Player player)
@@ -28,44 +28,44 @@ namespace Monopoly.Core
 
         internal void CheckIfPlayerGoPastGo(Player player)
         {
-            if (player.Position >= TheGame.Board.Squares.Count)
+            if (player.Position >= CurrentGame.Board.Squares.Count)
             {
-                player.Position -= (TheGame.Board.Squares.Count);
-                TheGame.Transactions.PlayerGetSalary(player);
+                player.Position -= (CurrentGame.Board.Squares.Count);
+                CurrentGame.Transactions.PlayerGetSalary(player);
             }
         }
 
         internal void RollDice(Player player)
         {
-            string diceRoll = player.Name + " rolled:";
-            foreach (IDie die in TheGame.Dice)
+            string diceRoll = $"{player.Name} rolled:";
+            foreach (IDie die in CurrentGame.Dice)
             {
                 die.Roll();
                 diceRoll += $" {die.GetDieResult()}";
             }
-            diceRoll += " Total: " + CalculateDiceSum();
-            TheGame.Logs.CreateLog(diceRoll);
+            diceRoll += $" Total: {CalculateDiceSum()}";
+            CurrentGame.Logs.CreateLog(diceRoll);
         }
 
         internal bool IsDiceDouble()
         {
-            if (TheGame.Dice.Count < 2)
+            if (CurrentGame.Dice.Count < 2)
             {
                 // At least two dice are required for a double
                 return false;
             }
 
             // Get the result of the first die
-            int firstDieResult = TheGame.Dice[0].GetDieResult();
+            int firstDieResult = CurrentGame.Dice[0].GetDieResult();
 
             // Check if all dice have the same result as the first die
-            return TheGame.Dice.All(die => die.GetDieResult() == firstDieResult);
+            return CurrentGame.Dice.All(die => die.GetDieResult() == firstDieResult);
         }
 
         internal int CalculateDiceSum()
         {
             int diceSum = 0;
-            foreach (IDie die in TheGame.Dice)
+            foreach (IDie die in CurrentGame.Dice)
             {
                 diceSum += die.GetDieResult();
             }
@@ -94,7 +94,7 @@ namespace Monopoly.Core
 
         internal void ClearOwnershipForPlayer(Player player)
         {
-            foreach (var square in TheGame.Board.Squares)
+            foreach (var square in CurrentGame.Board.Squares)
                 if (square.Owner == player)
                 {
                     square.Owner = null;
@@ -119,7 +119,7 @@ namespace Monopoly.Core
         {
             int totalAssets = player.Money;
 
-            foreach (var square in TheGame.Board.Squares)
+            foreach (var square in CurrentGame.Board.Squares)
             {
                 if (square.Owner == player)
                 {
