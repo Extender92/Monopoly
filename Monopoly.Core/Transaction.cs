@@ -1,4 +1,5 @@
 ﻿using Monopoly.Core.Events;
+using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 using System;
@@ -14,10 +15,10 @@ namespace Monopoly.Core
     internal class Transaction
     {
         // Add a private field to hold the reference to the Game instance
-        private Game _game;
+        private IGame _game;
 
         // Constructor to initialize the Game reference
-        public Transaction(Game game)
+        public Transaction(IGame game)
         {
             _game = game;
         }
