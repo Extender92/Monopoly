@@ -2,8 +2,6 @@
 using Monopoly.Core.Interface;
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models.Board;
-using Moq.Protected;
-using System.Reflection;
 using static Monopoly.Core.Jail;
 
 namespace Monopoly.Tests.CoreTests
@@ -94,6 +92,7 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             logsMock.Verify(l => l.CreateLog($"{player.Name} has been sent to jail {testReason}."), Times.Once);
+            logsMock.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -379,12 +378,14 @@ namespace Monopoly.Tests.CoreTests
             Player player = new Player("player", 0);
             player.Money = 0;
             var gameMock = new Mock<IGame>();
+            var logsMock = new Mock<ILogHandler>();
             var handler = new GameHandler(gameMock.Object);
             var rules = new GameRules(2, 2, 6);
             var board = new GameBoard(rules);
             rules.MaxTurnsInJail = 3;
             rules.JailFine = 50;
 
+            gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
             gameMock.Setup(g => g.Handler).Returns(handler);
             gameMock.Setup(g => g.Rules).Returns(rules);
             gameMock.Setup(g => g.Board).Returns(board);
@@ -398,6 +399,8 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.True(player.IsBankrupt);
+            logsMock.Verify(l => l.CreateLog($"{player.Name} has been bankrupt, {player.Name} Could not afford to pay Jail Fine of 50£."), Times.Once);
+            logsMock.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -430,6 +433,8 @@ namespace Monopoly.Tests.CoreTests
             // Assert
             Assert.Equal(200, player.Money);
             Assert.Equal(1, player.NumberOfGetOutOFJailCards);
+            logsMock.Verify(l => l.CreateLog($"JailTurn 3: {player.Name} has been released from jail, {player.Name} used a Get Out of Jail For Free card and have 1 left."), Times.Once);
+            logsMock.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -463,6 +468,140 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Equal(150, player.Money);
+            logsMock.Verify(l => l.CreateLog($"JailTurn 3: {player.Name} has been released from jail, {player.Name} paid the fine to get out of jail."), Times.Once);
+            logsMock.Verify(l => l.CreateLog($"{player.Name} payed fines of 50£."), Times.Once);
+            logsMock.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void BuyOutPlayerFromJail_UseGetOutOfJailFreeCard()
+        {
+            // Arrange
+            Player player = new Player("Player", 0);
+            player.Money = 200;
+            player.NumberOfGetOutOFJailCards = 1;
+            var gameMock = new Mock<IGame>();
+
+            var jail = new Jail(gameMock.Object, 0);
+            jail.playersInJail[player] = new JailStatus();
+
+            // Act
+            string reason = jail.BuyOutPlayerFromJail(player);
+
+            // Assert
+            Assert.Equal(", Player used a Get Out of Jail For Free card and have 0 left", reason);
+            Assert.Equal(0, player.NumberOfGetOutOFJailCards);
+        }
+
+        [Fact]
+        public void BuyOutPlayerFromJail_PayFine()
+        {
+            // Arrange
+            Player player = new Player("Player", 0);
+            player.Money = 200;
+            player.NumberOfGetOutOFJailCards = 0;
+            var gameMock = new Mock<IGame>();
+            var logsMock = new Mock<ILogHandler>();
+            var rules = new GameRules(2, 2, 6);
+            var transactions = new Transaction(gameMock.Object);
+
+            gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
+            gameMock.Setup(g => g.Rules).Returns(rules);
+            gameMock.Setup(g => g.Transactions).Returns(transactions);
+
+            var jail = new Jail(gameMock.Object, 0);
+            jail.playersInJail[player] = new JailStatus();
+
+            // Act
+            string reason = jail.BuyOutPlayerFromJail(player);
+
+            // Assert
+            Assert.Equal(", Player paid the fine to get out of jail", reason);
+            Assert.Equal(150, player.Money);
+            logsMock.Verify(l => l.CreateLog($"{player.Name} payed fines of 50£."), Times.Once);
+            logsMock.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void BuyOutPlayerFromJail_InsufficientFunds_ShouldRaiseEventAndPayFine()
+        {
+            // Arrange
+            Player player = new Player("Player", 0);
+            player.Money = 0;
+            player.NumberOfGetOutOFJailCards = 0;
+            var gameMock = new Mock<IGame>();
+            var logsMock = new Mock<ILogHandler>();
+            var rules = new GameRules(2, 2, 6);
+            var transactions = new Transaction(gameMock.Object);
+
+            gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
+            gameMock.Setup(g => g.Rules).Returns(rules);
+            gameMock.Setup(g => g.Transactions).Returns(transactions);
+
+            var jail = new Jail(gameMock.Object, 0);
+            jail.playersInJail[player] = new JailStatus();
+
+
+            var eventRaised = false;
+            GameEvents.PlayerInsufficientFunds += (sender, args) =>
+            {
+                eventRaised = true;
+                player.Money += rules.JailFine;
+            };
+
+            // Act
+            string reason = jail.BuyOutPlayerFromJail(player);
+
+            // Assert
+            Assert.True(eventRaised);
+            Assert.Equal(0, player.Money);
+            logsMock.Verify(l => l.CreateLog($"{player.Name} payed fines of 50£."), Times.Once);
+            logsMock.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public void ReleasePlayerFromJail_PlayerInJail_NoReason()
+        {
+            // Arrange
+            Player player = new Player("Player", 0);
+            var gameMock = new Mock<IGame>();
+            var logsMock = new Mock<ILogHandler>();
+
+            gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
+
+            var jail = new Jail(gameMock.Object, 0);
+            jail.playersInJail[player] = new JailStatus();
+
+            // Act
+            jail.ReleasePlayerFromJail(player);
+
+            // Assert
+            logsMock.Verify(l => l.CreateLog("JailTurn 0: Player has been released from jail."), Times.Once);
+            logsMock.VerifyNoOtherCalls();
+            Assert.DoesNotContain(player, jail.playersInJail.Keys);
+        }
+
+        [Fact]
+        public void ReleasePlayerFromJail_PlayerInJail_WithReason()
+        {
+            // Arrange
+            Player player = new Player("Player", 0);
+            var gameMock = new Mock<IGame>();
+            var logsMock = new Mock<ILogHandler>();
+
+            gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
+
+            var jail = new Jail(gameMock.Object, 0);
+            jail.playersInJail[player] = new JailStatus();
+            string reason = ". Some reason for release";
+
+            // Act
+            jail.ReleasePlayerFromJail(player, reason);
+
+            // Assert
+            logsMock.Verify(l => l.CreateLog("JailTurn 0: Player has been released from jail. Some reason for release."), Times.Once);
+            logsMock.VerifyNoOtherCalls();
+            Assert.DoesNotContain(player, jail.playersInJail.Keys);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Monopoly.Core.Events;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
+using System.Diagnostics;
 
 namespace Monopoly.Core
 {
@@ -90,12 +91,14 @@ namespace Monopoly.Core
             IsPlayerInJail(player);
             if (CurrentGame.Handler.IsPlayerBankrupt(player, CurrentGame.Rules.JailFine))
             {
-                CurrentGame.Handler.HandlePlayerBankruptcy(player);
+                string reason = $", {player.Name} Could not afford to pay Jail Fine of {CurrentGame.Rules.JailFine}{CurrentGame.Rules.CurrencySymbol}";
+                playersInJail.Remove(player);
+                CurrentGame.Handler.HandlePlayerBankruptcy(player, reason);
             }
             else
             {
                 string reason = BuyOutPlayerFromJail(player);
-                CreateJailLog(player, reason);
+                ReleasePlayerFromJail(player, reason);
             }
         }
 
@@ -106,7 +109,7 @@ namespace Monopoly.Core
             if (player.NumberOfGetOutOFJailCards > 0)
             {
                 player.NumberOfGetOutOFJailCards--;
-                reason = $"used a Get Out of Jail Free card and have {player.NumberOfGetOutOFJailCards} left";
+                reason = $", {player.Name} used a Get Out of Jail For Free card and have {player.NumberOfGetOutOFJailCards} left";
             }
             else
             {
@@ -114,7 +117,7 @@ namespace Monopoly.Core
                 {
                     GameEvents.InvokePlayerInsufficientFunds(player, CurrentGame.Rules.JailFine);
                 }
-                reason = "paid the fine to get out of jail";
+                reason = $", {player.Name} paid the fine to get out of jail";
             }
             return reason;
         }
@@ -122,15 +125,15 @@ namespace Monopoly.Core
         public void ReleasePlayerFromJail(Player player, string reason = "")
         {
             IsPlayerInJail(player);
+            string releaseReason = $"{player.Name} has been released from jail" + (string.IsNullOrEmpty(reason) ? "" : $"{reason}");
+            CreateJailLog(player, releaseReason);
             playersInJail.Remove(player);
-            string releaseReason = string.IsNullOrEmpty(reason) ? "" : $" ({reason})";
-            CreateJailLog(player, $"{player.Name} has been released from jail{releaseReason}.");
         }
 
         private void CreateJailLog(Player player, string log)
         {
             var jailInfo = GetJailInfo(player);
-            CurrentGame.Logs.CreateLog($"JailTurn {jailInfo.TurnsInJail}: {log}");
+            CurrentGame.Logs.CreateLog($"JailTurn {jailInfo.TurnsInJail}: {log}.");
         }
     }
 }
