@@ -14,10 +14,12 @@ namespace Monopoly.Core
         public int DieSides { get; set; }
         public Language GameLanguage { get; set; }
         public string CurrencySymbol { get; set; }
-        public int Salary {  get; set; }
+        public int Salary { get; set; }
         public bool DoubleOnGo { get; set; }
         public Parking FreeParking { get; set; }
         public int MortgageInterestRate { get; set; }
+        public int JailFine { get; set; }
+        public int MaxTurnsInJail { get; set; }
 
 
         public GameRules(int numberOfPlayers, int numberOfDice, int dieSides)
@@ -29,6 +31,8 @@ namespace Monopoly.Core
             Salary = 200;
             MortgageInterestRate = 10;
             SetCurrencySymbol();
+            JailFine = 50;
+            MaxTurnsInJail = 3;
         }
 
         private void SetCurrencySymbol()

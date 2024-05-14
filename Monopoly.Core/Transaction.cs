@@ -1,4 +1,5 @@
 ﻿using Monopoly.Core.Events;
+using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 using System;
@@ -14,10 +15,10 @@ namespace Monopoly.Core
     internal class Transaction
     {
         // Add a private field to hold the reference to the Game instance
-        private Game _game;
+        private IGame _game;
 
         // Constructor to initialize the Game reference
-        public Transaction(Game game)
+        public Transaction(IGame game)
         {
             _game = game;
         }
@@ -25,7 +26,7 @@ namespace Monopoly.Core
         internal void PlayerGetSalary(Player player)
         {
             player.Money += _game.Rules.Salary;
-            _game.Logs.CreateLog($"{player.Name} collected salary {_game.Rules.Salary}{_game.Rules.CurrencySymbol}");
+            _game.Logs.CreateLog($"{player.Name} collected salary {_game.Rules.Salary}{_game.Rules.CurrencySymbol}.");
         }
 
         public bool BuyPurchasableSquare(Player player, Square square)
@@ -34,7 +35,7 @@ namespace Monopoly.Core
             {
                 player.Money -= square.Price;
                 square.Owner = player;
-                _game.Logs.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{_game.Rules.CurrencySymbol}");
+                _game.Logs.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{_game.Rules.CurrencySymbol}.");
                 return true;
             }
             return false;
@@ -46,7 +47,7 @@ namespace Monopoly.Core
             {
                 fromPlayer.Money -= rent;
                 toPlayer.Money += rent;
-                _game.Logs.CreateLog($"{fromPlayer.Name} payed rent {rent}{_game.Rules.CurrencySymbol} to {toPlayer.Name}");
+                _game.Logs.CreateLog($"{fromPlayer.Name} payed rent {rent}{_game.Rules.CurrencySymbol} to {toPlayer.Name}.");
                 return true;
             }
             return false;
@@ -56,7 +57,7 @@ namespace Monopoly.Core
         {
             GetMoneyFromBank(player, square.MortgageValue);
             square.IsMortgage = true;
-            _game.Logs.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{_game.Rules.CurrencySymbol}");
+            _game.Logs.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{_game.Rules.CurrencySymbol}.");
         }
 
         public bool RepayMortgageProperty(Player player, Square square)
@@ -67,7 +68,7 @@ namespace Monopoly.Core
             {
                 player.Money -= sumToPay;
                 square.IsMortgage = false;
-                _game.Logs.CreateLog($"{player.Name} repayed mortgage {sumToPay}{_game.Rules.CurrencySymbol} for {square.Name}");
+                _game.Logs.CreateLog($"{player.Name} repayed mortgage {sumToPay}{_game.Rules.CurrencySymbol} for {square.Name}.");
                 return true;
             }
             return false;
@@ -102,7 +103,7 @@ namespace Monopoly.Core
         internal void GetMoneyFromBank(Player player, int sum)
         {
             player.Money += sum;
-            _game.Logs.CreateLog($"{player.Name} collected money from bank {sum}{_game.Rules.CurrencySymbol}");
+            _game.Logs.CreateLog($"{player.Name} collected money from bank {sum}{_game.Rules.CurrencySymbol}.");
         }
 
         internal bool PayTax(Player player, int sum)
@@ -124,7 +125,7 @@ namespace Monopoly.Core
                     _game.Fines += fines;
                 }
                 player.Money -= fines;
-                _game.Logs.CreateLog($"{player.Name} payed fines {fines}{_game.Rules.CurrencySymbol}");
+                _game.Logs.CreateLog($"{player.Name} payed fines of {fines}{_game.Rules.CurrencySymbol}.");
                 return true;
             }
             return false;

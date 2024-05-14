@@ -25,7 +25,7 @@ namespace Monopoly.Console.Events
         {
             Player player = e.Player;
             int targetSum = e.TargetSum;
-            string message = $"{player.Name} you dont have enough money, you need {targetSum}{_consoleGame.TheGame.Rules.CurrencySymbol}";
+            string message = $"{player.Name} you dont have enough money, you need {targetSum}{_consoleGame.CurrentGame.Rules.CurrencySymbol}";
             _consoleGame.Printer.PrintText(message);
             // Menu SellAssets
         }
@@ -33,7 +33,7 @@ namespace Monopoly.Console.Events
         private static bool HandleAskIfPlayerWantsBuyPurchasableSquare(object sender, SquareEventArgs e)
         {
             Square square = e.Square;
-            string message = $"Do you want to buy {square.Name} for {square.Price}{_consoleGame.TheGame.Rules.CurrencySymbol}?";
+            string message = $"Do you want to buy {square.Name} for {square.Price}{_consoleGame.CurrentGame.Rules.CurrencySymbol}?";
             _consoleGame.Printer.PrintText(message);
             return _consoleGame.PlayerInput.GetUserConfirmation();
         }

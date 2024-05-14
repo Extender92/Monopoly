@@ -7,13 +7,12 @@ using Monopoly.Core.Models.Board;
 
 namespace Monopoly.Core.Models
 {
-    internal class Player(string name,int id)
+    internal class Player(string name, int id)
     {
         public int Id { get; set; } = id;
         public string Name { get; set; } = name;
         public int Money { get; set; } = 3000;
         public int Position { get; set; } = 0;
-        public bool InJail { get; set; } = false;
         public int NumberOfGetOutOFJailCards { get; set; } = 0;
         public bool IsBankrupt { get; set; } = false;
 

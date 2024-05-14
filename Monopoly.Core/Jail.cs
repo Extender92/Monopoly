@@ -1,110 +1,139 @@
 ﻿using Monopoly.Core.Events;
+using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
-using Monopoly.Core.Models.Board;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Monopoly.Core
 {
     internal class Jail
     {
-        public Game TheGame { get; set; }
+        private readonly IGame CurrentGame;
+        public int JailPosition { get; }
 
-        public Jail(Game game)
+        internal Jail(IGame game, int jailPosition)
         {
-            TheGame = game;
+            CurrentGame = game;
+            JailPosition = jailPosition;
         }
 
-        private Dictionary<Player, PlayerJailInfo> playersInJail = new Dictionary<Player, PlayerJailInfo>();
-
-        public int MaxTurnsInJail { get; } = 3;
-        public int Fine { get; } = 50;
-        private const int JailPosition = 10;
-
-        internal void PlayerGoToJail(Player player)
+        internal class JailStatus
         {
-            player.Position = JailPosition;
-            player.InJail = true;
-            playersInJail[player] = new PlayerJailInfo();
-            TheGame.Logs.CreateLog($"{player.Name} went to jail");
-        }
+            public int TurnsInJail { get; set; }
 
-        internal void TakeTurnInJail(Player player)
-        {
-            if (playersInJail.TryGetValue(player, out PlayerJailInfo jailInfo))
+            public JailStatus()
             {
-                bool playerWantsToBuyOut = false;
+                TurnsInJail = 0;
+            }
+        }
 
-                if (player.NumberOfGetOutOFJailCards > 0 || TheGame.Handler.CanAffordWithAssets(player, Fine))
-                    playerWantsToBuyOut = GameEvents.InvokeAskPlayerToBuyOutOfJail(player, new PlayerEventArgs(player));
+        internal Dictionary<Player, JailStatus> playersInJail = new Dictionary<Player, JailStatus>();
 
-                TheGame.Handler.RollDice(player);
+        public JailStatus GetJailInfo(Player player)
+        {
+            IsPlayerInJail(player);
+            playersInJail.TryGetValue(player, out JailStatus jailInfo);
+            return jailInfo;
+        }
 
-                if (playerWantsToBuyOut)
-                {
-                    BuyOutPlayerFromJail(player);
-                    return;
-                }
 
-                if (TheGame.Handler.IsDiceDouble())
-                {
-                    TheGame.Dice[0].ScrambleDie();
-                    ReleasePlayerFromJail(player);
-                    return;
-                }
+        public void PlayerGoToJail(Player player, string reason = "")
+        {
+            ValidatePlayer(player);
+            player.Position = JailPosition;
+            playersInJail[player] = new JailStatus();
+            string jailedReason = string.IsNullOrEmpty(reason) ? "" : $" {reason}";
+            CurrentGame.Logs.CreateLog($"{player.Name} has been sent to jail{jailedReason}.");
+        }
 
-                jailInfo.TurnsInJail++;
+        public bool IsPlayerInJail(Player player)
+        {
+            ValidatePlayer(player);
+            return ValidatePlayerInJail(player);
+        }
 
-                if (!(jailInfo.TurnsInJail < MaxTurnsInJail))
-                {
-                    if (TheGame.Handler.IsPlayerBankrupt(player, Fine))
-                    {
-                        TheGame.Handler.HandlePlayerBankruptcy(player);
-                        return;
-                    }
-                    BuyOutPlayerFromJail(player);
-                }
+        private void ValidatePlayer(Player player)
+        {
+            if (player is null)
+                throw new ArgumentNullException(nameof(player), "Player cannot be null.");
+        }
+
+        private bool ValidatePlayerInJail(Player player)
+        {
+            if (!playersInJail.ContainsKey(player))
+                throw new InvalidOperationException($"{player.Name} is not in jail!");
+            else return true;
+        }
+
+        public bool TryPlayerBuyOut(Player player)
+        {
+            IsPlayerInJail(player);
+            return player.NumberOfGetOutOFJailCards > 0 || CurrentGame.Handler.CanAffordWithAssets(player, CurrentGame.Rules.JailFine)
+                ? GameEvents.InvokeAskPlayerToBuyOutOfJail(player, new PlayerEventArgs(player))
+                : false;
+        }
+
+        public void IncrementTurnsInJail(Player player)
+        {
+            IsPlayerInJail(player);
+            var jailInfo = GetJailInfo(player);
+            jailInfo.TurnsInJail++;
+        }
+
+        public bool PlayerReachedMaxTurnsInJail(Player player)
+        {
+            IsPlayerInJail(player);
+            var jailInfo = GetJailInfo(player);
+            return jailInfo.TurnsInJail >= CurrentGame.Rules.MaxTurnsInJail;
+        }
+
+        public void HandleMaxTurnsInJail(Player player)
+        {
+            IsPlayerInJail(player);
+            if (CurrentGame.Handler.IsPlayerBankrupt(player, CurrentGame.Rules.JailFine))
+            {
+                string reason = $", {player.Name} Could not afford to pay Jail Fine of {CurrentGame.Rules.JailFine}{CurrentGame.Rules.CurrencySymbol}";
+                playersInJail.Remove(player);
+                CurrentGame.Handler.HandlePlayerBankruptcy(player, reason);
             }
             else
             {
-                throw new InvalidOperationException($"{player.Name} is not in jail!");
+                string reason = BuyOutPlayerFromJail(player);
+                ReleasePlayerFromJail(player, reason);
             }
         }
 
-        private void BuyOutPlayerFromJail(Player player)
+        public string BuyOutPlayerFromJail(Player player)
         {
+            IsPlayerInJail(player);
+            string reason;
             if (player.NumberOfGetOutOFJailCards > 0)
             {
                 player.NumberOfGetOutOFJailCards--;
+                reason = $", {player.Name} used a Get Out of Jail For Free card and have {player.NumberOfGetOutOFJailCards} left";
             }
             else
             {
-                while (!TheGame.Transactions.PayFines(player, Fine))
+                while (!CurrentGame.Transactions.PayFines(player, CurrentGame.Rules.JailFine))
                 {
-                    GameEvents.InvokePlayerInsufficientFunds(player, Fine);
+                    GameEvents.InvokePlayerInsufficientFunds(player, CurrentGame.Rules.JailFine);
                 }
+                reason = $", {player.Name} paid the fine to get out of jail";
             }
-            ReleasePlayerFromJail(player);
+            return reason;
         }
 
-        private void ReleasePlayerFromJail(Player player)
+        public void ReleasePlayerFromJail(Player player, string reason = "")
         {
-            // Remove the player from the playersInJail dictionary
+            IsPlayerInJail(player);
+            string releaseReason = $"{player.Name} has been released from jail" + (string.IsNullOrEmpty(reason) ? "" : $"{reason}");
+            CreateJailLog(player, releaseReason);
             playersInJail.Remove(player);
-
-            player.InJail = false;
-            TheGame.Logs.CreateLog($"{player.Name} was released from jail");
-
-            player.Position += TheGame.Handler.CalculateDiceSum();
         }
 
-        private class PlayerJailInfo
+        private void CreateJailLog(Player player, string log)
         {
-            public int TurnsInJail { get; set; }
+            var jailInfo = GetJailInfo(player);
+            CurrentGame.Logs.CreateLog($"JailTurn {jailInfo.TurnsInJail}: {log}.");
         }
     }
 }

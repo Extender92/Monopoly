@@ -6,14 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
+using Monopoly.Core.Interface;
 
 namespace Monopoly.Core
 {
     internal class GameHandler
     {
-        internal Game CurrentGame { get; set; }
+        private readonly IGame CurrentGame;
 
-        internal GameHandler(Game currentGame)
+        internal GameHandler(IGame currentGame)
         {
             CurrentGame = currentGame;
         }
@@ -86,10 +87,12 @@ namespace Monopoly.Core
             return remainingPlayerMoney;
         }
 
-        internal void HandlePlayerBankruptcy(Player player)
+        internal void HandlePlayerBankruptcy(Player player, string reason = "")
         {
+            string bankruptcyReason = $"{player.Name} has been bankrupt" + (string.IsNullOrEmpty(reason) ? "." : $"{reason}.");
             ClearOwnershipForPlayer(player);
             player.IsBankrupt = true;
+            CurrentGame.Logs.CreateLog(bankruptcyReason);
         }
 
         internal void ClearOwnershipForPlayer(Player player)
