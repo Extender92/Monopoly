@@ -48,7 +48,7 @@ namespace Monopoly.Core
         public bool IsPlayerInJail(Player player)
         {
             ValidatePlayer(player);
-            return VaildatePlayerInJail(player);
+            return ValidatePlayerInJail(player);
         }
 
         private void ValidatePlayer(Player player)
@@ -57,7 +57,7 @@ namespace Monopoly.Core
                 throw new ArgumentNullException(nameof(player), "Player cannot be null.");
         }
 
-        private bool VaildatePlayerInJail(Player player)
+        private bool ValidatePlayerInJail(Player player)
         {
             if (!playersInJail.ContainsKey(player))
                 throw new InvalidOperationException($"{player.Name} is not in jail!");

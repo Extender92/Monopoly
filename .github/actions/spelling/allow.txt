@@ -49,3 +49,5 @@ IEnumerable
 sut
 ILog
 IGame
+exeption
+typeof
