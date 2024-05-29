@@ -90,7 +90,7 @@ namespace Monopoly.Console.GUI
                     DisplayStartNewGameMenu();
                     break;
                 case MainMenuOptions.LoadGame:
-                    LoadAGame();
+                    LoadGame();
                     break;
                 case MainMenuOptions.ExitGame:
                     Environment.Exit(0);
@@ -129,7 +129,7 @@ namespace Monopoly.Console.GUI
             DisplayStartNewGameMenu();
         }
 
-        private void LoadAGame()
+        private void LoadGame()
         {
             // Logic to Load the game
             DisplayMainMenu();
