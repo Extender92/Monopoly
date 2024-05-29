@@ -131,9 +131,9 @@ namespace Monopoly.Console.GUI
             string infoText = squareCard.Info;
             int length = cardHorizontalLength - 1;
 
-            List<string> stringList = Helpers.StringHelper.CenterStringInList(Helpers.StringHelper.GetListOfStringsFromString(infoText, length), length);
+            List<string> stringList = Utilities.StringHelper.CenterStringInList(Utilities.StringHelper.GetListOfStringsFromString(infoText, length), length);
             info.AddRange(stringList);
-            header = Helpers.StringHelper.CenterString(header, cardHorizontalLength);
+            header = Utilities.StringHelper.CenterString(header, cardHorizontalLength);
 
             if (maxInfoVerticalLength < info.Count) maxInfoVerticalLength = info.Count;
 

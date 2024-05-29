@@ -116,23 +116,20 @@ namespace Monopoly.Tests.CoreTests
         }
 
         [Fact]
-        public void IsPlayerInJail_ShouldThrowInvalidOperationException()
+        public void IsPlayerInJail_ShouldReturnFalse()
         {
             // Arrange
             Player player = new Player("player", 0);
             var gameMock = new Mock<IGame>();
             Jail jail = new Jail(gameMock.Object, 0);
-
-            var exeptionType = typeof(InvalidOperationException);
-            var expectedMessage = $"{player.Name} is not in jail!";
+            var logsMock = new Mock<ILogHandler>();
+            gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
 
             // Act
-            var ex = Record.Exception(() => jail.IsPlayerInJail(player));
+            var result = jail.IsPlayerInJail(player);
 
             // Assert
-            Assert.NotNull(ex);
-            Assert.IsType(exeptionType, ex);
-            Assert.Equal(expectedMessage, ex.Message);
+            Assert.False(result);
         }
 
         [Fact]

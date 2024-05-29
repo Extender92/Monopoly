@@ -23,7 +23,7 @@ namespace Monopoly.Console.GUI
 
         internal bool GetUserConfirmation()
         {
-            List<string> menuChoices = Helpers.StringHelper.CreateStringList("Yes", "No");
+            List<string> menuChoices = Utilities.StringHelper.CreateStringList("Yes", "No");
             
             int index = Menu.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length));
             return index == 0; // True for yes and False for everything else
@@ -33,7 +33,7 @@ namespace Monopoly.Console.GUI
         {
             Console.Clear();
             Console.WriteLine("How many players?");
-            List<string> menuChoices = Helpers.StringHelper.CreateStringList("2", "3", "4", "5", "6", "7", "8");
+            List<string> menuChoices = Utilities.StringHelper.CreateStringList("2", "3", "4", "5", "6", "7", "8");
             int index = Menu.GetSelectedOption(menuChoices, menuChoices.Max(s => s.Length), 0, 3);
             Console.Clear();
             return index + 2;

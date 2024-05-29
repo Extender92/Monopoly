@@ -13,7 +13,7 @@ namespace Monopoly.Console
     internal class ConsoleGameSetup
     {
         private readonly TablePieceInputManager _tablePieceSelector;
-        internal List<TablePiece> TablePieces {  get; set; }
+        internal List<TablePiece> TablePieces { get; set; }
         internal GameRules GameRules { get; set; }
 
         public ConsoleGameSetup(GameRules gameRules, TablePieceInputManager tablePieceInputManager)
@@ -22,14 +22,8 @@ namespace Monopoly.Console
             GameRules = gameRules;
         }
 
-        public ConsoleGame Setup(Game game, IConsoleWrapper consoleWrapper, ConsolePrinter consolePrinter, Input input, ConsoleLogPrinter logPrint, ConsoleCardPrinter cardPrinter) 
+        public ConsoleGame Setup(Game game, ConsolePrinter consolePrinter, Input input, ConsoleLogPrinter logPrint, ConsoleCardPrinter cardPrinter)
         {
-            CoreGameSetup.Setup(GameRules);
-
-            IMenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
-            menu.SetPositions();
-
-
             TablePieces = new();
             foreach (Player player in game.Players)
             {

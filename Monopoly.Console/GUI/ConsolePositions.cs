@@ -35,11 +35,17 @@ namespace Monopoly.Console.GUI
             TextPosX = 1;
             TextPosY = 0;
             CardPosX = 82;
-            CardPosY = 5;
+            CardPosY = 1;
             MenuPosX = 10;
             MenuPosY = 2;
             PlayerInformationX = BoardPosX + 6;
             PlayerInformationY = BoardPosY + 2;
+        }
+
+        internal static void SetGameBoardMenuPositions()
+        {
+            MenuPosX = 2;
+            MenuPosY = 1;
         }
     }
 }
