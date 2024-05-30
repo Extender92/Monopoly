@@ -15,11 +15,5 @@ namespace Monopoly.Core.Models
         public int Position { get; set; } = 0;
         public int NumberOfGetOutOFJailCards { get; set; } = 0;
         public bool IsBankrupt { get; set; } = false;
-
-
-        public void LandOnSquare(Square square, Game game)
-        {
-            square.LandOn(this, game);
-        }
     }
 }

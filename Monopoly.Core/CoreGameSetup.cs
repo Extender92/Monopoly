@@ -27,7 +27,7 @@ namespace Monopoly.Core
             }
 
             ILogHandler logs = new LogHandler();
-            Game game = new Game(players, dice, gameRules, logs);
+            Game game = new Game(players, players.First(), dice, gameRules, logs);
 
             return game;
         }

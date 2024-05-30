@@ -25,6 +25,9 @@ namespace Monopoly.Console.GUI
             [DisplayName("Roll Dice")]
             RollDice,
 
+            [DisplayName("Roll Dice")]
+            RollDiceInJail,
+
             [DisplayName("Real Estate Menu")]
             RealEstateMenu,
 
@@ -44,7 +47,10 @@ namespace Monopoly.Console.GUI
             MortgageProperties,
 
             [DisplayName("Back")]
-            BackToActionMenu
+            BackToActionMenu,
+
+            [DisplayName("Back")]
+            BackToEvent
         }
 
         public void DisplayPlayerActionMainMenu()
@@ -55,9 +61,9 @@ namespace Monopoly.Console.GUI
             HandlePlayerActionMainMenu(availableActions[selectedOption]);
         }
 
-        public void DisplayPlayerActionRealEstateMenu()
+        public void DisplayPlayerActionRealEstateMenu(bool eventCall = false)
         {
-            List<PlayerActionRealEstateMenu> availableActions = GetAvailableRealEstateActions();
+            List<PlayerActionRealEstateMenu> availableActions = GetAvailableRealEstateActions(eventCall);
             int selectedOption = MenuOptionSelector.GetSelectedOption(availableActions.Select(action => action.GetDisplayName()).ToList());
 
             HandlePlayerActionRealEstateMenu(availableActions[selectedOption]);
@@ -67,7 +73,7 @@ namespace Monopoly.Console.GUI
         {
             List<PlayerActionMainMenu> actions = new List<PlayerActionMainMenu>
             {
-                PlayerActionMainMenu.RollDice,
+                CurrentGame.TheJail.IsPlayerInJail(Player) ? PlayerActionMainMenu.RollDiceInJail : PlayerActionMainMenu.RollDice,
                 PlayerActionMainMenu.RealEstateMenu,
                 PlayerActionMainMenu.SaveMenu,
                 PlayerActionMainMenu.ExitToMainMenu
@@ -76,14 +82,16 @@ namespace Monopoly.Console.GUI
             return actions;
         }
 
-        private List<PlayerActionRealEstateMenu> GetAvailableRealEstateActions()
+        private List<PlayerActionRealEstateMenu> GetAvailableRealEstateActions(bool eventCall = false)
         {
             List<PlayerActionRealEstateMenu> actions = new List<PlayerActionRealEstateMenu>
             {
                 PlayerActionRealEstateMenu.ManageHouses,
                 PlayerActionRealEstateMenu.MortgageProperties,
-                PlayerActionRealEstateMenu.BackToActionMenu
+                eventCall ? PlayerActionRealEstateMenu.BackToEvent : PlayerActionRealEstateMenu.BackToActionMenu
             };
+
+            if (eventCall) actions.Remove(PlayerActionRealEstateMenu.BackToActionMenu);
 
             return actions;
         }
@@ -94,6 +102,9 @@ namespace Monopoly.Console.GUI
             {
                 case PlayerActionMainMenu.RollDice:
                     RollDice();
+                    break;
+                case PlayerActionMainMenu.RollDiceInJail:
+                    RollDiceInJail();
                     break;
                 case PlayerActionMainMenu.RealEstateMenu:
                     DisplayPlayerActionRealEstateMenu();
@@ -122,6 +133,8 @@ namespace Monopoly.Console.GUI
                 case PlayerActionRealEstateMenu.BackToActionMenu:
                     DisplayPlayerActionMainMenu();
                     break;
+                case PlayerActionRealEstateMenu.BackToEvent:
+                    return;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");
             }
@@ -130,6 +143,11 @@ namespace Monopoly.Console.GUI
         private void RollDice()
         {
             CurrentGame.Handler.RoleDiceAndMovePlayer(Player);
+        }
+
+        private void RollDiceInJail()
+        {
+            CurrentGame.Handler.RollDice(Player);
         }
 
         private void SaveGame()

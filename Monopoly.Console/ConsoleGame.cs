@@ -23,6 +23,8 @@ namespace Monopoly.Console
         internal readonly List<TablePiece> TablePieces;
         internal readonly Input PlayerInput;
 
+        internal bool StartedGame { get; set; }
+
         public ConsoleGame(Game game, ConsolePrinter consolePrinter, List<TablePiece> tablePieces, Input input, ConsoleLogPrinter logPrinter, ConsoleCardPrinter cardPrinter)
         {
             CurrentGame = game;
@@ -31,6 +33,31 @@ namespace Monopoly.Console
             PlayerInput = input;
             LogPrinter = logPrinter;
             CardPrinter = cardPrinter;
+        }
+
+        internal void StartConsoleGame()
+        {
+            StartedGame = true;
+            ConsolePositions.SetGameBoardMenuPositions();
+
+            ConsoleEventHandler.SubscribeToEvents(this);
+
+            System.Console.Clear();
+            Printer.PrintGameBoard(TablePieces, CurrentGame.Players);
+            PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(CurrentGame, CurrentGame.CurrentPlayer);
+
+            while (StartedGame)
+            {
+                Printer.StartPlayerTurnInfo(CurrentGame.CurrentPlayer, CurrentGame.Players);
+
+                if (CurrentGame.TheJail.IsPlayerInJail(CurrentGame.CurrentPlayer)) CurrentGame.HandlePlayerInJail();
+
+                CurrentGame.PlayerTakeTurn();
+
+                Printer.EndPlayerTurnInfo(CurrentGame.CurrentPlayer, CurrentGame.Players);
+
+                CurrentGame.NextPlayer();
+            }
         }
 
 
@@ -43,9 +70,9 @@ namespace Monopoly.Console
             System.Console.Clear();
             Printer.PrintGameBoard(TablePieces, CurrentGame.Players);
 
-            while (CurrentGame.Players.Count(p => !p.IsBankrupt) > 1)
+            while (CurrentGame.Players.Count() > 1)
             {
-                foreach (var player in CurrentGame.Players.Where(p => !p.IsBankrupt))
+                foreach (var player in CurrentGame.Players)
                 {
                     CurrentGame.CurrentPlayer = player;
                     PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(CurrentGame, player);
@@ -56,16 +83,15 @@ namespace Monopoly.Console
 
                         if (CurrentGame.TheJail.IsPlayerInJail(player))
                         {
-                            CurrentGame.PlayerTakeTurnInJail(player);
+                            CurrentGame.PlayerTakeTurnInJail();
                         }
 
                         Square landedSquare = CurrentGame.Board.GetSquareAtPosition(player.Position);
 
                         UpdateGameInformation(landedSquare, player);
 
-                        if (!player.IsBankrupt)
+                        if (true)
                         {
-                            player.LandOnSquare(landedSquare, CurrentGame);
 
                             UpdateGameInformation(landedSquare, player);
 
@@ -77,10 +103,9 @@ namespace Monopoly.Console
                         }
 
                         Printer.EndPlayerTurnInfo(player, CurrentGame.Players);
-                    } while (CurrentGame.Handler.IsDiceDouble() && !player.IsBankrupt);
+                    } while (CurrentGame.Handler.IsDiceDouble());
                 }
             }
-            CurrentGame.Handler.Winning(CurrentGame.Players.First(p => !p.IsBankrupt));
         }
 
         private void UpdateGameInformation(Square landedSquare, Player player)

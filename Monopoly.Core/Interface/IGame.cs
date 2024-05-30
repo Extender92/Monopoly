@@ -22,6 +22,9 @@ namespace Monopoly.Core.Interface
         FortuneCardHandler FortuneCard { get; set; }
         int Fines { get; set; }
 
-        void PlayerTakeTurnInJail(Player player);
+        void NextPlayer();
+        void RemovePlayer(Player player);
+        void PlayerTakeTurn();
+        void PlayerTakeTurnInJail();
     }
 }

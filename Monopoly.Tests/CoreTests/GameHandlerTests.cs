@@ -24,7 +24,7 @@ namespace Monopoly.Tests.CoreTests
             GameRules gameRules = new GameRules(2, 2, 6);
             Game game = CoreGameSetup.Setup(gameRules);
             var gameHandler = new GameHandler(game);
-            game.Dice = new List<IDie> {dieMock.Object};
+            game.Dice = new List<IDie> { dieMock.Object };
 
             Player player = game.Players[0];
 
@@ -135,7 +135,7 @@ namespace Monopoly.Tests.CoreTests
 
             var logs = logHandlerMock.Object;
 
-            var game = new Game(new List<Player>(), dice, new GameRules(1, 2, 6), logs);
+            var game = new Game(new List<Player>(), player, dice, new GameRules(1, 2, 6), logs);
 
             var gameHandler = new GameHandler(game);
 
@@ -162,7 +162,7 @@ namespace Monopoly.Tests.CoreTests
 
             var dice = new List<IDie> { die1Mock.Object, die2Mock.Object };
 
-            var game = new Game(new List<Player>(), dice, new GameRules(1, 2, 6), new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), dice, new GameRules(1, 2, 6), new LogHandler());
             var gameHandler = new GameHandler(game);
 
             // Act
@@ -190,7 +190,7 @@ namespace Monopoly.Tests.CoreTests
 
             var dice = new List<IDie> { die1Mock.Object, die2Mock.Object, die3Mock.Object, die4Mock.Object };
 
-            var game = new Game(new List<Player>(), dice, new GameRules(1, 2, 6), new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), dice, new GameRules(1, 2, 6), new LogHandler());
             var gameHandler = new GameHandler(game);
 
             // Act
@@ -212,7 +212,7 @@ namespace Monopoly.Tests.CoreTests
 
             var dice = new List<IDie> { die1Mock.Object, die2Mock.Object };
 
-            var game = new Game(new List<Player>(), dice, new GameRules(1, 2, 6), new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), dice, new GameRules(1, 2, 6), new LogHandler());
             var gameHandler = new GameHandler(game);
 
             // Act
@@ -231,7 +231,7 @@ namespace Monopoly.Tests.CoreTests
 
             var dice = new List<IDie> { dieMock.Object };
 
-            var game = new Game(new List<Player>(), dice, new GameRules(1, 1, 6), new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), dice, new GameRules(1, 1, 6), new LogHandler());
             var gameHandler = new GameHandler(game);
 
             // Act
@@ -257,7 +257,7 @@ namespace Monopoly.Tests.CoreTests
                 new RailroadSquare(5, "Square5", 150, 75, 80, 85, 90, 75),
                 new UtilitySquare(6, "Square6", 200, 100, 110, 100) { Owner = playerOne }
             };
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             game.Board = new GameBoard(gameRules);
             game.Board.Squares = squareList;
 
@@ -288,7 +288,7 @@ namespace Monopoly.Tests.CoreTests
                 new RailroadSquare(5, "Square5", 150, 75, 80, 85, 90, 75),
                 new UtilitySquare(6, "Square6", 200, 100, 110, 100) { Owner = playerOne }
             };
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             game.Board = new GameBoard(gameRules);
             game.Board.Squares = squareList;
             var gameHandler = new GameHandler(game);
@@ -298,8 +298,8 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Null(squareList[0].Owner); // Ownership should be cleared
-            Assert.Null(squareList[1].Owner); 
-            Assert.Null(squareList[5].Owner); 
+            Assert.Null(squareList[1].Owner);
+            Assert.Null(squareList[5].Owner);
 
             Assert.True(playerOne.IsBankrupt); // Player should be bankrupt
 
@@ -323,7 +323,7 @@ namespace Monopoly.Tests.CoreTests
                 new RailroadSquare(5, "Square5", 150, 75, 80, 85, 90, 75),
                 new UtilitySquare(6, "Square6", 200, 100, 110, 100) { Owner = playerOne }
             };
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             game.Board = new GameBoard(gameRules);
             game.Board.Squares = squareList;
             var gameHandler = new GameHandler(game);
@@ -351,7 +351,7 @@ namespace Monopoly.Tests.CoreTests
             // Arrange
             var gameRules = new GameRules(2, 2, 6);
             var player = new Player("TestPlayer", 0) { Money = 100 };
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             var gameHandler = new GameHandler(game);
 
             // Act
@@ -367,7 +367,7 @@ namespace Monopoly.Tests.CoreTests
             // Arrange
             var gameRules = new GameRules(2, 2, 6);
             var player = new Player("TestPlayer", 0) { Money = 200 };
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             var gameHandler = new GameHandler(game);
 
             // Act
@@ -383,7 +383,7 @@ namespace Monopoly.Tests.CoreTests
             // Arrange
             var gameRules = new GameRules(2, 2, 6);
             var player = new Player("TestPlayer", 0) { Money = 200 };
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             var gameHandler = new GameHandler(game);
 
             // Act
@@ -399,7 +399,7 @@ namespace Monopoly.Tests.CoreTests
             // Arrange
             var gameRules = new GameRules(2, 2, 6);
             var player = new Player("TestPlayer", 0) { Money = 100 };
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             var gameHandler = new GameHandler(game);
 
             // Act
@@ -416,7 +416,7 @@ namespace Monopoly.Tests.CoreTests
             var gameRules = new GameRules(2, 2, 6);
             var player = new Player("TestPlayer", 0) { Money = 100 };
             var property = new PropertySquare(ConsoleColor.Blue, "Square1", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50, 1) { Owner = player, IsMortgage = false };
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             game.Board = new GameBoard(gameRules);
             game.Board.Squares = new List<Square> { property };
             var gameHandler = new GameHandler(game);
@@ -434,7 +434,7 @@ namespace Monopoly.Tests.CoreTests
             // Arrange
             var gameRules = new GameRules(2, 2, 6);
             var property = new PropertySquare(ConsoleColor.Blue, "Square1", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50, 1);
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             game.Board = new GameBoard(gameRules);
             game.Board.Squares = new List<Square> { property };
             var gameHandler = new GameHandler(game);
@@ -453,7 +453,7 @@ namespace Monopoly.Tests.CoreTests
             var gameRules = new GameRules(2, 2, 6);
             var property = new PropertySquare(ConsoleColor.Blue, "Square1", 100, 100, 50, 75, 80, 85, 90, 50, 50, 100, 50, 1);
             property.Houses = 3;
-            var game = new Game(new List<Player>(), new List<IDie>(), gameRules, new LogHandler());
+            var game = new Game(new List<Player>(), new Player("Player", 0), new List<IDie>(), gameRules, new LogHandler());
             game.Board = new GameBoard(gameRules);
             game.Board.Squares = new List<Square> { property };
             var gameHandler = new GameHandler(game);
