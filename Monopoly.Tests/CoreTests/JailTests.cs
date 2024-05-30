@@ -390,6 +390,7 @@ namespace Monopoly.Tests.CoreTests
             Jail jail = new Jail(gameMock.Object, 0);
             jail.playersInJail[player] = new JailStatus();
             jail.GetJailInfo(player).TurnsInJail = 3;
+            player.IsBankrupt = true;
 
             // Act
             jail.HandleMaxTurnsInJail(player);

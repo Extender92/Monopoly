@@ -30,12 +30,13 @@ namespace Monopoly.Core
 
         public Game(
         List<Player> players,
+        Player currentPlayer,
         List<IDie> dice,
         GameRules rules,
         ILogHandler logs)
         {
             Players = players;
-            CurrentPlayer = players.First();
+            CurrentPlayer = currentPlayer;
             Dice = dice;
             Rules = rules;
             Logs = logs;
