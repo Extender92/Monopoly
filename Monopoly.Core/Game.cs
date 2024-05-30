@@ -35,6 +35,7 @@ namespace Monopoly.Core
         ILogHandler logs)
         {
             Players = players;
+            CurrentPlayer = players.First();
             Dice = dice;
             Rules = rules;
             Logs = logs;

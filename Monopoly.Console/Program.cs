@@ -44,7 +44,7 @@ namespace Monopoly.Console
 
             ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter);
 
-            consoleGame.StartGame();
+            consoleGame.StartConsoleGame();
         }
 
         private static GameRules SetupRules(IConsoleWrapper consoleWrapper)

@@ -37,6 +37,7 @@ namespace Monopoly.Console
 
         internal void StartConsoleGame()
         {
+            StartedGame = true;
             ConsolePositions.SetGameBoardMenuPositions();
 
             ConsoleEventHandler.SubscribeToEvents(this);

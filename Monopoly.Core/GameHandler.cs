@@ -93,8 +93,8 @@ namespace Monopoly.Core
         {
             string bankruptcyReason = $"{player.Name} has been bankrupt" + (string.IsNullOrEmpty(reason) ? "." : $"{reason}.");
             ClearOwnershipForPlayer(player);
-            player.IsBankrupt = true;
             CurrentGame.Logs.CreateLog(bankruptcyReason);
+            CurrentGame.RemovePlayer(player);
         }
 
         internal void ClearOwnershipForPlayer(Player player)
