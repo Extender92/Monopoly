@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,6 +26,7 @@ namespace Monopoly.Core
         public Jail TheJail { get; set; }
         public FortuneCardHandler FortuneCard { get; set; }
         public int Fines { get; set; }
+        public int CurrentTurn { get; set; }
 
         public Game(
         List<Player> players,
@@ -45,31 +47,77 @@ namespace Monopoly.Core
             Transactions = new Transaction(this);
         }
 
-        public void PlayerTakeTurnInJail(Player player)
+        public void NextPlayer()
         {
-            bool playerWantsToBuyOut = TheJail.TryPlayerBuyOut(player);
+            int currentIndex = Players.IndexOf(CurrentPlayer);
+            int nextIndex = (currentIndex + 1) % Players.Count;
+            CurrentTurn = 1;
+            CurrentPlayer = Players[nextIndex];
+        }
 
-            if (playerWantsToBuyOut)
+        public void RemovePlayer(Player player)
+        {
+            if (Players.Contains(player))
             {
-                string reason = TheJail.BuyOutPlayerFromJail(player);
-                Handler.RollDice(player);
-                TheJail.ReleasePlayerFromJail(player, reason);
+                if (CurrentPlayer == player) NextPlayer();
+
+                Players.Remove(player);
+            }
+        }
+
+        public void PlayerTakeTurn()
+        {
+            if (TheJail.IsPlayerInJail(CurrentPlayer))
+            {
+                PlayerTakeTurnInJail();
                 return;
             }
 
-            Handler.RollDice(player);
+            // Event for PlayerActionMenu.DisplayPlayerActionMainMenu();
+            Square landedSquare = Board.GetSquareAtPosition(CurrentPlayer.Position);
+            landedSquare.LandOn(CurrentPlayer, this);
+            if (TheJail.IsPlayerInJail(CurrentPlayer)) return;
+
+            CurrentTurn++;
 
             if (Handler.IsDiceDouble())
             {
-                TheJail.ReleasePlayerFromJail(player);
+                if (CurrentTurn > 3)
+                {
+                    TheJail.PlayerGoToJail(CurrentPlayer, "Rolled a Double more than 3 times in a row");
+                    return;
+                }
+                Logs.CreateLog($"{CurrentPlayer.Name} rolled a double! Taking another turn.");
+                PlayerTakeTurn();
+            }
+        }
+
+        public void HandlePlayerInJail()
+        {
+            bool playerWantsToBuyOut = TheJail.TryPlayerBuyOut(CurrentPlayer);
+
+            if (playerWantsToBuyOut)
+            {
+                string reason = TheJail.BuyOutPlayerFromJail(CurrentPlayer);
+                TheJail.ReleasePlayerFromJail(CurrentPlayer, reason);
+            }
+        }
+
+        public void PlayerTakeTurnInJail()
+        {
+            if (Handler.IsDiceDouble())
+            {
+                TheJail.ReleasePlayerFromJail(CurrentPlayer);
+                int diceSum = Handler.CalculateDiceSum();
+                CurrentPlayer.Position += diceSum;
                 return;
             }
 
-            TheJail.IncrementTurnsInJail(player);
+            TheJail.IncrementTurnsInJail(CurrentPlayer);
 
-            if (TheJail.PlayerReachedMaxTurnsInJail(player))
+            if (TheJail.PlayerReachedMaxTurnsInJail(CurrentPlayer))
             {
-                TheJail.HandleMaxTurnsInJail(player);
+                TheJail.HandleMaxTurnsInJail(CurrentPlayer);
             }
         }
     }

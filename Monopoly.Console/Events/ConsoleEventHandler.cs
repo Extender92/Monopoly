@@ -30,7 +30,7 @@ namespace Monopoly.Console.Events
             int targetSum = e.TargetSum;
             string message = $"{player.Name} you dont have enough money, you need {targetSum}{_consoleGame.CurrentGame.Rules.CurrencySymbol}";
             _consoleGame.Printer.PrintText(message);
-            new PlayerActionMenu(_consoleGame.CurrentGame, player).DisplayPlayerActionRealEstateMenu();
+            new PlayerActionMenu(_consoleGame.CurrentGame, player).DisplayPlayerActionRealEstateMenu(true);
         }
 
         private static bool HandleAskIfPlayerWantsBuyPurchasableSquare(object sender, SquareEventArgs e)
