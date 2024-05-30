@@ -1,6 +1,7 @@
 ﻿using Monopoly.Console.Utilities;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
+using Monopoly.Core.SaveAndLoad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -135,6 +136,7 @@ namespace Monopoly.Console.GUI
         private void LoadGame()
         {
             // Logic to Load the game
+            Program.LoadGame();
             DisplayMainMenu();
         }
     }

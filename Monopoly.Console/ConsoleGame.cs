@@ -2,8 +2,10 @@
 using Monopoly.Console.GUI;
 using Monopoly.Console.Models;
 using Monopoly.Core;
+using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.SaveAndLoad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +46,6 @@ namespace Monopoly.Console
 
             System.Console.Clear();
             Printer.PrintGameBoard(TablePieces, CurrentGame.Players);
-            PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(CurrentGame, CurrentGame.CurrentPlayer);
 
             while (StartedGame)
             {

@@ -20,6 +20,7 @@ namespace Monopoly.Core.Events
         public static event EventHandler<LogEventArgs> LogAdded;
         public static event EventHandler<DrawChanceCardArgs> ChanceCardDrawn;
         public static event EventHandler<DrawCommunityChestCardArgs> CommunityChestCardDrawn;
+        public static event EventHandler<OpenPlayerActionMenuArgs> OpenPlayerActionMenu;
 
 
         public static bool InvokeAskPlayerToBuyPurchasableSquare(object sender, SquareEventArgs e)
@@ -50,6 +51,11 @@ namespace Monopoly.Core.Events
         public static void InvokeDrawCommunityChestCard(object sender, ICommunityChestCard communityChest)
         {
             CommunityChestCardDrawn?.Invoke(sender, new DrawCommunityChestCardArgs(communityChest));
+        }
+
+        public static void InvokeOpenPlayerActionMenu(object sender)
+        {
+            OpenPlayerActionMenu?.Invoke(sender, new OpenPlayerActionMenuArgs());
         }
     }
 }

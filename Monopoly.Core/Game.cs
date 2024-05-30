@@ -69,13 +69,13 @@ namespace Monopoly.Core
 
         public void PlayerTakeTurn()
         {
+            GameEvents.InvokeOpenPlayerActionMenu(this);
             if (TheJail.IsPlayerInJail(CurrentPlayer))
             {
                 PlayerTakeTurnInJail();
                 return;
             }
 
-            // Event for PlayerActionMenu.DisplayPlayerActionMainMenu();
             Square landedSquare = Board.GetSquareAtPosition(CurrentPlayer.Position);
             landedSquare.LandOn(CurrentPlayer, this);
             if (TheJail.IsPlayerInJail(CurrentPlayer)) return;

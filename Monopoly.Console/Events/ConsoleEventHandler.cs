@@ -22,6 +22,7 @@ namespace Monopoly.Console.Events
             GameEvents.LogAdded += LogAdded;
             GameEvents.ChanceCardDrawn += DrawChanceCard;
             GameEvents.CommunityChestCardDrawn += DrawCommunityChestCard;
+            GameEvents.OpenPlayerActionMenu += OpenPlayerActionMenu;
         }
 
         private static void HandlePlayerInsufficientFunds(object sender, PlayerEventArgs e)
@@ -65,6 +66,12 @@ namespace Monopoly.Console.Events
         {
             int position = _consoleGame.CurrentGame.CurrentPlayer.Position;
             _consoleGame.CardPrinter.PrepareAndPrintSquareCard(position, null, e.CommunityChestCard);
+        }
+
+        private static void OpenPlayerActionMenu(object sender, OpenPlayerActionMenuArgs e)
+        {
+            PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(_consoleGame.CurrentGame, _consoleGame.CurrentGame.CurrentPlayer);
+            PlayerActionMenu.DisplayPlayerActionMainMenu();
         }
     }
 }

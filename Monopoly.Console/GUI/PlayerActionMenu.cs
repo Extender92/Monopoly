@@ -3,6 +3,7 @@ using Monopoly.Console.Utilities;
 using Monopoly.Core.Interface;
 using System;
 using System.Numerics;
+using Monopoly.Core.SaveAndLoad;
 
 
 namespace Monopoly.Console.GUI
@@ -153,6 +154,7 @@ namespace Monopoly.Console.GUI
         private void SaveGame()
         {
             // Logic to save the game
+            SaveCoreData.SaveData(CurrentGame);
             DisplayPlayerActionMainMenu();
 
         }
