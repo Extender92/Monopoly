@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
+using System.Numerics;
 
 namespace Monopoly.Console.GUI
 {
@@ -14,19 +16,25 @@ namespace Monopoly.Console.GUI
     {
         private readonly IGame CurrentGame;
         private readonly IMenuOptionSelector MenuOptionSelector;
+        private readonly ListOptionSelector ListOptionSelector;
         private readonly Player Player;
-        private readonly List<PropertySquare> AvailableBuyHouseList;
-        private readonly List<PropertySquare> AvailableSellHouseList;
+        private List<PropertySquare> AvailableBuyHouseList;
+        private List<PropertySquare> AvailableSellHouseList;
 
         int SelectedOption = 0;
 
         public HouseMenu(IMenuOptionSelector menuOptionSelector, IGame game, Player player)
         {
             MenuOptionSelector = menuOptionSelector;
+            ListOptionSelector = new ListOptionSelector();
             CurrentGame = game;
             Player = player;
-            AvailableBuyHouseList = CurrentGame.Board.GetAllPropertySquaresPlayerCanBuyHousesIn(player) ?? new List<PropertySquare>();
-            AvailableSellHouseList = CurrentGame.Board.GetAllPropertySquaresPlayerCanSellHousesIn(player) ?? new List<PropertySquare>();
+        }
+
+        public void UpdateLists()
+        {
+            AvailableBuyHouseList = CurrentGame.Board.GetAllPropertySquaresPlayerCanBuyHousesIn(Player) ?? new List<PropertySquare>();
+            AvailableSellHouseList = CurrentGame.Board.GetAllPropertySquaresPlayerCanSellHousesIn(Player) ?? new List<PropertySquare>();
         }
 
         public enum HouseMenuOptions
@@ -73,14 +81,12 @@ namespace Monopoly.Console.GUI
                     BuyHouse();
                     break;
                 case HouseMenuOptions.BuyHousePlaceHolder:
-                    // Do nothing and stay on the current menu
                     StayOnCurrentMenu();
                     break;
                 case HouseMenuOptions.SellHouse:
                     SellHouse();
                     break;
                 case HouseMenuOptions.SellHousePlaceHolder:
-                    // Do nothing and stay on the current menu
                     StayOnCurrentMenu();
                     break;
                 case HouseMenuOptions.BackToRealEstateMenu:
@@ -98,12 +104,52 @@ namespace Monopoly.Console.GUI
 
         private void BuyHouse()
         {
-            DisplayHouseMenu();
+            int index = 0;
+            int spacingPerLine = AvailableBuyHouseList.Max(x => x.Name.Length);
+            int optionsPerLine = AvailableBuyHouseList.Count / 2;
+            string errorMessage = "";
+
+            bool canBuy = false;
+            do
+            {
+                index = ListOptionSelector.GetSelectedOption(AvailableBuyHouseList.Cast<Square>().ToList(), spacingPerLine, index, errorMessage, optionsPerLine, true);
+                if (index == -1) return;
+
+                errorMessage = "";
+                var selectedProperty = AvailableBuyHouseList[index];
+
+                if (selectedProperty.Houses < 5) canBuy = true;
+                else errorMessage = ($"Cannot buy more Houses or Hotels on {selectedProperty.Name}. It already has {selectedProperty.GetHouseCountAsString()}.");
+
+            } while (!canBuy);
+            CurrentGame.Transactions.BuyPropertyHouse(Player, AvailableBuyHouseList[index]);
+            UpdateLists();
+            StayOnCurrentMenu();
         }
 
         private void SellHouse()
         {
-            DisplayHouseMenu();
+            int index = 0;
+            int spacingPerLine = AvailableSellHouseList.Max(x => x.Name.Length);
+            int optionsPerLine = AvailableSellHouseList.Count / 2;
+            string errorMessage = "";
+
+            bool canSell = false;
+            do
+            {
+                index = ListOptionSelector.GetSelectedOption(AvailableSellHouseList.Cast<Square>().ToList(), spacingPerLine, index, errorMessage, optionsPerLine, true);
+                if (index == -1) return;
+
+                errorMessage = "";
+                var selectedProperty = AvailableSellHouseList[index];
+
+                if (selectedProperty.Houses > 0) canSell = true;
+                else errorMessage = ($"Cannot sell Houses or Hotels on {selectedProperty.Name}. It has {selectedProperty.GetHouseCountAsString()}.");
+
+            } while (!canSell);
+            CurrentGame.Transactions.SellPropertyHouse(Player, AvailableSellHouseList[index]);
+            UpdateLists();
+            StayOnCurrentMenu();
         }
     }
 }

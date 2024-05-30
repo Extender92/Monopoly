@@ -4,6 +4,7 @@ using Monopoly.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,6 +29,9 @@ namespace Monopoly.Console.GUI
 
             [DisplayName("Exit Game")]
             ExitGame,
+
+            [DisplayName("Back To Game")]
+            BackToGame,
         }
 
         public enum StartNewGameMenu
@@ -39,7 +43,7 @@ namespace Monopoly.Console.GUI
             SetupRules,
 
             [DisplayName("Back")]
-            BackToMainMenu
+            BackToMainMenu,
         }
 
         public void DisplayMainMenu()
@@ -64,6 +68,7 @@ namespace Monopoly.Console.GUI
             {
                 MainMenuOptions.StartNewGame,
                 MainMenuOptions.LoadGame,
+                // CurrentGame ? MainMenuOptions.BackToGame,
                 MainMenuOptions.ExitGame,
             };
 
@@ -95,6 +100,9 @@ namespace Monopoly.Console.GUI
                 case MainMenuOptions.ExitGame:
                     Environment.Exit(0);
                     break;
+                case MainMenuOptions.BackToGame:
+                    // PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(MenuOptionSelector, CurrentGame, player);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");
             }
@@ -105,7 +113,7 @@ namespace Monopoly.Console.GUI
             switch (action)
             {
                 case StartNewGameMenu.StartGame:
-                    StartGame();
+                    Program.StartNewGame();
                     break;
                 case StartNewGameMenu.SetupRules:
                     SetupRules();
@@ -116,11 +124,6 @@ namespace Monopoly.Console.GUI
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");
             }
-        }
-
-        private void StartGame()
-        {
-            Program.StartNewGame();
         }
 
         private void SetupRules()

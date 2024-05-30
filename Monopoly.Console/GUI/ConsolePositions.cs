@@ -18,6 +18,8 @@ namespace Monopoly.Console.GUI
         public static int CardPosY { get; set; }
         public static int MenuPosX { get; set; }
         public static int MenuPosY { get; set; }
+        public static int ListMenuPosX { get; set; }
+        public static int ListMenuPosY { get; set; }
         public static int PlayerInformationX { get; set; }
         public static int PlayerInformationY { get; set; }
 
@@ -38,6 +40,8 @@ namespace Monopoly.Console.GUI
             CardPosY = 1;
             MenuPosX = 10;
             MenuPosY = 2;
+            ListMenuPosX = 10;
+            ListMenuPosY = 2;
             PlayerInformationX = BoardPosX + 6;
             PlayerInformationY = BoardPosY + 2;
         }

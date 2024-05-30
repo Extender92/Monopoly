@@ -102,7 +102,7 @@ namespace Monopoly.Console.GUI
                     SaveGame();
                     break;
                 case PlayerActionMainMenu.ExitToMainMenu:
-                    ExitToMainMenu();
+                    new MainMenu(MenuOptionSelector).DisplayMainMenu();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");
@@ -137,12 +137,6 @@ namespace Monopoly.Console.GUI
             // Logic to save the game
             DisplayPlayerActionMainMenu();
 
-        }
-
-        private void ExitToMainMenu()
-        {
-            // Logic to exit to main menu
-            DisplayPlayerActionMainMenu();
         }
     }
 }

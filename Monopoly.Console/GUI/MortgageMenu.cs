@@ -5,6 +5,7 @@ using Monopoly.Core.Models.Board;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,19 +15,26 @@ namespace Monopoly.Console.GUI
     {
         private readonly IGame CurrentGame;
         private readonly IMenuOptionSelector MenuOptionSelector;
+        private readonly ListOptionSelector ListOptionSelector;
         private readonly Player Player;
-        private readonly List<Square> AvailableMortgageList;
-        private readonly List<Square> AvailableLiftMortgageList;
+        private List<Square> AvailableMortgageList;
+        private List<Square> AvailableLiftMortgageList;
 
         int SelectedOption = 0;
 
         public MortgageMenu(IMenuOptionSelector menuOptionSelector, IGame game, Player player)
         {
             MenuOptionSelector = menuOptionSelector;
+            ListOptionSelector = new ListOptionSelector();
             CurrentGame = game;
             Player = player;
-            AvailableMortgageList = CurrentGame.Board.GetPlayerUnmortgagedSquares(player) ?? new List<Square>();
-            AvailableLiftMortgageList = CurrentGame.Board.GetPlayerMortgagedSquares(player) ?? new List<Square>();
+            UpdateLists();
+        }
+
+        public void UpdateLists()
+        {
+            AvailableMortgageList = CurrentGame.Board.GetPlayerUnmortgagedSquares(Player) ?? new List<Square>();
+            AvailableLiftMortgageList = CurrentGame.Board.GetPlayerMortgagedSquares(Player) ?? new List<Square>();
         }
 
         public enum MortgageMenuOptions
@@ -98,12 +106,52 @@ namespace Monopoly.Console.GUI
 
         private void MortgageProperty()
         {
-            DisplayMortgageMenu();
+            int index = 0;
+            int spacingPerLine = AvailableMortgageList.Max(x => x.Name.Length);
+            int optionsPerLine = AvailableMortgageList.Count / 2;
+            string errorMessage = "";
+
+            bool canMortgage = false;
+            do
+            {
+                index = ListOptionSelector.GetSelectedOption(AvailableMortgageList.Cast<Square>().ToList(), spacingPerLine, index, errorMessage, optionsPerLine, true);
+                if (index == -1) return;
+
+                errorMessage = "";
+                var selectedSquare = AvailableMortgageList[index];
+
+                if (!selectedSquare.IsMortgage) canMortgage = true;
+                else errorMessage = $"Cannot mortgage property on {selectedSquare.Name}. It is already mortgage.";
+
+            } while (!canMortgage);
+            CurrentGame.Transactions.MortgageProperty(Player, AvailableMortgageList[index]);
+            UpdateLists();
+            StayOnCurrentMenu();
         }
 
         private void LiftMortgage()
         {
-            DisplayMortgageMenu();
+            int index = 0;
+            int spacingPerLine = AvailableLiftMortgageList.Max(x => x.Name.Length);
+            int optionsPerLine = AvailableLiftMortgageList.Count / 2;
+            string errorMessage = "";
+
+            bool canLift = false;
+            do
+            {
+                index = ListOptionSelector.GetSelectedOption(AvailableLiftMortgageList.Cast<Square>().ToList(), spacingPerLine, index, errorMessage, optionsPerLine, true);
+                if (index == -1) return;
+
+                errorMessage = "";
+                var selectedSquare = AvailableLiftMortgageList[index];
+
+                if (selectedSquare.IsMortgage) canLift = true;
+                else errorMessage = $"Cannot lift mortgage on {selectedSquare.Name}. It is not mortgage.";
+
+            } while (!canLift);
+            CurrentGame.Transactions.RepayMortgageProperty(Player, AvailableLiftMortgageList[index]);
+            UpdateLists();
+            StayOnCurrentMenu();
         }
     }
 }

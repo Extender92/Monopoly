@@ -117,17 +117,17 @@ namespace Monopoly.Core.Models.Board
             const int hotelThreshold = 5;
             if (Houses == 0)
             {
-                return "there is no house";
+                return "no Houses or Hotels";
             }
             else if (Houses == 1)
             {
-                return "1 house";
+                return "1 House";
             }
             else if (Houses == hotelThreshold)
             {
-                return "1 hotel";
+                return "1 Hotel";
             }
-            return $"{Houses} houses";
+            return $"{Houses} Houses";
         }
     }
 }

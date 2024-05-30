@@ -15,63 +15,92 @@ namespace Monopoly.Core
     internal class Transaction
     {
         // Add a private field to hold the reference to the Game instance
-        private IGame _game;
+        private IGame CurrentGame;
 
         // Constructor to initialize the Game reference
-        public Transaction(IGame game)
+        internal Transaction(IGame game)
         {
-            _game = game;
+            CurrentGame = game;
         }
 
         internal void PlayerGetSalary(Player player)
         {
-            player.Money += _game.Rules.Salary;
-            _game.Logs.CreateLog($"{player.Name} collected salary {_game.Rules.Salary}{_game.Rules.CurrencySymbol}.");
+            player.Money += CurrentGame.Rules.Salary;
+            CurrentGame.Logs.CreateLog($"{player.Name} collected salary {CurrentGame.Rules.Salary}{CurrentGame.Rules.CurrencySymbol}.");
         }
 
-        public bool BuyPurchasableSquare(Player player, Square square)
+        internal bool BuyPurchasableSquare(Player player, Square square)
         {
             if (player.Money >= square.Price)
             {
                 player.Money -= square.Price;
                 square.Owner = player;
-                _game.Logs.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{_game.Rules.CurrencySymbol}.");
+                CurrentGame.Logs.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{CurrentGame.Rules.CurrencySymbol}.");
                 return true;
             }
             return false;
         }
 
-        public bool PayRentFromPlayerToPlayer(Player fromPlayer, int rent, Player toPlayer)
+        internal bool PayRentFromPlayerToPlayer(Player fromPlayer, int rent, Player toPlayer)
         {
             if (fromPlayer.Money >= rent)
             {
                 fromPlayer.Money -= rent;
                 toPlayer.Money += rent;
-                _game.Logs.CreateLog($"{fromPlayer.Name} payed rent {rent}{_game.Rules.CurrencySymbol} to {toPlayer.Name}.");
+                CurrentGame.Logs.CreateLog($"{fromPlayer.Name} payed rent {rent}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
                 return true;
             }
             return false;
         }
 
-        public void MortgageProperty(Player player, Square square)
+        internal void MortgageProperty(Player player, Square square)
         {
             GetMoneyFromBank(player, square.MortgageValue);
             square.IsMortgage = true;
-            _game.Logs.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{_game.Rules.CurrencySymbol}.");
+            CurrentGame.Logs.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{CurrentGame.Rules.CurrencySymbol}.");
         }
 
-        public bool RepayMortgageProperty(Player player, Square square)
+        internal bool RepayMortgageProperty(Player player, Square square)
         {
-            int interestRate = _game.Rules.MortgageInterestRate;
+            int interestRate = CurrentGame.Rules.MortgageInterestRate;
             int sumToPay = (int)(square.MortgageValue * (1 + interestRate / 100.0));
             if (sumToPay <= player.Money)
             {
                 player.Money -= sumToPay;
                 square.IsMortgage = false;
-                _game.Logs.CreateLog($"{player.Name} repayed mortgage {sumToPay}{_game.Rules.CurrencySymbol} for {square.Name}.");
+                CurrentGame.Logs.CreateLog($"{player.Name} repayed mortgage {sumToPay}{CurrentGame.Rules.CurrencySymbol} for {square.Name}.");
                 return true;
             }
             return false;
+        }
+
+        internal bool BuyPropertyHouse(Player player, PropertySquare property)
+        {
+            int sumToPay = (property.Houses == 4 ? property.BuildHotelCost : property.BuildHouseCost);
+            if (property.Houses > 4 || sumToPay > player.Money) return false;
+
+            player.Money -= sumToPay;
+            property.Houses++;
+
+            string purchasedItem = property.Houses == 5 ? "Hotel" : "House";
+            string houseCountStr = property.GetHouseCountAsString();
+            CurrentGame.Logs.CreateLog($"{player.Name} bought a {purchasedItem} for {sumToPay}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
+            return true;
+        }
+
+        internal void SellPropertyHouse(Player player, PropertySquare property)
+        {
+            if (property.Houses <= 0)
+                throw new InvalidOperationException("Cannot sell a house when there are no houses on the property.");
+
+            int sumToGet = (property.Houses == 5 ? property.BuildHotelCost : property.BuildHouseCost) / 2;
+            player.Money += sumToGet;
+
+            string soldItem = property.Houses == 5 ? "Hotel" : "House";
+            property.Houses--;
+
+            string houseCountStr = property.GetHouseCountAsString();
+            CurrentGame.Logs.CreateLog($"{player.Name} sold a {soldItem} for {sumToGet}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
         }
 
         internal void HandleCanBuySquare(Player player, Square square)
@@ -103,7 +132,7 @@ namespace Monopoly.Core
         internal void GetMoneyFromBank(Player player, int sum)
         {
             player.Money += sum;
-            _game.Logs.CreateLog($"{player.Name} collected money from bank {sum}{_game.Rules.CurrencySymbol}.");
+            CurrentGame.Logs.CreateLog($"{player.Name} collected money from bank {sum}{CurrentGame.Rules.CurrencySymbol}.");
         }
 
         internal bool PayTax(Player player, int sum)
@@ -120,12 +149,12 @@ namespace Monopoly.Core
         {
             if (fines <= player.Money)
             {
-                if (_game.Rules.FreeParking == GameRules.Parking.Fines)
+                if (CurrentGame.Rules.FreeParking == GameRules.Parking.Fines)
                 {
-                    _game.Fines += fines;
+                    CurrentGame.Fines += fines;
                 }
                 player.Money -= fines;
-                _game.Logs.CreateLog($"{player.Name} payed fines of {fines}{_game.Rules.CurrencySymbol}.");
+                CurrentGame.Logs.CreateLog($"{player.Name} payed fines of {fines}{CurrentGame.Rules.CurrencySymbol}.");
                 return true;
             }
             return false;

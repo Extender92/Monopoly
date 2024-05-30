@@ -22,6 +22,7 @@ namespace Monopoly.Console
         internal readonly ConsoleCardPrinter CardPrinter;
         internal readonly List<TablePiece> TablePieces;
         internal readonly Input PlayerInput;
+        internal readonly IMenuOptionSelector MenuOptionSelector;
 
         public ConsoleGame(Game game, ConsolePrinter consolePrinter, List<TablePiece> tablePieces, Input input, ConsoleLogPrinter logPrinter, ConsoleCardPrinter cardPrinter)
         {
@@ -31,14 +32,13 @@ namespace Monopoly.Console
             PlayerInput = input;
             LogPrinter = logPrinter;
             CardPrinter = cardPrinter;
+            IMenuOptionSelector MenuOptionSelector = new MenuOptionSelector(new ConsoleWrapper());
         }
 
 
         internal void StartGame()
         {
             ConsolePositions.SetGameBoardMenuPositions();
-            IConsoleWrapper consoleWrapper = new ConsoleWrapper();
-            IMenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
 
             ConsoleEventHandler.SubscribeToEvents(this);
 
@@ -49,7 +49,7 @@ namespace Monopoly.Console
             {
                 foreach (var player in CurrentGame.Players.Where(p => !p.IsBankrupt))
                 {
-                    PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(menu, CurrentGame, player);
+                    PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(MenuOptionSelector, CurrentGame, player);
                     do
                     {
                         Printer.StartPlayerTurnInfo(player, CurrentGame.Players);
