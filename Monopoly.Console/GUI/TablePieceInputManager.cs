@@ -27,9 +27,10 @@ namespace Monopoly.Console.GUI
                 {
                     Console.Clear();
                     tablePiece.Piece = GetUserSelectedPieceKey(playerId, tablePieces);
-                    Console.Write(" You entered: " + tablePiece.Piece);
 
-                    //_console.Write("\n Do you want to continue?");
+                    //Console.Write(" You entered: " + tablePiece.Piece);
+
+                    //Console.Write("\n Do you want to continue?");
                 } while (/*!Input.GetUserConfirmation()*/ false);
 
                 do
@@ -38,7 +39,7 @@ namespace Monopoly.Console.GUI
                     tablePiece.Color = GetUserSelectedColor(playerId, tablePieces);
 
                     //Console.Write("\n You selected color: ");
-                    //ConsolePrinter.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
+                    //Printer.PrintColoredText(tablePiece.Color.ToString(), tablePiece.Color);
 
                     //Console.WriteLine("\n Do you want to continue?");
                 } while (/*!Input.GetUserConfirmation()*/ false);

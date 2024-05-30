@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Monopoly.Console.GUI
 {
@@ -14,20 +13,39 @@ namespace Monopoly.Console.GUI
 
     internal class MenuOptionSelector : IMenuOptionSelector
     {
-        public int StartX { get; set; } = 10;
-        public int StartY { get; set; } = 2;
+        public int StartX { get; set; }
+        public int StartY { get; set; }
 
         private IConsoleWrapper Console { get; set; }
 
         public MenuOptionSelector(IConsoleWrapper consoleWrapper)
         {
             Console = consoleWrapper;
+            SetPositions();
         }
 
         public void SetPositions()
         {
             StartX = ConsolePositions.MenuPosX;
             StartY = ConsolePositions.MenuPosY;
+        }
+
+        public void ClearMenuZone(int length, int height)
+        {
+            if (length <= 0 || height <= 0)
+            {
+                throw new ArgumentException("Length and height must be positive values.");
+            }
+
+            int xMin = (StartX - 10) > 0 ? (StartX - 10) : 0;
+            int xMax = (StartX + length + 10);
+            int width = xMax - xMin;
+
+            for (int i = 0; i < height; i++)
+            {
+                Console.SetPosition(xMin, (StartY + i));
+                Console.Write(new String(' ', width));
+            }
         }
 
         public int GetSelectedOption(List<string> options, int spacingPerLine = 18, int index = 0, int optionsPerLine = 1, bool canCancel = false, ConsoleColor selectColor = ConsoleColor.Red)
@@ -40,6 +58,8 @@ namespace Monopoly.Console.GUI
             ConsoleKey key;
 
             Console.ShowCursor(false);
+
+            ClearMenuZone((spacingPerLine * optionsPerLine), (options.Count / optionsPerLine));
 
             do
             {
@@ -59,7 +79,8 @@ namespace Monopoly.Console.GUI
 
             } while (key != ConsoleKey.Enter);
 
-            //Console.Clear();
+            ClearMenuZone(options.Max(s => s.Length), options.Count);
+
             return index;
         }
     }

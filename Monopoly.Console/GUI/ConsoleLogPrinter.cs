@@ -61,7 +61,7 @@ namespace Monopoly.Console.GUI
             int startIndex = Math.Max(0, LogList.Count - maxAmountOfLogs);
 
             List<string> logStrings = LogList.Count > 0
-                ? Helpers.StringHelper.CreateStringList(LogList
+                ? Utilities.StringHelper.CreateStringList(LogList
                     .Skip(startIndex)
                     .Select(l => l.Info)
                     .ToArray())

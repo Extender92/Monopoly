@@ -20,7 +20,7 @@ namespace Monopoly.Core.Models.Board
         public int RentHotel { get; set; }
         public int BuildHouseCost { get; set; }
         public int BuildHotelCost { get; set; }
-        public int Houses {  get; set; }
+        public int Houses { get; set; }
 
 
         public PropertySquare(ConsoleColor color, string name, int rent, int rentWithColorGroup,
@@ -62,7 +62,7 @@ namespace Monopoly.Core.Models.Board
 
         private void HandleRentPayment(Player player, Game game)
         {
-            int rent = CalculateRent(game.Board.Squares);
+            int rent = CalculateRent(game.Board.GetAllPropertySquares());
 
             while (!game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
             {
@@ -77,7 +77,7 @@ namespace Monopoly.Core.Models.Board
             }
         }
 
-        private int CalculateRent(List<Square> squares)
+        private int CalculateRent(List<PropertySquare> propertySquares)
         {
             switch (Houses)
             {
@@ -96,7 +96,7 @@ namespace Monopoly.Core.Models.Board
                 case 5:
                     return RentHotel;
 
-                case 0 when OwnerHasColorGroup(squares):
+                case 0 when OwnerHasColorGroup(propertySquares):
                     return RentWithColorGroup;
 
                 default:
@@ -104,10 +104,9 @@ namespace Monopoly.Core.Models.Board
             }
         }
 
-        private bool OwnerHasColorGroup(List<Square> squares)
+        internal bool OwnerHasColorGroup(List<PropertySquare> propertySquares)
         {
-            var propertiesInColorGroup = squares
-                .OfType<PropertySquare>()
+            var propertiesInColorGroup = propertySquares
                 .Where(property => property.Color == Color);
 
             return propertiesInColorGroup.All(property => property.Owner == Owner);
@@ -118,17 +117,17 @@ namespace Monopoly.Core.Models.Board
             const int hotelThreshold = 5;
             if (Houses == 0)
             {
-                return "there is no house";
+                return "no Houses or Hotels";
             }
             else if (Houses == 1)
             {
-                return "1 house";
+                return "1 House";
             }
             else if (Houses == hotelThreshold)
             {
-                return "1 hotel";
+                return "1 Hotel";
             }
-            return $"{Houses} houses";
+            return $"{Houses} Houses";
         }
     }
 }

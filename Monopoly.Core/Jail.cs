@@ -60,7 +60,7 @@ namespace Monopoly.Core
         private bool ValidatePlayerInJail(Player player)
         {
             if (!playersInJail.ContainsKey(player))
-                throw new InvalidOperationException($"{player.Name} is not in jail!");
+                return false;
             else return true;
         }
 

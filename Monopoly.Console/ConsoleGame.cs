@@ -16,12 +16,13 @@ namespace Monopoly.Console
 {
     internal class ConsoleGame
     {
-        internal Game CurrentGame;
-        internal ConsolePrinter Printer { get; set; }
-        internal ConsoleLogPrinter LogPrinter { get; set; }
-        internal ConsoleCardPrinter CardPrinter { get; set; }
-        internal List<TablePiece> TablePieces { get; set; }
-        internal Input PlayerInput { get; set; }
+        internal readonly Game CurrentGame;
+        internal readonly ConsolePrinter Printer;
+        internal readonly ConsoleLogPrinter LogPrinter;
+        internal readonly ConsoleCardPrinter CardPrinter;
+        internal readonly List<TablePiece> TablePieces;
+        internal readonly Input PlayerInput;
+        internal readonly IMenuOptionSelector MenuOptionSelector;
 
         public ConsoleGame(Game game, ConsolePrinter consolePrinter, List<TablePiece> tablePieces, Input input, ConsoleLogPrinter logPrinter, ConsoleCardPrinter cardPrinter)
         {
@@ -31,11 +32,14 @@ namespace Monopoly.Console
             PlayerInput = input;
             LogPrinter = logPrinter;
             CardPrinter = cardPrinter;
+            IMenuOptionSelector MenuOptionSelector = new MenuOptionSelector(new ConsoleWrapper());
         }
 
 
         internal void StartGame()
         {
+            ConsolePositions.SetGameBoardMenuPositions();
+
             ConsoleEventHandler.SubscribeToEvents(this);
 
             System.Console.Clear();
@@ -45,17 +49,15 @@ namespace Monopoly.Console
             {
                 foreach (var player in CurrentGame.Players.Where(p => !p.IsBankrupt))
                 {
+                    PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(MenuOptionSelector, CurrentGame, player);
                     do
                     {
                         Printer.StartPlayerTurnInfo(player, CurrentGame.Players);
+                        PlayerActionMenu.DisplayPlayerActionMainMenu();
 
                         if (CurrentGame.TheJail.IsPlayerInJail(player))
                         {
                             CurrentGame.PlayerTakeTurnInJail(player);
-                        }
-                        else
-                        {
-                            CurrentGame.Handler.RoleDiceAndMovePlayer(player);
                         }
 
                         Square landedSquare = CurrentGame.Board.GetSquareAtPosition(player.Position);
