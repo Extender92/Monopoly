@@ -9,6 +9,6 @@ namespace Monopoly.Core.Models.FortuneCard
     internal interface ICommunityChestCard
     {
         string Info { get; }
-        void ExecuteEffect(Player player);
+        void ExecuteEffect(Player player, Game game);
     }
 }

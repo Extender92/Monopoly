@@ -83,6 +83,7 @@ namespace Monopoly.Core.Data
                     new USChanceCard("Advance to Illinois Avenue. If you pass Go, collect $200", USChanceCard.USChanceCardType.AdvanceToIllinoisAvenue),
                     new USChanceCard("Advance to St. Charles Place. If you pass Go, collect $200", USChanceCard.USChanceCardType.AdvanceToStCharlesPlace),
                     new USChanceCard("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental to which they are otherwise entitled", USChanceCard.USChanceCardType.AdvanceToNearestRailroad),
+                    new USChanceCard("Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental to which they are otherwise entitled", USChanceCard.USChanceCardType.AdvanceToNearestRailroad),
                     new USChanceCard("Advance token to nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total ten times the amount thrown", USChanceCard.USChanceCardType.AdvanceToNearestUtility),
                     new USChanceCard("Bank pays you a dividend of $50", USChanceCard.USChanceCardType.BankPaysDividend),
                     new USChanceCard("Get Out of Jail Free", USChanceCard.USChanceCardType.GetOutOfJailFree),
@@ -111,7 +112,7 @@ namespace Monopoly.Core.Data
             if (gameRules.GameLanguage == GameRules.Language.UK)
             {
                 data = new List<ICommunityChestCard> {
-                    new UKCommunityChestCard("Advance to Go (Collect £200)", UKCommunityChestCard.UKCommunityChestCardType.AdvanceToGo),
+                    new UKCommunityChestCard("Advance to Go (Collect 200)", UKCommunityChestCard.UKCommunityChestCardType.AdvanceToGo),
                     new UKCommunityChestCard("Bank error in your favour. Collect £200", UKCommunityChestCard.UKCommunityChestCardType.BankErrorInYourFavour),
                     new UKCommunityChestCard("Doctor’s fee. Pay £50", UKCommunityChestCard.UKCommunityChestCardType.DoctorsFee),
                     new UKCommunityChestCard("From sale of stock you get £50", UKCommunityChestCard.UKCommunityChestCardType.FromSaleOfStock),
@@ -313,7 +314,7 @@ namespace Monopoly.Core.Data
                 railroadSquares.Add(new RailroadSquare(25, "Fenchurch Street Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
                 railroadSquares.Add(new RailroadSquare(35, "Liverpool Street Station", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
             }
-            else if(gameRules.GameLanguage == GameRules.Language.US)
+            else if (gameRules.GameLanguage == GameRules.Language.US)
             {
                 railroadSquares.Add(new RailroadSquare(5, "Reading Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));
                 railroadSquares.Add(new RailroadSquare(15, "Pennsylvania Railroad", price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue));

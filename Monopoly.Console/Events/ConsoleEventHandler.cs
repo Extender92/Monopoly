@@ -3,6 +3,7 @@ using Monopoly.Core;
 using Monopoly.Core.Events;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Models.FortuneCard;
 using System.Numerics;
 using System.Reflection;
 
@@ -18,7 +19,9 @@ namespace Monopoly.Console.Events
             GameEvents.PlayerInsufficientFunds += HandlePlayerInsufficientFunds;
             GameEvents.AskPlayerToBuyPurchasableSquare += HandleAskIfPlayerWantsBuyPurchasableSquare;
             GameEvents.AskPlayerToBuyOutOfJail += HandleAskPlayerToBuyOutOfJail;
-            GameEvents.LogAdded += LogHandler_LogAdded;
+            GameEvents.LogAdded += LogAdded;
+            GameEvents.ChanceCardDrawn += DrawChanceCard;
+            GameEvents.CommunityChestCardDrawn += DrawCommunityChestCard;
         }
 
         private static void HandlePlayerInsufficientFunds(object sender, PlayerEventArgs e)
@@ -27,7 +30,7 @@ namespace Monopoly.Console.Events
             int targetSum = e.TargetSum;
             string message = $"{player.Name} you dont have enough money, you need {targetSum}{_consoleGame.CurrentGame.Rules.CurrencySymbol}";
             _consoleGame.Printer.PrintText(message);
-            new PlayerActionMenu(_consoleGame.MenuOptionSelector, _consoleGame.CurrentGame, player).DisplayPlayerActionRealEstateMenu();
+            new PlayerActionMenu(_consoleGame.CurrentGame, player).DisplayPlayerActionRealEstateMenu();
         }
 
         private static bool HandleAskIfPlayerWantsBuyPurchasableSquare(object sender, SquareEventArgs e)
@@ -46,10 +49,22 @@ namespace Monopoly.Console.Events
             return _consoleGame.PlayerInput.GetUserConfirmation();
         }
 
-        private static void LogHandler_LogAdded(object sender, LogEventArgs e)
+        private static void LogAdded(object sender, LogEventArgs e)
         {
             // Print the newest logs when a new log is added
             _consoleGame.LogPrinter.PrintNewestLogs(10, e.LogList);
+        }
+
+        private static void DrawChanceCard(object sender, DrawChanceCardArgs e)
+        {
+            int position = _consoleGame.CurrentGame.CurrentPlayer.Position;
+            _consoleGame.CardPrinter.PrepareAndPrintSquareCard(position, e.ChanceCard);
+        }
+
+        private static void DrawCommunityChestCard(object sender, DrawCommunityChestCardArgs e)
+        {
+            int position = _consoleGame.CurrentGame.CurrentPlayer.Position;
+            _consoleGame.CardPrinter.PrepareAndPrintSquareCard(position, null, e.CommunityChestCard);
         }
     }
 }

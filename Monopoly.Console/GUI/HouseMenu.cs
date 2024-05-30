@@ -29,6 +29,7 @@ namespace Monopoly.Console.GUI
             ListOptionSelector = new ListOptionSelector();
             CurrentGame = game;
             Player = player;
+            UpdateLists();
         }
 
         public void UpdateLists()
@@ -90,7 +91,7 @@ namespace Monopoly.Console.GUI
                     StayOnCurrentMenu();
                     break;
                 case HouseMenuOptions.BackToRealEstateMenu:
-                    new PlayerActionMenu(MenuOptionSelector, CurrentGame, Player).DisplayPlayerActionRealEstateMenu();
+                    new PlayerActionMenu(CurrentGame, Player).DisplayPlayerActionRealEstateMenu();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");

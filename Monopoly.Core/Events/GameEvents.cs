@@ -1,6 +1,7 @@
 ﻿using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Models.FortuneCard;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,8 @@ namespace Monopoly.Core.Events
         public static event PlayerEventHandler AskPlayerToBuyOutOfJail;
         public static event SquareEventHandler AskPlayerToBuyPurchasableSquare;
         public static event EventHandler<LogEventArgs> LogAdded;
+        public static event EventHandler<DrawChanceCardArgs> ChanceCardDrawn;
+        public static event EventHandler<DrawCommunityChestCardArgs> CommunityChestCardDrawn;
 
 
         public static bool InvokeAskPlayerToBuyPurchasableSquare(object sender, SquareEventArgs e)
@@ -37,6 +40,16 @@ namespace Monopoly.Core.Events
         public static void InvokeLogAdded(object sender, List<Log> logInfo)
         {
             LogAdded?.Invoke(sender, new LogEventArgs(logInfo));
+        }
+
+        public static void InvokeDrawChanceCard(object sender, IChanceCard chanceCard)
+        {
+            ChanceCardDrawn?.Invoke(sender, new DrawChanceCardArgs(chanceCard));
+        }
+
+        public static void InvokeDrawCommunityChestCard(object sender, ICommunityChestCard communityChest)
+        {
+            CommunityChestCardDrawn?.Invoke(sender, new DrawCommunityChestCardArgs(communityChest));
         }
     }
 }

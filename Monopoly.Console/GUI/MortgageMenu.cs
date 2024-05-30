@@ -92,7 +92,7 @@ namespace Monopoly.Console.GUI
                     StayOnCurrentMenu();
                     break;
                 case MortgageMenuOptions.BackToRealEstateMenu:
-                    new PlayerActionMenu(MenuOptionSelector, CurrentGame, Player).DisplayPlayerActionRealEstateMenu();
+                    new PlayerActionMenu(CurrentGame, Player).DisplayPlayerActionRealEstateMenu();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");
