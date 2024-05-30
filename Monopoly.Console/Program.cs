@@ -4,6 +4,7 @@ using Monopoly.Core;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.SaveAndLoad;
 using System;
 using System.Runtime.InteropServices;
 
@@ -43,6 +44,35 @@ namespace Monopoly.Console
             ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game.Board.Squares, gameRules);
 
             ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter);
+
+            consoleGame.StartConsoleGame();
+        }
+
+        internal static void LoadGame()
+        {
+            IConsoleWrapper consoleWrapper = new ConsoleWrapper();
+
+            GameRules gameRules = new GameRules(2, 2, 2);
+
+            Game game = CoreGameSetup.Setup(gameRules);
+
+            ConsolePrinter consolePrinter = new ConsolePrinter(consoleWrapper, game.Board.Squares, gameRules);
+
+            TablePieceInputManager PieceInput = new TablePieceInputManager(consoleWrapper, consolePrinter);
+
+            ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules, PieceInput);
+
+            IMenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
+
+            Input input = new Input(consoleWrapper, menu);
+
+            ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
+
+            ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game.Board.Squares, gameRules);
+
+            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter);
+
+            LoadCoreData.LoadData(consoleGame.CurrentGame);
 
             consoleGame.StartConsoleGame();
         }

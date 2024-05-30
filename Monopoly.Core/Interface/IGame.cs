@@ -15,12 +15,14 @@ namespace Monopoly.Core.Interface
         ILogHandler Logs { get; set; }
         GameBoard Board { get; set; }
         List<Player> Players { get; set; }
+        Player CurrentPlayer { get; set; }
         List<IDie> Dice { get; set; }
         GameRules Rules { get; set; }
         Transaction Transactions { get; set; }
         Jail TheJail { get; set; }
         FortuneCardHandler FortuneCard { get; set; }
         int Fines { get; set; }
+        int CurrentTurn { get; set; }
 
         void NextPlayer();
         void RemovePlayer(Player player);
