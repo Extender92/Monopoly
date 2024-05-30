@@ -18,6 +18,7 @@ namespace Monopoly.Core
         public ILogHandler Logs { get; set; }
         public GameBoard Board { get; set; }
         public List<Player> Players { get; set; }
+        public Player CurrentPlayer { get; set; }
         public List<IDie> Dice { get; set; }
         public GameRules Rules { get; set; }
         public Transaction Transactions { get; set; }

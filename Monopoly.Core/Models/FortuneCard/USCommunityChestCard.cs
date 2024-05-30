@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Monopoly.Core.Events;
+using Monopoly.Core.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,63 +19,171 @@ namespace Monopoly.Core.Models.FortuneCard
             CardType = cardType;
         }
 
-        public void ExecuteEffect(Player player)
+        public void ExecuteEffect(Player player, Game game)
         {
             // Implement logic specific to the US version
             switch (CardType)
             {
                 case USCommunityChestCardType.AdvanceToGo:
-                    // Logic for Advance to Go
+                    AdvanceToGo(player, game);
                     break;
                 case USCommunityChestCardType.BankErrorInYourFavour:
-                    // Logic for Bank error in your favor
+                    BankErrorInYourFavour(player, game);
                     break;
                 case USCommunityChestCardType.DoctorsFee:
-                    // Logic for Doctor’s fee
+                    DoctorsFee(player, game);
                     break;
                 case USCommunityChestCardType.FromSaleOfStock:
-                    // Logic for From sale of stock you get
+                    FromSaleOfStock(player, game);
                     break;
                 case USCommunityChestCardType.GetOutOfJailFree:
-                    // Logic for Get Out of Jail Free
+                    GetOutOfJailFree(player, game);
                     break;
                 case USCommunityChestCardType.GoToJail:
-                    // Logic for Go to Jail
+                    GoToJail(player, game);
                     break;
                 case USCommunityChestCardType.HolidayFundMatures:
-                    // Logic for Holiday fund matures
+                    HolidayFundMatures(player, game);
                     break;
                 case USCommunityChestCardType.IncomeTaxRefund:
-                    // Logic for Income tax refund
+                    IncomeTaxRefund(player, game);
                     break;
                 case USCommunityChestCardType.ItIsYourBirthday:
-                    // Logic for It is your birthday
+                    ItIsYourBirthday(player, game);
                     break;
                 case USCommunityChestCardType.LifeInsuranceMatures:
-                    // Logic for Life insurance matures
+                    LifeInsuranceMatures(player, game);
                     break;
                 case USCommunityChestCardType.PayHospitalFees:
-                    // Logic for Pay hospital fees
+                    PayHospitalFees(player, game);
                     break;
                 case USCommunityChestCardType.PaySchoolFees:
-                    // Logic for Pay school fees
+                    PaySchoolFees(player, game);
                     break;
                 case USCommunityChestCardType.ReceiveConsultancyFee:
-                    // Logic for Receive $25 consultancy fee
+                    ReceiveConsultancyFee(player, game);
                     break;
                 case USCommunityChestCardType.AssessedForStreetRepairs:
-                    // Logic for You are assessed for street repairs
+                    AssessedForStreetRepairs(player, game);
                     break;
                 case USCommunityChestCardType.WonSecondPrizeInBeautyContest:
-                    // Logic for You have won second prize in a beauty contest
+                    WonSecondPrizeInBeautyContest(player, game);
                     break;
                 case USCommunityChestCardType.Inherit:
-                    // Logic for You inherit $100
+                    Inherit(player, game);
                     break;
                 default:
                     // Handle any default case or unrecognized card types
                     break;
             }
+        }
+
+        private void AdvanceToGo(Player player, Game game)
+        {
+            player.Position = 0;
+            game.Transactions.PlayerGetSalary(player);
+            var square = game.Board.GetSquareAtPosition(player.Position);
+            square.LandOn(player, game);
+        }
+
+        private void BankErrorInYourFavour(Player player, Game game)
+        {
+            game.Transactions.GetMoneyFromBank(player, 200);
+        }
+
+        private void DoctorsFee(Player player, Game game)
+        {
+            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, 50)) return;
+            game.Transactions.PayFines(player, 50);
+        }
+
+        private void FromSaleOfStock(Player player, Game game)
+        {
+            game.Transactions.GetMoneyFromBank(player, 50);
+        }
+
+        private void GetOutOfJailFree(Player player, Game game)
+        {
+            player.NumberOfGetOutOFJailCards++;
+        }
+
+        private void GoToJail(Player player, Game game)
+        {
+            game.TheJail.PlayerGoToJail(player);
+        }
+
+        private void HolidayFundMatures(Player player, Game game)
+        {
+            game.Transactions.GetMoneyFromBank(player, 100);
+        }
+
+        private void IncomeTaxRefund(Player player, Game game)
+        {
+            game.Transactions.GetMoneyFromBank(player, 20);
+        }
+
+        private void ItIsYourBirthday(Player player, Game game)
+        {
+            foreach (var gamePlayer in game.Players)
+            {
+                if (player != gamePlayer)
+                {
+                    if (!game.Handler.IsPlayerBankrupt(player, 10))
+                        GameEvents.InvokePlayerInsufficientFunds(player, 10);
+                    else player.Money += game.Handler.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
+                    game.Transactions.PayPlayerFromPlayer(gamePlayer, 10, player);
+                }
+            }
+        }
+
+        private void LifeInsuranceMatures(Player player, Game game)
+        {
+            game.Transactions.GetMoneyFromBank(player, 100);
+        }
+
+        private void PayHospitalFees(Player player, Game game)
+        {
+            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, 100)) return;
+            game.Transactions.PayFines(player, 100);
+        }
+
+        private void PaySchoolFees(Player player, Game game)
+        {
+            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, 50)) return;
+            game.Transactions.PayFines(player, 50);
+        }
+
+        private void ReceiveConsultancyFee(Player player, Game game)
+        {
+            game.Transactions.GetMoneyFromBank(player, 25);
+        }
+
+        private void AssessedForStreetRepairs(Player player, Game game)
+        {
+            int houses = 0;
+            int hotels = 0;
+            var propertiesWithHousesList = game.Board.GetAllPropertySquaresPlayerCanSellHousesIn(player);
+
+            foreach (var property in propertiesWithHousesList)
+            {
+                if (property.Houses == 5) hotels++;
+                else if (property.Houses > 0) houses += property.Houses;
+            }
+
+            int sumToPay = (houses * 40) + (hotels * 115);
+
+            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, sumToPay)) return;
+            game.Transactions.PayMoneyToBank(player, sumToPay);
+        }
+
+        private void WonSecondPrizeInBeautyContest(Player player, Game game)
+        {
+            game.Transactions.GetMoneyFromBank(player, 10);
+        }
+
+        private void Inherit(Player player, Game game)
+        {
+            game.Transactions.GetMoneyFromBank(player, 100);
         }
 
         public enum USCommunityChestCardType

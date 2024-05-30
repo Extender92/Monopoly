@@ -9,13 +9,13 @@ namespace Monopoly.Core.Models.Board
 {
     internal class RailroadSquare : Square
     {
-        public int RentOneStation {  get; set; }
-        public int RentTwoStation {  get; set; }
-        public int RentThreeStation {  get; set; }
-        public int RentFourStation {  get; set; }
+        public int RentOneStation { get; set; }
+        public int RentTwoStation { get; set; }
+        public int RentThreeStation { get; set; }
+        public int RentFourStation { get; set; }
 
 
-        public RailroadSquare(int position, string name, int price, int rentOneStation , int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
+        public RailroadSquare(int position, string name, int price, int rentOneStation, int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
         {
             Position = position;
             Name = name;
@@ -29,6 +29,11 @@ namespace Monopoly.Core.Models.Board
 
         public override void LandOn(Player player, Game game)
         {
+            LandOn(player, game, false);
+        }
+
+        public void LandOn(Player player, Game game, bool doubleRent = false)
+        {
             if (Owner == null)
             {
                 if (game.Handler.CanAffordWithAssets(player, Price))
@@ -38,13 +43,14 @@ namespace Monopoly.Core.Models.Board
             }
             else if (!IsMortgage)
             {
-                HandleRentPayment(player, game);
+                HandleRentPayment(player, game, doubleRent);
             }
         }
 
-        private void HandleRentPayment(Player player, Game game)
+        private void HandleRentPayment(Player player, Game game, bool doubleRent = false)
         {
             int rent = CalculateRent(game.Board.Squares);
+            if (doubleRent) rent *= 2;
 
             while (!game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
             {

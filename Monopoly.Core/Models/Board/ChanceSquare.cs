@@ -1,4 +1,5 @@
-﻿using Monopoly.Core.Models.FortuneCard;
+﻿using Monopoly.Core.Events;
+using Monopoly.Core.Models.FortuneCard;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,8 @@ namespace Monopoly.Core.Models.Board
         public override void LandOn(Player player, Game game)
         {
             IChanceCard chanceCard = game.FortuneCard.DrawNextChanceCard();
-            chanceCard.ExecuteEffect(player);
+            GameEvents.InvokeDrawChanceCard(this, chanceCard);
+            chanceCard.ExecuteEffect(player, game);
         }
     }
 }

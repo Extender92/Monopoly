@@ -13,9 +13,9 @@ namespace Monopoly.Console.GUI
         private readonly IMenuOptionSelector MenuOptionSelector;
         private readonly Player Player;
 
-        public PlayerActionMenu(IMenuOptionSelector menuOptionSelector, IGame game, Player player)
+        public PlayerActionMenu(IGame game, Player player)
         {
-            MenuOptionSelector = menuOptionSelector;
+            MenuOptionSelector = new MenuOptionSelector(new ConsoleWrapper());
             CurrentGame = game;
             Player = player;
         }

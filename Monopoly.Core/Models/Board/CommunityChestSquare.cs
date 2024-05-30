@@ -1,4 +1,5 @@
-﻿using Monopoly.Core.Models.FortuneCard;
+﻿using Monopoly.Core.Events;
+using Monopoly.Core.Models.FortuneCard;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,8 @@ namespace Monopoly.Core.Models.Board
         public override void LandOn(Player player, Game game)
         {
             ICommunityChestCard communityChestCard = game.FortuneCard.DrawNextCommunityChestCard();
-            communityChestCard.ExecuteEffect(player);
+            GameEvents.InvokeDrawCommunityChestCard(this, communityChestCard);
+            communityChestCard.ExecuteEffect(player, game);
         }
     }
 }

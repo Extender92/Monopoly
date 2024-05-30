@@ -53,6 +53,18 @@ namespace Monopoly.Core
             return false;
         }
 
+        internal bool PayPlayerFromPlayer(Player fromPlayer, int sumToPay, Player toPlayer)
+        {
+            if (fromPlayer.Money >= sumToPay)
+            {
+                fromPlayer.Money -= sumToPay;
+                toPlayer.Money += sumToPay;
+                CurrentGame.Logs.CreateLog($"{fromPlayer.Name} payed {sumToPay}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
+                return true;
+            }
+            return false;
+        }
+
         internal void MortgageProperty(Player player, Square square)
         {
             GetMoneyFromBank(player, square.MortgageValue);
@@ -133,6 +145,13 @@ namespace Monopoly.Core
         {
             player.Money += sum;
             CurrentGame.Logs.CreateLog($"{player.Name} collected money from bank {sum}{CurrentGame.Rules.CurrencySymbol}.");
+        }
+
+        internal void PayMoneyToBank(Player player, int sum)
+        {
+            if (sum < 0) return;
+            player.Money -= sum;
+            CurrentGame.Logs.CreateLog($"{player.Name} payed {sum}{CurrentGame.Rules.CurrencySymbol} to the Bank.");
         }
 
         internal bool PayTax(Player player, int sum)

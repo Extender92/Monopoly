@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 using Monopoly.Core.Interface;
+using Monopoly.Core.Events;
+using System.ComponentModel.Design;
 
 namespace Monopoly.Core
 {
@@ -165,6 +167,23 @@ namespace Monopoly.Core
             }
 
             return value;
+        }
+
+        internal bool IfPlayerCantPayInvokeOrBankrupt(Player player, int sum)
+        {
+            while ((sum > 0) && (!(player.Money > sum)))
+            {
+                if (CurrentGame.Handler.CanAffordWithAssets(player, sum))
+                {
+                    GameEvents.InvokePlayerInsufficientFunds(player, sum);
+                }
+                else if (CurrentGame.Handler.IsPlayerBankrupt(player, sum))
+                {
+                    CurrentGame.Handler.HandlePlayerBankruptcy(player);
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
