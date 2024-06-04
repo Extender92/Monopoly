@@ -55,6 +55,8 @@ namespace Monopoly.Console
 
                 CurrentGame.PlayerTakeTurn();
 
+                UpdateGameInformation(CurrentGame.Board.GetSquareAtPosition(CurrentGame.CurrentPlayer.Position), CurrentGame.CurrentPlayer); // Will be removed after update
+
                 Printer.EndPlayerTurnInfo(CurrentGame.CurrentPlayer, CurrentGame.Players);
 
                 CurrentGame.NextPlayer();
