@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Events
 {
-    internal class DrawCommunityChestCardArgs
+    internal class DrawCommunityChestCardArgs : EventArgs
     {
-        public ICommunityChestCard CommunityChestCard { get; set; }
+        public ICommunityChestCard CommunityChestCard { get; }
 
         public DrawCommunityChestCardArgs(ICommunityChestCard communityChestCard)
         {

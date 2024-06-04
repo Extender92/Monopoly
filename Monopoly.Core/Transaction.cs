@@ -121,7 +121,7 @@ namespace Monopoly.Core
             {
                 BuyPurchasableSquare(player, square);
             }
-            else if (GameEvents.InvokeAskPlayerToBuyPurchasableSquare(square, new SquareEventArgs(square)))
+            else if (GameEvents.InvokeAskPlayerToBuyPurchasableSquare(this, square))
             {
                 BuyPurchasableSquare(player, square);
             }
@@ -131,12 +131,12 @@ namespace Monopoly.Core
         {
             while (square.Price > player.Money)
             {
-                if (!GameEvents.InvokeAskPlayerToBuyPurchasableSquare(square, new SquareEventArgs(square)))
+                if (!GameEvents.InvokeAskPlayerToBuyPurchasableSquare(this, square))
                 {
                     return false;
                 }
                 // Event to tell the player they can't afford and ask if they want to manage properties to afford
-                GameEvents.InvokePlayerInsufficientFunds(player, square.Price);
+                GameEvents.InvokePlayerInsufficientFunds(this, player, square.Price);
             }
             return true;
         }

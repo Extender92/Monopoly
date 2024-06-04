@@ -175,7 +175,7 @@ namespace Monopoly.Core
             {
                 if (CurrentGame.Handler.CanAffordWithAssets(player, sum))
                 {
-                    GameEvents.InvokePlayerInsufficientFunds(player, sum);
+                    GameEvents.InvokePlayerInsufficientFunds(this, player, sum);
                 }
                 else if (CurrentGame.Handler.IsPlayerBankrupt(player, sum))
                 {

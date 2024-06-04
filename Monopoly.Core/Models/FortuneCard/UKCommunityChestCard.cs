@@ -130,7 +130,7 @@ namespace Monopoly.Core.Models.FortuneCard
                 if (player != gamePlayer)
                 {
                     if (!game.Handler.IsPlayerBankrupt(player, 10))
-                        GameEvents.InvokePlayerInsufficientFunds(player, 10);
+                        GameEvents.InvokePlayerInsufficientFunds(this, player, 10);
                     else player.Money += game.Handler.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
                     game.Transactions.PayPlayerFromPlayer(gamePlayer, 10, player);
                 }

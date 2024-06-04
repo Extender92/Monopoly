@@ -77,6 +77,7 @@ namespace Monopoly.Core
             }
 
             Square landedSquare = Board.GetSquareAtPosition(CurrentPlayer.Position);
+            GameEvents.InvokeLandOnSquare(this, landedSquare);
             landedSquare.LandOn(CurrentPlayer, this);
             if (TheJail.IsPlayerInJail(CurrentPlayer)) return;
 

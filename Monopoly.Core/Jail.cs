@@ -68,7 +68,7 @@ namespace Monopoly.Core
         {
             IsPlayerInJail(player);
             return player.NumberOfGetOutOFJailCards > 0 || CurrentGame.Handler.CanAffordWithAssets(player, CurrentGame.Rules.JailFine)
-                ? GameEvents.InvokeAskPlayerToBuyOutOfJail(player, new PlayerEventArgs(player))
+                ? GameEvents.InvokeAskPlayerToBuyOutOfJail(this, player)
                 : false;
         }
 
@@ -115,7 +115,7 @@ namespace Monopoly.Core
             {
                 while (!CurrentGame.Transactions.PayFines(player, CurrentGame.Rules.JailFine))
                 {
-                    GameEvents.InvokePlayerInsufficientFunds(player, CurrentGame.Rules.JailFine);
+                    GameEvents.InvokePlayerInsufficientFunds(this, player, CurrentGame.Rules.JailFine);
                 }
                 reason = $", {player.Name} paid the fine to get out of jail";
             }

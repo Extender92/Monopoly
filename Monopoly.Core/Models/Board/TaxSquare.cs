@@ -27,7 +27,7 @@ namespace Monopoly.Core.Models.Board
                     return;
                 }
 
-                GameEvents.InvokePlayerInsufficientFunds(player, Price);
+                GameEvents.InvokePlayerInsufficientFunds(this, player, Price);
             }
         }
     }

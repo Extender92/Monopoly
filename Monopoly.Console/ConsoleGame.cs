@@ -59,6 +59,7 @@ namespace Monopoly.Console
 
                 Printer.EndPlayerTurnInfo(CurrentGame.CurrentPlayer, CurrentGame.Players);
 
+                Printer.Console.Clear();
                 CurrentGame.NextPlayer();
             }
         }
@@ -113,7 +114,7 @@ namespace Monopoly.Console
 
         private void UpdateGameInformation(Square landedSquare, Player player)
         {
-            Printer.Console.Clear();
+            
             Printer.PrintGameBoard(TablePieces, CurrentGame.Players);
             Printer.DisplayPlayersInformation(player, CurrentGame.Players);
             CardPrinter.PrepareAndPrintSquareCard(landedSquare.Position);
