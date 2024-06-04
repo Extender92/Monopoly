@@ -168,7 +168,7 @@ namespace Monopoly.Tests.CoreTests
             player.NumberOfGetOutOFJailCards = 1;
 
             bool eventResult = true;
-            GameEvents.AskPlayerToBuyOutOfJail += (sender, args) => eventResult;
+            GameEvents.AskPlayerToBuyOutOfJailEvent += (sender, args) => eventResult;
 
             // Act
             var result = jail.TryPlayerBuyOut(player);
@@ -201,7 +201,7 @@ namespace Monopoly.Tests.CoreTests
             player.Money = rules.JailFine;
 
             bool eventResult = true;
-            GameEvents.AskPlayerToBuyOutOfJail += (sender, args) => eventResult;
+            GameEvents.AskPlayerToBuyOutOfJailEvent += (sender, args) => eventResult;
 
             // Act
             var result = jail.TryPlayerBuyOut(player);
@@ -235,7 +235,7 @@ namespace Monopoly.Tests.CoreTests
             player.Money = 0;
 
             bool eventResult = true;
-            GameEvents.AskPlayerToBuyOutOfJail += (sender, args) => eventResult;
+            GameEvents.AskPlayerToBuyOutOfJailEvent += (sender, args) => eventResult;
 
             // Act
             var result = jail.TryPlayerBuyOut(player);
@@ -268,7 +268,7 @@ namespace Monopoly.Tests.CoreTests
             player.Money = 0;
 
             bool eventResult = true;
-            GameEvents.AskPlayerToBuyOutOfJail += (sender, args) => eventResult;
+            GameEvents.AskPlayerToBuyOutOfJailEvent += (sender, args) => eventResult;
 
             // Act
             var result = jail.TryPlayerBuyOut(player);
@@ -541,7 +541,7 @@ namespace Monopoly.Tests.CoreTests
 
 
             var eventRaised = false;
-            GameEvents.PlayerInsufficientFunds += (sender, args) =>
+            GameEvents.PlayerInsufficientFundsEvent += (sender, args) =>
             {
                 eventRaised = true;
                 player.Money += rules.JailFine;
