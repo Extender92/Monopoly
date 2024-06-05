@@ -37,8 +37,12 @@ namespace Monopoly.Tests.CoreTests
             player.Position = 0;
             var gameMock = new Mock<IGame>();
             var logsMock = new Mock<ILogHandler>();
+            var gameHandler = new GameHandler(gameMock.Object);
+            var board = new GameBoard(new GameRules(2, 2, 6));
 
             gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
+            gameMock.Setup(g => g.Handler).Returns(gameHandler);
+            gameMock.Setup(g => g.Board).Returns(board);
 
             int jailPosition = 9;
             Jail jail = new Jail(gameMock.Object, jailPosition);
@@ -81,8 +85,12 @@ namespace Monopoly.Tests.CoreTests
             Player player = new Player("player", 0);
             var gameMock = new Mock<IGame>();
             var logsMock = new Mock<ILogHandler>();
+            var gameHandler = new GameHandler(gameMock.Object);
+            var board = new GameBoard(new GameRules(2, 2, 6));
 
             gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
+            gameMock.Setup(g => g.Handler).Returns(gameHandler);
+            gameMock.Setup(g => g.Board).Returns(board);
 
             var testReason = "testReason";
             Jail jail = new Jail(gameMock.Object, 0);
@@ -140,7 +148,12 @@ namespace Monopoly.Tests.CoreTests
             var gameMock = new Mock<IGame>();
             Jail jail = new Jail(gameMock.Object, 0);
             var logsMock = new Mock<ILogHandler>();
+            var gameHandler = new GameHandler(gameMock.Object);
+            var board = new GameBoard(new GameRules(2, 2, 6));
+
             gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
+            gameMock.Setup(g => g.Handler).Returns(gameHandler);
+            gameMock.Setup(g => g.Board).Returns(board);
 
             jail.PlayerGoToJail(player);
 
@@ -158,9 +171,12 @@ namespace Monopoly.Tests.CoreTests
             Player player = new Player("player", 0);
             var gameMock = new Mock<IGame>();
             var logsMock = new Mock<ILogHandler>();
+            var gameHandler = new GameHandler(gameMock.Object);
+            var board = new GameBoard(new GameRules(2, 2, 6));
 
-            // Set up necessary mocks
             gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
+            gameMock.Setup(g => g.Handler).Returns(gameHandler);
+            gameMock.Setup(g => g.Board).Returns(board);
 
             Jail jail = new Jail(gameMock.Object, 0);
             jail.PlayerGoToJail(player);
@@ -168,7 +184,7 @@ namespace Monopoly.Tests.CoreTests
             player.NumberOfGetOutOFJailCards = 1;
 
             bool eventResult = true;
-            GameEvents.AskPlayerToBuyOutOfJail += (sender, args) => eventResult;
+            GameEvents.AskPlayerToBuyOutOfJailEvent += (sender, args) => eventResult;
 
             // Act
             var result = jail.TryPlayerBuyOut(player);
@@ -201,7 +217,7 @@ namespace Monopoly.Tests.CoreTests
             player.Money = rules.JailFine;
 
             bool eventResult = true;
-            GameEvents.AskPlayerToBuyOutOfJail += (sender, args) => eventResult;
+            GameEvents.AskPlayerToBuyOutOfJailEvent += (sender, args) => eventResult;
 
             // Act
             var result = jail.TryPlayerBuyOut(player);
@@ -235,7 +251,7 @@ namespace Monopoly.Tests.CoreTests
             player.Money = 0;
 
             bool eventResult = true;
-            GameEvents.AskPlayerToBuyOutOfJail += (sender, args) => eventResult;
+            GameEvents.AskPlayerToBuyOutOfJailEvent += (sender, args) => eventResult;
 
             // Act
             var result = jail.TryPlayerBuyOut(player);
@@ -268,7 +284,7 @@ namespace Monopoly.Tests.CoreTests
             player.Money = 0;
 
             bool eventResult = true;
-            GameEvents.AskPlayerToBuyOutOfJail += (sender, args) => eventResult;
+            GameEvents.AskPlayerToBuyOutOfJailEvent += (sender, args) => eventResult;
 
             // Act
             var result = jail.TryPlayerBuyOut(player);
@@ -541,7 +557,7 @@ namespace Monopoly.Tests.CoreTests
 
 
             var eventRaised = false;
-            GameEvents.PlayerInsufficientFunds += (sender, args) =>
+            GameEvents.PlayerInsufficientFundsEvent += (sender, args) =>
             {
                 eventRaised = true;
                 player.Money += rules.JailFine;

@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Events
 {
-    internal class DrawChanceCardArgs
+    internal class DrawChanceCardArgs : EventArgs
     {
-        public IChanceCard ChanceCard { get; set; }
+        public IChanceCard ChanceCard { get; }
 
         public DrawChanceCardArgs(IChanceCard chanceCard)
         {

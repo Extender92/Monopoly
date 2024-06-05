@@ -25,8 +25,8 @@ namespace Monopoly.Core
         {
             RollDice(player);
             int diceSum = CalculateDiceSum();
-            player.Position += diceSum;
-            CheckIfPlayerGoPastGo(player);
+            int newPosition = player.Position + diceSum;
+            MovePlayerAndInvokeEvent(player, newPosition);
         }
 
         internal void CheckIfPlayerGoPastGo(Player player)
@@ -36,6 +36,19 @@ namespace Monopoly.Core
                 player.Position -= (CurrentGame.Board.Squares.Count);
                 CurrentGame.Transactions.PlayerGetSalary(player);
             }
+        }
+
+        internal void MovePlayerAndInvokeEvent(Player player, int newPosition)
+        {
+            player.Position = newPosition;
+            CheckIfPlayerGoPastGo(player);
+            GameEvents.InvokeUpdateGameBoard(this);
+        }
+
+        internal int GetPlayerGoPastGoNewPosition(int targetPosition)
+        {
+            int maxPosition = CurrentGame.Board.Squares.Count;
+            return (maxPosition + targetPosition);
         }
 
         internal void RollDice(Player player)
@@ -175,7 +188,7 @@ namespace Monopoly.Core
             {
                 if (CurrentGame.Handler.CanAffordWithAssets(player, sum))
                 {
-                    GameEvents.InvokePlayerInsufficientFunds(player, sum);
+                    GameEvents.InvokePlayerInsufficientFunds(this, player, sum);
                 }
                 else if (CurrentGame.Handler.IsPlayerBankrupt(player, sum))
                 {

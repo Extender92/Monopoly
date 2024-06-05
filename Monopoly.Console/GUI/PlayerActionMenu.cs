@@ -92,8 +92,6 @@ namespace Monopoly.Console.GUI
                 eventCall ? PlayerActionRealEstateMenu.BackToEvent : PlayerActionRealEstateMenu.BackToActionMenu
             };
 
-            if (eventCall) actions.Remove(PlayerActionRealEstateMenu.BackToActionMenu);
-
             return actions;
         }
 
