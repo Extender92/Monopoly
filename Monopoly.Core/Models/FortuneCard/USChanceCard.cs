@@ -44,8 +44,8 @@ namespace Monopoly.Core.Models.FortuneCard
                 case USChanceCardType.GetOutOfJailFree:
                     GetOutOfJailFree(player, game);
                     break;
-                case USChanceCardType.GoBack3Spaces:
-                    GoBack3Spaces(player, game);
+                case USChanceCardType.GoBackThreeSpaces:
+                    GoBackThreeSpaces(player, game);
                     break;
                 case USChanceCardType.GoToJail:
                     GoToJail(player, game);
@@ -73,46 +73,55 @@ namespace Monopoly.Core.Models.FortuneCard
 
         private void AdvanceToBoardwalk(Player player, Game game)
         {
-            player.Position = 39;
+            game.Handler.MovePlayerAndInvokeEvent(player, 39);
             var square = game.Board.GetSquareAtPosition(player.Position);
             square.LandOn(player, game);
         }
 
         private void AdvanceToGo(Player player, Game game)
         {
-            player.Position = 0;
-            game.Transactions.PlayerGetSalary(player);
+            int newPosition = game.Handler.GetPlayerGoPastGoNewPosition(0);
+            game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
             var square = game.Board.GetSquareAtPosition(player.Position);
             square.LandOn(player, game);
         }
 
         private void AdvanceToIllinoisAvenue(Player player, Game game)
         {
-            if (player.Position > 24) game.Transactions.PlayerGetSalary(player);
-            player.Position = 24;
+            int targetPosition = 24;
+            int newPosition = player.Position > targetPosition
+                ? game.Handler.GetPlayerGoPastGoNewPosition(targetPosition)
+                : targetPosition;
+
+            game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
+
             var square = game.Board.GetSquareAtPosition(player.Position);
             square.LandOn(player, game);
         }
 
         private void AdvanceToStCharlesPlace(Player player, Game game)
         {
-            if (player.Position > 11) game.Transactions.PlayerGetSalary(player);
-            player.Position = 11;
+            int targetPosition = 11;
+            int newPosition = player.Position > targetPosition
+                ? game.Handler.GetPlayerGoPastGoNewPosition(targetPosition)
+                : targetPosition;
+
+            game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
+
             var square = game.Board.GetSquareAtPosition(player.Position);
             square.LandOn(player, game);
         }
 
         private void AdvanceToNearestRailroad(Player player, Game game)
         {
-            if (player.Position > 35)
-            {
-                player.Position = 5;
-                game.Transactions.PlayerGetSalary(player);
-            }
-            else if (player.Position > 25) player.Position = 35;
-            else if (player.Position > 15) player.Position = 25;
-            else if (player.Position > 5) player.Position = 15;
-            else player.Position = 5;
+            int newPosition = 0;
+            if (player.Position > 35) newPosition = game.Handler.GetPlayerGoPastGoNewPosition(5);
+            else if (player.Position > 25) newPosition = 35;
+            else if (player.Position > 15) newPosition = 25;
+            else if (player.Position > 5) newPosition = 15;
+            else newPosition = 5;
+
+            game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
 
             var square = game.Board.GetSquareAtPosition(player.Position) as RailroadSquare;
             square.LandOn(player, game, true);
@@ -120,13 +129,11 @@ namespace Monopoly.Core.Models.FortuneCard
 
         private void AdvanceToNearestUtility(Player player, Game game)
         {
-            if (player.Position > 28)
-            {
-                player.Position = 12;
-                game.Transactions.PlayerGetSalary(player);
-            }
-            else if (player.Position > 12) player.Position = 28;
-            else player.Position = 12;
+            int newPosition = 12;
+            if (player.Position > 28) newPosition = game.Handler.GetPlayerGoPastGoNewPosition(newPosition);
+            else if (player.Position > 12) newPosition = 28;
+
+            game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
 
             game.Handler.RollDice(player);
 
@@ -142,11 +149,17 @@ namespace Monopoly.Core.Models.FortuneCard
         private void GetOutOfJailFree(Player player, Game game)
         {
             player.NumberOfGetOutOFJailCards++;
+            game.Logs.CreateLog($"{player.Name} got a new Get Out Of Jail Card, and now has {player.NumberOfGetOutOFJailCards} Get Out Of Jail {(player.NumberOfGetOutOFJailCards == 1 ? "Card" : "Cards")}.");
         }
 
-        private void GoBack3Spaces(Player player, Game game)
+        private void GoBackThreeSpaces(Player player, Game game)
         {
-            player.Position -= 3;
+            int newPosition = player.Position - 3;
+            if (newPosition < 0)
+                newPosition = newPosition += game.Board.Squares.Count;
+
+            game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
+
             var square = game.Board.GetSquareAtPosition(player.Position);
             square.LandOn(player, game);
         }
@@ -182,8 +195,10 @@ namespace Monopoly.Core.Models.FortuneCard
 
         private void TakeTripToReadingRailroad(Player player, Game game)
         {
-            if (player.Position > 5) game.Transactions.PlayerGetSalary(player);
-            player.Position = 5;
+            int newPosition = 5;
+            if (player.Position > newPosition) newPosition = game.Handler.GetPlayerGoPastGoNewPosition(newPosition);
+
+            game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
 
             var square = game.Board.GetSquareAtPosition(player.Position) as RailroadSquare;
             square.LandOn(player, game);
@@ -213,7 +228,7 @@ namespace Monopoly.Core.Models.FortuneCard
             AdvanceToNearestUtility,
             BankPaysDividend,
             GetOutOfJailFree,
-            GoBack3Spaces,
+            GoBackThreeSpaces,
             GoToJail,
             MakeGeneralRepairs,
             SpeedingFine,

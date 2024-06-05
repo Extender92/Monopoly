@@ -39,7 +39,7 @@ namespace Monopoly.Core
         public void PlayerGoToJail(Player player, string reason = "")
         {
             ValidatePlayer(player);
-            player.Position = JailPosition;
+            CurrentGame.Handler.MovePlayerAndInvokeEvent(player, JailPosition);
             playersInJail[player] = new JailStatus();
             string jailedReason = string.IsNullOrEmpty(reason) ? "" : $" {reason}";
             CurrentGame.Logs.CreateLog($"{player.Name} has been sent to jail{jailedReason}.");

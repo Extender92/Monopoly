@@ -81,8 +81,8 @@ namespace Monopoly.Core.Models.FortuneCard
 
         private void AdvanceToGo(Player player, Game game)
         {
-            player.Position = 0;
-            game.Transactions.PlayerGetSalary(player);
+            int newPosition = game.Handler.GetPlayerGoPastGoNewPosition(0);
+            game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
             var square = game.Board.GetSquareAtPosition(player.Position);
             square.LandOn(player, game);
         }
@@ -106,6 +106,7 @@ namespace Monopoly.Core.Models.FortuneCard
         private void GetOutOfJailFree(Player player, Game game)
         {
             player.NumberOfGetOutOFJailCards++;
+            game.Logs.CreateLog($"{player.Name} got a new Get Out Of Jail Card, and now has {player.NumberOfGetOutOFJailCards} Get Out Of Jail {(player.NumberOfGetOutOFJailCards == 1 ? "Card" : "Cards")}.");
         }
 
         private void GoToJail(Player player, Game game)
