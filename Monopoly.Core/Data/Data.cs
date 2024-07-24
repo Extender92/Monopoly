@@ -41,7 +41,30 @@ namespace Monopoly.Core.Data
             }
             else if (gameRules.GameLanguage == GameRules.Language.US)
             {
-
+                data = new List<PropertySquare> {
+                    new PropertySquare(ConsoleColor.DarkGray, "Mediterranean Avenue", 2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, 1),
+                    new PropertySquare(ConsoleColor.DarkGray, "Baltic Avenue", 4, 8, 20, 60, 180, 320, 450, 50, 50, 60, 30, 3),
+                    new PropertySquare(ConsoleColor.DarkCyan, "Oriental Avenue", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50, 6),
+                    new PropertySquare(ConsoleColor.DarkCyan, "Vermont Avenue", 6, 12, 30, 90, 270, 400, 550, 50, 50, 100, 50, 8),
+                    new PropertySquare(ConsoleColor.DarkCyan, "Connecticut Avenue", 8, 16, 40, 100, 300, 450, 600, 50, 50, 120, 60, 9),
+                    new PropertySquare(ConsoleColor.Magenta, "St. Charles Place", 10, 20, 50, 150, 450, 625, 750, 100, 100, 140, 70, 11),
+                    new PropertySquare(ConsoleColor.Magenta, "States Avenue", 10, 20, 50, 150, 450, 625, 750, 100, 100, 140, 70, 13),
+                    new PropertySquare(ConsoleColor.Magenta, "Virginia Avenue", 12, 24, 60, 180, 500, 700, 900, 100, 100, 160, 80, 14),
+                    new PropertySquare(ConsoleColor.DarkYellow, "St. James Place", 14, 28, 70, 200, 550, 750, 950, 100, 100, 180, 90, 16),
+                    new PropertySquare(ConsoleColor.DarkYellow, "Tennessee Avenue", 14, 28, 70, 200, 550, 750, 950, 100, 100, 180, 90, 18),
+                    new PropertySquare(ConsoleColor.DarkYellow, "New York Avenue", 16, 32, 80, 220, 600, 800, 1000, 100, 100, 200, 100, 19),
+                    new PropertySquare(ConsoleColor.DarkRed, "Kentucky Avenue", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110, 21),
+                    new PropertySquare(ConsoleColor.DarkRed, "Indiana Avenue", 18, 36, 90, 250, 700, 875, 1050, 150, 150, 220, 110, 23),
+                    new PropertySquare(ConsoleColor.DarkRed, "Illinois Avenue", 20, 40, 100, 300, 750, 925, 1100, 150, 150, 240, 120, 24),
+                    new PropertySquare(ConsoleColor.Yellow, "Atlantic Avenue", 22, 44, 110, 330, 800, 975, 1150, 150, 150, 260, 130, 26),
+                    new PropertySquare(ConsoleColor.Yellow, "Ventnor Avenue", 22, 44, 110, 330, 800, 975, 1150, 150, 150, 260, 130, 27),
+                    new PropertySquare(ConsoleColor.Yellow, "Marvin Gardens", 24, 48, 120, 360, 850, 1025, 1200, 150, 150, 280, 150, 29),
+                    new PropertySquare(ConsoleColor.DarkGreen, "Pacific Avenue", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150, 31),
+                    new PropertySquare(ConsoleColor.DarkGreen, "North Carolina Avenue", 26, 52, 130, 390, 900, 1100, 1275, 200, 200, 300, 150, 32),
+                    new PropertySquare(ConsoleColor.DarkGreen, "Pennsylvania Avenue", 28, 56, 150, 450, 1000, 1200, 1400, 200, 200, 320, 160, 34),
+                    new PropertySquare(ConsoleColor.DarkBlue, "Park Place", 35, 70, 175, 500, 1100, 1300, 1500, 200, 200, 350, 175, 37),
+                    new PropertySquare(ConsoleColor.DarkBlue, "Boardwalk", 50, 100, 200, 600, 1400, 1700, 2000, 200, 200, 400, 200, 39),
+                };
             }
             else
             {
