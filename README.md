@@ -58,4 +58,4 @@ For any questions or suggestions, feel free to reach out via [GitHub Issues](htt
 
 ---
 
-This project is a fork of [CodeCraftersMR/CCMR-Monopoly](https://github.com/CodeCraftersMR/CCMR-Monopoly), and is moved here, I was the developer there and now continue to develop it here
+This project is a fork of [CodeCraftersMR/CCMR-Monopoly](https://github.com/CodeCraftersMR/CCMR-Monopoly), and is moved here, I was the developer there and now continue to develop it here.
