@@ -52,3 +52,6 @@ IGame
 exeption
 typeof
 ventnor
+CCMR
+frontends
+microsoft
