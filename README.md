@@ -34,7 +34,7 @@ whether it's a console application, a web application, a Windows application, or
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download) installed on your machine.
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) installed on your machine.
 
 ### Running the Console Application
 
