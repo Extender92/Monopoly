@@ -7,13 +7,22 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core
 {
-    internal class GameRules
+    public class GameRules
     {
         public int NumberOfPlayers { get; set; }
         public int NumberOfDice { get; set; }
         public int DieSides { get; set; }
-        public Language GameLanguage { get; set; }
-        public string CurrencySymbol { get; set; }
+        private Language _gameLanguage = Language.UK;
+        public Language GameLanguage
+        {
+            get => _gameLanguage;
+            set
+            {
+                _gameLanguage = value;
+                SetCurrencySymbol();
+            }
+        }
+        public string CurrencySymbol { get; private set; } = "£";
         public int Salary { get; set; }
         public bool DoubleOnGo { get; set; }
         public Parking FreeParking { get; set; }
@@ -34,6 +43,8 @@ namespace Monopoly.Core
             JailFine = 50;
             MaxTurnsInJail = 3;
         }
+
+        public void SetLanguage(Language language) => GameLanguage = language;
 
         private void SetCurrencySymbol()
         {

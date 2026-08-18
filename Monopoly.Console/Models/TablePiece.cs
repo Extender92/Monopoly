@@ -9,7 +9,7 @@ namespace Monopoly.Console.Models
     internal class TablePiece
     {
         public int PlayerId { get; set; }
-        public string Piece { get; set; }
+        public string Piece { get; set; } = string.Empty;
         public ConsoleColor Color { get; set; }
     }
 }

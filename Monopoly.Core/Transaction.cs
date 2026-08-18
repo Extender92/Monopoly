@@ -12,72 +12,72 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core
 {
-    internal class Transaction
+    public class Transaction
     {
         // Add a private field to hold the reference to the Game instance
         private IGame CurrentGame;
 
         // Constructor to initialize the Game reference
-        internal Transaction(IGame game)
+        public Transaction(IGame game)
         {
             CurrentGame = game;
         }
 
-        internal void PlayerGetSalary(Player player)
+        public void PlayerGetSalary(Player player)
         {
             player.Money += CurrentGame.Rules.Salary;
             CurrentGame.Logs.CreateLog($"{player.Name} collected salary {CurrentGame.Rules.Salary}{CurrentGame.Rules.CurrencySymbol}.");
-            GameEvents.InvokeUpdatePlayerInformation(this);
+            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
         }
 
-        internal bool BuyPurchasableSquare(Player player, Square square)
+        public bool BuyPurchasableSquare(Player player, Square square)
         {
             if (player.Money >= square.Price)
             {
                 player.Money -= square.Price;
                 square.Owner = player;
                 CurrentGame.Logs.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{CurrentGame.Rules.CurrencySymbol}.");
-                GameEvents.InvokeUpdatePlayerInformation(this);
+                GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
         }
 
-        internal bool PayRentFromPlayerToPlayer(Player fromPlayer, int rent, Player toPlayer)
+        public bool PayRentFromPlayerToPlayer(Player fromPlayer, int rent, Player toPlayer)
         {
             if (fromPlayer.Money >= rent)
             {
                 fromPlayer.Money -= rent;
                 toPlayer.Money += rent;
                 CurrentGame.Logs.CreateLog($"{fromPlayer.Name} payed rent {rent}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
-                GameEvents.InvokeUpdatePlayerInformation(this);
+                GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
         }
 
-        internal bool PayPlayerFromPlayer(Player fromPlayer, int sumToPay, Player toPlayer)
+        public bool PayPlayerFromPlayer(Player fromPlayer, int sumToPay, Player toPlayer)
         {
             if (fromPlayer.Money >= sumToPay)
             {
                 fromPlayer.Money -= sumToPay;
                 toPlayer.Money += sumToPay;
                 CurrentGame.Logs.CreateLog($"{fromPlayer.Name} payed {sumToPay}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
-                GameEvents.InvokeUpdatePlayerInformation(this);
+                GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
         }
 
-        internal void MortgageProperty(Player player, Square square)
+        public void MortgageProperty(Player player, Square square)
         {
             GetMoneyFromBank(player, square.MortgageValue);
             square.IsMortgage = true;
             CurrentGame.Logs.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{CurrentGame.Rules.CurrencySymbol}.");
-            GameEvents.InvokeUpdatePlayerInformation(this);
+            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
         }
 
-        internal bool RepayMortgageProperty(Player player, Square square)
+        public bool RepayMortgageProperty(Player player, Square square)
         {
             int interestRate = CurrentGame.Rules.MortgageInterestRate;
             int sumToPay = (int)(square.MortgageValue * (1 + interestRate / 100.0));
@@ -86,13 +86,13 @@ namespace Monopoly.Core
                 player.Money -= sumToPay;
                 square.IsMortgage = false;
                 CurrentGame.Logs.CreateLog($"{player.Name} repayed mortgage {sumToPay}{CurrentGame.Rules.CurrencySymbol} for {square.Name}.");
-                GameEvents.InvokeUpdatePlayerInformation(this);
+                GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
         }
 
-        internal bool BuyPropertyHouse(Player player, PropertySquare property)
+        public bool BuyPropertyHouse(Player player, PropertySquare property)
         {
             int sumToPay = (property.Houses == 4 ? property.BuildHotelCost : property.BuildHouseCost);
             if (property.Houses > 4 || sumToPay > player.Money) return false;
@@ -103,11 +103,11 @@ namespace Monopoly.Core
             string purchasedItem = property.Houses == 5 ? "Hotel" : "House";
             string houseCountStr = property.GetHouseCountAsString();
             CurrentGame.Logs.CreateLog($"{player.Name} bought a {purchasedItem} for {sumToPay}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
-            GameEvents.InvokeUpdatePlayerInformation(this);
+            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
             return true;
         }
 
-        internal void SellPropertyHouse(Player player, PropertySquare property)
+        public void SellPropertyHouse(Player player, PropertySquare property)
         {
             if (property.Houses <= 0)
                 throw new InvalidOperationException("Cannot sell a house when there are no houses on the property.");
@@ -120,16 +120,18 @@ namespace Monopoly.Core
 
             string houseCountStr = property.GetHouseCountAsString();
             CurrentGame.Logs.CreateLog($"{player.Name} sold a {soldItem} for {sumToGet}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
-            GameEvents.InvokeUpdatePlayerInformation(this);
+            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
         }
 
-        internal void HandleCanBuySquare(Player player, Square square)
+        public void HandleCanBuySquare(Player player, Square square)
         {
+            if (square.Owner is not null) return;
+
             if (square.Price > player.Money && AskToManagePropertiesForBuyingSquare(player, square))
             {
                 BuyPurchasableSquare(player, square);
             }
-            else if (GameEvents.InvokeAskPlayerToBuyPurchasableSquare(this, square))
+            else if (CurrentGame.Decisions.ConfirmPurchase(player, square))
             {
                 BuyPurchasableSquare(player, square);
             }
@@ -139,43 +141,44 @@ namespace Monopoly.Core
         {
             while (square.Price > player.Money)
             {
-                if (!GameEvents.InvokeAskPlayerToBuyPurchasableSquare(this, square))
-                {
+                int moneyBefore = player.Money;
+                if (!CurrentGame.Decisions.ResolveInsufficientFunds((Game)CurrentGame, player, square.Price))
                     return false;
-                }
-                // Event to tell the player they can't afford and ask if they want to manage properties to afford
-                GameEvents.InvokePlayerInsufficientFunds(this, player, square.Price);
+                if (player.Money <= moneyBefore)
+                    return false;
             }
             return true;
         }
 
-        internal void GetMoneyFromBank(Player player, int sum)
+        public void GetMoneyFromBank(Player player, int sum)
         {
+            if (sum < 0) throw new ArgumentOutOfRangeException(nameof(sum));
             player.Money += sum;
             CurrentGame.Logs.CreateLog($"{player.Name} collected money from bank {sum}{CurrentGame.Rules.CurrencySymbol}.");
-            GameEvents.InvokeUpdatePlayerInformation(this);
+            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
         }
 
-        internal void PayMoneyToBank(Player player, int sum)
+        public void PayMoneyToBank(Player player, int sum)
         {
-            if (sum < 0) return;
+            if (sum < 0) throw new ArgumentOutOfRangeException(nameof(sum));
+            if (player.Money < sum) return;
             player.Money -= sum;
             CurrentGame.Logs.CreateLog($"{player.Name} payed {sum}{CurrentGame.Rules.CurrencySymbol} to the Bank.");
-            GameEvents.InvokeUpdatePlayerInformation(this);
+            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
         }
 
-        internal bool PayTax(Player player, int sum)
+        public bool PayTax(Player player, int sum)
         {
             if (sum <= player.Money)
             {
                 player.Money -= sum;
-                GameEvents.InvokeUpdatePlayerInformation(this);
+            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
         }
 
-        internal bool PayFines(Player player, int fines)
+        public bool PayFines(Player player, int fines)
         {
             if (fines <= player.Money)
             {
@@ -185,7 +188,7 @@ namespace Monopoly.Core
                 }
                 player.Money -= fines;
                 CurrentGame.Logs.CreateLog($"{player.Name} payed fines of {fines}{CurrentGame.Rules.CurrencySymbol}.");
-                GameEvents.InvokeUpdatePlayerInformation(this);
+                GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;

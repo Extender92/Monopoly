@@ -59,7 +59,7 @@ namespace Monopoly.Console.GUI
 
         private string GetUserSelectedPieceKey(int playerId, List<TablePiece> tablePieces)
         {
-            string keyInput = null;
+            string keyInput = string.Empty;
 
             while (string.IsNullOrEmpty(keyInput) || keyInput.Length != 1 || !char.IsLetter(keyInput[0]) || IsKeyInUse(keyInput, tablePieces))
             {
@@ -92,7 +92,7 @@ namespace Monopoly.Console.GUI
             return colors[index];
         }
 
-        private List<ConsoleColor> GetConsoleColors(List<ConsoleColor> pickedColors = null)
+        private List<ConsoleColor> GetConsoleColors(List<ConsoleColor>? pickedColors = null)
         {
             List<ConsoleColor> colors = new List<ConsoleColor>
             {

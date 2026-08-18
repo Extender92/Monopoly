@@ -49,9 +49,13 @@ IEnumerable
 sut
 ILog
 IGame
+IPlayer
+IRead
 exeption
 typeof
 ventnor
 CCMR
 frontends
 microsoft
+Unsubscribe
+versioned

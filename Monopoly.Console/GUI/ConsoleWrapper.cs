@@ -10,7 +10,7 @@ namespace Monopoly.Console.GUI
     {
         public void Clear() => System.Console.Clear();
 
-        public string ReadLine() => System.Console.ReadLine();
+        public string ReadLine() => System.Console.ReadLine() ?? string.Empty;
 
         public string ReadKey() => System.Console.ReadKey().KeyChar.ToString();
 

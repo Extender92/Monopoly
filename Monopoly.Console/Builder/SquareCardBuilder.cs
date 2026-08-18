@@ -14,8 +14,8 @@ namespace Monopoly.Console.Builder
 {
     internal class SquareCardBuilder
     {
-        public static GameRules Rules { get; set; }
-        public static string Currency { get; set; }
+        public static GameRules Rules { get; set; } = null!;
+        public static string Currency { get; set; } = string.Empty;
 
         internal static List<SquareCard> BuildAllSquareCards(List<Square> squares, GameRules gameRules)
         {

@@ -7,6 +7,7 @@ using Monopoly.Core.Models.Board;
 using Monopoly.Core.SaveAndLoad;
 using System;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace Monopoly.Console
 {
@@ -39,6 +40,8 @@ namespace Monopoly.Console
 
             Input input = new Input(consoleWrapper, menu);
 
+            game.Decisions = new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules);
+
             ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
 
             ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game.Board.Squares, gameRules);
@@ -52,9 +55,24 @@ namespace Monopoly.Console
         {
             IConsoleWrapper consoleWrapper = new ConsoleWrapper();
 
-            GameRules gameRules = new GameRules(2, 2, 2);
-
-            Game game = CoreGameSetup.Setup(gameRules);
+            Game game;
+            try
+            {
+                game = LoadCoreData.LoadGame();
+            }
+            catch (FileNotFoundException)
+            {
+                consoleWrapper.WriteLine("No save file was found. Press Enter to return to the main menu.");
+                consoleWrapper.ReadLine();
+                return;
+            }
+            catch (Exception ex) when (ex is InvalidDataException or JsonException)
+            {
+                consoleWrapper.WriteLine($"The save file could not be loaded: {ex.Message}");
+                consoleWrapper.ReadLine();
+                return;
+            }
+            GameRules gameRules = game.Rules;
 
             ConsolePrinter consolePrinter = new ConsolePrinter(consoleWrapper, game.Board.Squares, gameRules);
 
@@ -66,13 +84,13 @@ namespace Monopoly.Console
 
             Input input = new Input(consoleWrapper, menu);
 
+            game.Decisions = new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules);
+
             ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
 
             ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game.Board.Squares, gameRules);
 
             ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter);
-
-            LoadCoreData.LoadData(consoleGame.CurrentGame);
 
             consoleGame.StartConsoleGame();
         }

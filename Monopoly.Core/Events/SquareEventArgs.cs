@@ -16,6 +16,6 @@ namespace Monopoly.Core.Events
             Square = square;
         }
 
-        public delegate bool SquareEventHandler(object sender, SquareEventArgs e);
+        public delegate bool SquareEventHandler(object? sender, SquareEventArgs e);
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models.Board
 {
-    internal class JailSquare : Square
+    public class JailSquare : Square
     {
         public string InJailInfo {  get; set; }
         public JailSquare(int position, string name, string info, string inJailInfo)

@@ -1,5 +1,6 @@
 ﻿using Monopoly.Core.Models;
 using Monopoly.Console.Utilities;
+using Monopoly.Core;
 using Monopoly.Core.Interface;
 using System;
 using System.Numerics;
@@ -13,6 +14,7 @@ namespace Monopoly.Console.GUI
         private readonly IGame CurrentGame;
         private readonly IMenuOptionSelector MenuOptionSelector;
         private readonly Player Player;
+        internal TurnResult? LastTurnResult { get; private set; }
 
         public PlayerActionMenu(IGame game, Player player)
         {
@@ -141,12 +143,12 @@ namespace Monopoly.Console.GUI
 
         private void RollDice()
         {
-            CurrentGame.Handler.RoleDiceAndMovePlayer(Player);
+            LastTurnResult = CurrentGame.PlayTurn();
         }
 
         private void RollDiceInJail()
         {
-            CurrentGame.Handler.RollDice(Player);
+            LastTurnResult = CurrentGame.PlayTurn();
         }
 
         private void SaveGame()

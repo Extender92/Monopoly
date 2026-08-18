@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models
 {
-    internal class Die : IDie
+    public class Die : IDie
     {
         private int DieSides { get; set; }
-        internal int Result { get; set; }
+        public int Result { get; set; }
 
-        internal Die(int dieSides)
+        public Die(int dieSides)
         {
             DieSides = dieSides;
         }

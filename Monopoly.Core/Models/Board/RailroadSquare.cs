@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models.Board
 {
-    internal class RailroadSquare : Square
+    public class RailroadSquare : Square
     {
         public int RentOneStation { get; set; }
         public int RentTwoStation { get; set; }
@@ -41,7 +41,7 @@ namespace Monopoly.Core.Models.Board
                     game.Transactions.HandleCanBuySquare(player, this);
                 }
             }
-            else if (!IsMortgage)
+            else if (!IsMortgage && Owner != player)
             {
                 HandleRentPayment(player, game, doubleRent);
             }
@@ -52,17 +52,7 @@ namespace Monopoly.Core.Models.Board
             int rent = CalculateRent(game.Board.Squares);
             if (doubleRent) rent *= 2;
 
-            while (!game.Transactions.PayRentFromPlayerToPlayer(player, rent, Owner))
-            {
-                if (game.Handler.IsPlayerBankrupt(player, rent))
-                {
-                    int restOfPlayerMoney = game.Handler.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
-                    game.Transactions.GetMoneyFromBank(Owner, restOfPlayerMoney);
-                    break;
-                }
-
-                GameEvents.InvokePlayerInsufficientFunds(this, player, Price);
-            }
+            game.Handler.TryResolvePayment(player, rent, Owner, $"Could not afford rent of {rent}");
         }
 
         private int CalculateRent(List<Square> squares)

@@ -20,7 +20,7 @@ namespace Monopoly.Tests.CoreTests
 
             // Act
             var GetJailInfoMethod = jail.GetJailInfo(player);
-            jail.playersInJail.TryGetValue(player, out JailStatus JailInfo);
+            jail.playersInJail.TryGetValue(player, out JailStatus? JailInfo);
 
             // Assert
             Assert.NotNull(GetJailInfoMethod);
@@ -60,7 +60,7 @@ namespace Monopoly.Tests.CoreTests
         public void CheckIfPlayerGoToJail_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Player player = null;
+            Player? player = null;
             var gameMock = new Mock<IGame>();
             var logsMock = new Mock<ILogHandler>();
             gameMock.Setup(g => g.Logs).Returns(logsMock.Object);
@@ -70,7 +70,7 @@ namespace Monopoly.Tests.CoreTests
             var expectedMessage = $"Player cannot be null. (Parameter '{nameof(player)}')";
 
             // Act
-            var ex = Record.Exception(() => jail.PlayerGoToJail(player));
+            var ex = Record.Exception(() => jail.PlayerGoToJail(player!));
 
             // Assert
             Assert.NotNull(ex);
@@ -107,7 +107,7 @@ namespace Monopoly.Tests.CoreTests
         public void IsPlayerInJail_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Player player = null;
+            Player? player = null;
             var gameMock = new Mock<IGame>();
             Jail jail = new Jail(gameMock.Object, 0);
 
@@ -115,7 +115,7 @@ namespace Monopoly.Tests.CoreTests
             var expectedMessage = $"Player cannot be null. (Parameter '{nameof(player)}')";
 
             // Act
-            var ex = Record.Exception(() => jail.IsPlayerInJail(player));
+            var ex = Record.Exception(() => jail.IsPlayerInJail(player!));
 
             // Assert
             Assert.NotNull(ex);

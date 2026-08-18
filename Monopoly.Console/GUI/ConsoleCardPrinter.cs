@@ -17,7 +17,7 @@ namespace Monopoly.Console.GUI
     {
         internal IConsoleWrapper Console { get; set; }
 
-        private List<SquareCard> SquareCards;
+        private List<SquareCard> SquareCards = new();
         private int CardPosX { get; set; }
         private int CardPosY { get; set; }
 
@@ -89,7 +89,7 @@ namespace Monopoly.Console.GUI
         }
 
         // Needs refactoring and Testing
-        internal void PrepareAndPrintSquareCard(int boardPosition, IChanceCard chanceCard = null, ICommunityChestCard communityChestCard = null)
+        internal void PrepareAndPrintSquareCard(int boardPosition, IChanceCard? chanceCard = null, ICommunityChestCard? communityChestCard = null)
         {
             SquareCard squareCard = SquareCards.First(s => s.BoardPosition == boardPosition);
 

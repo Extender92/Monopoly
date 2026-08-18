@@ -11,6 +11,6 @@ namespace Monopoly.Console.Models
     internal class FortuneCard
     {
         public int Id { get; set; }
-        public string Info { get; set; }
+        public string Info { get; set; } = string.Empty;
     }
 }

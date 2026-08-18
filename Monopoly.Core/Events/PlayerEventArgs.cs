@@ -18,6 +18,6 @@ namespace Monopoly.Core.Events
             TargetSum = targetSum;
         }
 
-        public delegate bool PlayerEventHandler(object sender, PlayerEventArgs e);
+        public delegate bool PlayerEventHandler(object? sender, PlayerEventArgs e);
     }
 }

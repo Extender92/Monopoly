@@ -8,7 +8,7 @@ namespace Monopoly.Console.Models.Board
 {
     internal class RailroadSquareCard : SquareCard
     {
-        public List<string> Prop { get; set; }
-        public List<string> Rent { get; set; }
+        public List<string> Prop { get; set; } = new();
+        public List<string> Rent { get; set; } = new();
     }
 }

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Logs
 {
-    internal class Log
+    public class Log
     {
         public int Id { get; set; }
-        public string Info { get; set; }
+        public string Info { get; set; } = string.Empty;
     }
 }
