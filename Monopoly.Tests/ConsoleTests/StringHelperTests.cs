@@ -124,10 +124,10 @@ namespace Monopoly.Tests.ConsoleTests
         [InlineData("This is a longer string", 30, "   This is a longer string    ")]
         [InlineData("", 5, "")]
         [InlineData(null, 5, null)]
-        public void CenterString_ShouldCenterStringCorrectly(string input, int totalLength, string expected)
+        public void CenterString_ShouldCenterStringCorrectly(string? input, int totalLength, string? expected)
         {
             // Act
-            var result = StringHelper.CenterString(input, totalLength);
+            var result = StringHelper.CenterString(input!, totalLength);
 
             // Assert
             Assert.Equal(expected, result);
@@ -176,10 +176,10 @@ namespace Monopoly.Tests.ConsoleTests
         [InlineData("Short text", 20, new[] { "Short text" })]
         [InlineData("", 5, new string[] { })]
         [InlineData(null, 5, new string[] { })]
-        public void GetListOfStringsFromString_ShouldSplitStringIntoList(string input, int maxLength, string[] expectedArray)
+        public void GetListOfStringsFromString_ShouldSplitStringIntoList(string? input, int maxLength, string[] expectedArray)
         {
             // Act
-            var result = StringHelper.GetListOfStringsFromString(input, maxLength);
+            var result = StringHelper.GetListOfStringsFromString(input!, maxLength);
 
             // Assert
             Assert.Equal(expectedArray, result);
@@ -189,10 +189,10 @@ namespace Monopoly.Tests.ConsoleTests
         [InlineData("Test1", "Test2", "Test3", new[] { "Test1", "Test2", "Test3" })]
         [InlineData("", "", "", new string[] { "", "", "" })]
         [InlineData(null!, null!, null!, new string[] { null!, null!, null! })]
-        public void CreateStringList_ShouldCreateListWithGivenStrings(string one, string two, string three ,string[] expected)
+        public void CreateStringList_ShouldCreateListWithGivenStrings(string? one, string? two, string? three, string?[] expected)
         {
             // Act
-            var result = StringHelper.CreateStringList(one, two, three);
+            var result = StringHelper.CreateStringList(one!, two!, three!);
 
             // Assert
             Assert.Equal(expected, result);
@@ -202,10 +202,10 @@ namespace Monopoly.Tests.ConsoleTests
         [InlineData("Test1", "Test2", new[] { "Test1", "Test2" })]
         [InlineData("", "", new string[] { "", "" })]
         [InlineData(null!, null!, new string[] { null!, null! })]
-        public void CreateStringList_ShouldCreateListWithLessStrings(string one, string two, string[] expected)
+        public void CreateStringList_ShouldCreateListWithLessStrings(string? one, string? two, string?[] expected)
         {
             // Act
-            var result = StringHelper.CreateStringList(one, two);
+            var result = StringHelper.CreateStringList(one!, two!);
 
             // Assert
             Assert.Equal(expected, result);
