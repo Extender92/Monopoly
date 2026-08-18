@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models.Board
 {
-    internal class CommunityChestSquare : Square
+    public class CommunityChestSquare : Square
     {
         public CommunityChestSquare(int position, string name, string info)
         {
@@ -19,7 +19,7 @@ namespace Monopoly.Core.Models.Board
         public override void LandOn(Player player, Game game)
         {
             ICommunityChestCard communityChestCard = game.FortuneCard.DrawNextCommunityChestCard();
-            GameEvents.InvokeDrawCommunityChestCard(this, communityChestCard);
+            GameEvents.InvokeDrawCommunityChestCard(game, communityChestCard);
             communityChestCard.ExecuteEffect(player, game);
         }
     }

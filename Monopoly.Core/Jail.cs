@@ -5,18 +5,18 @@ using System.Diagnostics;
 
 namespace Monopoly.Core
 {
-    internal class Jail
+    public class Jail
     {
         private readonly IGame CurrentGame;
         public int JailPosition { get; }
 
-        internal Jail(IGame game, int jailPosition)
+        public Jail(IGame game, int jailPosition)
         {
             CurrentGame = game;
             JailPosition = jailPosition;
         }
 
-        internal class JailStatus
+        public class JailStatus
         {
             public int TurnsInJail { get; set; }
 
@@ -26,13 +26,19 @@ namespace Monopoly.Core
             }
         }
 
-        internal Dictionary<Player, JailStatus> playersInJail = new Dictionary<Player, JailStatus>();
+        public Dictionary<Player, JailStatus> playersInJail = new Dictionary<Player, JailStatus>();
 
         public JailStatus GetJailInfo(Player player)
         {
             IsPlayerInJail(player);
-            playersInJail.TryGetValue(player, out JailStatus jailInfo);
-            return jailInfo;
+            return playersInJail[player];
+        }
+
+        internal void RestorePlayerInJail(Player player, int turnsInJail)
+        {
+            ValidatePlayer(player);
+            player.Position = JailPosition;
+            playersInJail[player] = new JailStatus { TurnsInJail = turnsInJail };
         }
 
 
@@ -68,7 +74,7 @@ namespace Monopoly.Core
         {
             IsPlayerInJail(player);
             return player.NumberOfGetOutOFJailCards > 0 || CurrentGame.Handler.CanAffordWithAssets(player, CurrentGame.Rules.JailFine)
-                ? GameEvents.InvokeAskPlayerToBuyOutOfJail(this, player)
+                ? GameEvents.InvokeAskPlayerToBuyOutOfJail(CurrentGame, player)
                 : false;
         }
 
@@ -115,7 +121,13 @@ namespace Monopoly.Core
             {
                 while (!CurrentGame.Transactions.PayFines(player, CurrentGame.Rules.JailFine))
                 {
-                    GameEvents.InvokePlayerInsufficientFunds(this, player, CurrentGame.Rules.JailFine);
+                    int moneyBefore = player.Money;
+                    GameEvents.InvokePlayerInsufficientFunds(CurrentGame, player, CurrentGame.Rules.JailFine);
+                    if (player.Money <= moneyBefore)
+                    {
+                        CurrentGame.Handler.HandlePlayerBankruptcy(player, $", {player.Name} Could not afford to pay Jail Fine of {CurrentGame.Rules.JailFine}{CurrentGame.Rules.CurrencySymbol}");
+                        break;
+                    }
                 }
                 reason = $", {player.Name} paid the fine to get out of jail";
             }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models.Board
 {
-    internal class ChanceSquare : Square
+    public class ChanceSquare : Square
     {
         public ChanceSquare(int position, string name, string info)
         {
@@ -19,7 +19,7 @@ namespace Monopoly.Core.Models.Board
         public override void LandOn(Player player, Game game)
         {
             IChanceCard chanceCard = game.FortuneCard.DrawNextChanceCard();
-            GameEvents.InvokeDrawChanceCard(this, chanceCard);
+            GameEvents.InvokeDrawChanceCard(game, chanceCard);
             chanceCard.ExecuteEffect(player, game);
         }
     }

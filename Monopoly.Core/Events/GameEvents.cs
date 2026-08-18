@@ -14,16 +14,16 @@ namespace Monopoly.Core.Events
 {
     internal static class GameEvents
     {
-        public static event PlayerEventHandler AskPlayerToBuyOutOfJailEvent;
-        public static event SquareEventHandler AskPlayerToBuyPurchasableSquareEvent;
-        public static event EventHandler<PlayerEventArgs> PlayerInsufficientFundsEvent;
-        public static event EventHandler<EventArgs> LogAddedEvent;
-        public static event EventHandler<DrawChanceCardArgs> ChanceCardDrawnEvent;
-        public static event EventHandler<DrawCommunityChestCardArgs> CommunityChestCardDrawnEvent;
-        public static event EventHandler<EventArgs> OpenPlayerActionMenuEvent;
-        public static event EventHandler<SquareEventArgs> LandOnSquareEvent;
-        public static event EventHandler<EventArgs> UpdateGameBoard;
-        public static event EventHandler<EventArgs> UpdatePlayerInformation;
+        public static event PlayerEventHandler? AskPlayerToBuyOutOfJailEvent;
+        public static event SquareEventHandler? AskPlayerToBuyPurchasableSquareEvent;
+        public static event EventHandler<PlayerEventArgs>? PlayerInsufficientFundsEvent;
+        public static event EventHandler<EventArgs>? LogAddedEvent;
+        public static event EventHandler<DrawChanceCardArgs>? ChanceCardDrawnEvent;
+        public static event EventHandler<DrawCommunityChestCardArgs>? CommunityChestCardDrawnEvent;
+        public static event EventHandler<EventArgs>? OpenPlayerActionMenuEvent;
+        public static event EventHandler<SquareEventArgs>? LandOnSquareEvent;
+        public static event EventHandler<EventArgs>? UpdateGameBoard;
+        public static event EventHandler<EventArgs>? UpdatePlayerInformation;
 
         public static bool InvokeAskPlayerToBuyPurchasableSquare(object sender, Square square)
         {

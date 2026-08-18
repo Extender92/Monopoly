@@ -7,42 +7,42 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models.Board
 {
-    internal class GameBoard
+    public class GameBoard
     {
-        internal List<Square> Squares; // Array or list of all squares on the board
+        public List<Square> Squares; // Array or list of all squares on the board
 
-        internal GameBoard(GameRules gameRules)
+        public GameBoard(GameRules gameRules)
         {
             Squares = SquareBuilder.GetBoardSquares(gameRules);
         }
 
-        internal void HandlePlayerLandingOnSquare(Player player, Game game)
+        public void HandlePlayerLandingOnSquare(Player player, Game game)
         {
             Squares.First(s => s.Position == player.Position).LandOn(player, game);
         }
 
-        internal Square GetSquareAtPosition(int position)
+        public Square GetSquareAtPosition(int position)
         {
             return Squares.First(s => s.Position == position);
         }
 
-        internal List<T> GetAllSquaresOfType<T>() where T : Square
+        public List<T> GetAllSquaresOfType<T>() where T : Square
         {
             return Squares.OfType<T>().ToList();
         }
 
-        internal List<PropertySquare> GetAllPropertySquares()
+        public List<PropertySquare> GetAllPropertySquares()
         {
             return GetAllSquaresOfType<PropertySquare>();
         }
 
-        internal List<PropertySquare> GetAllPlayerOwnedPropertySquares(Player player)
+        public List<PropertySquare> GetAllPlayerOwnedPropertySquares(Player player)
         {
             List<PropertySquare> propertySquares = GetAllPropertySquares();
             return propertySquares.Where(s => s.Owner == player).ToList();
         }
 
-        internal List<PropertySquare> GetAllPropertySquaresPlayerCanBuyHousesIn(Player player)
+        public List<PropertySquare> GetAllPropertySquaresPlayerCanBuyHousesIn(Player player)
         {
             List<PropertySquare> playerOwnedPropertySquares = GetAllPlayerOwnedPropertySquares(player);
             List<PropertySquare> propertySquares = GetAllPropertySquares();
@@ -52,7 +52,7 @@ namespace Monopoly.Core.Models.Board
                 .ToList();
         }
 
-        internal List<PropertySquare> GetAllPropertySquaresPlayerCanSellHousesIn(Player player)
+        public List<PropertySquare> GetAllPropertySquaresPlayerCanSellHousesIn(Player player)
         {
             List<PropertySquare> playerOwnedPropertySquares = GetAllPlayerOwnedPropertySquares(player);
 
@@ -61,7 +61,7 @@ namespace Monopoly.Core.Models.Board
                 .ToList();
         }
 
-        internal List<Square> GetAllMortgageableSquares()
+        public List<Square> GetAllMortgageableSquares()
         {
             List<PropertySquare> propertySquares = GetAllSquaresOfType<PropertySquare>();
             List<RailroadSquare> railroadSquares = GetAllSquaresOfType<RailroadSquare>();
@@ -73,13 +73,13 @@ namespace Monopoly.Core.Models.Board
             return allMortgageableSquares;
         }
 
-        internal List<Square> GetAllMortgageableSquaresForPlayer(Player player)
+        public List<Square> GetAllMortgageableSquaresForPlayer(Player player)
         {
             List<Square> allMortgageableSquares = GetAllMortgageableSquares();
             return allMortgageableSquares.Where(s => s.Owner == player).ToList();
         }
 
-        internal List<Square> GetPlayerMortgageableSquares(Player player)
+        public List<Square> GetPlayerMortgageableSquares(Player player)
         {
             List<Square> playerOwnedSquares = GetAllMortgageableSquaresForPlayer(player);
 
@@ -87,7 +87,7 @@ namespace Monopoly.Core.Models.Board
                 .OfType<PropertySquare>()
                 .Where(property => property.Houses <= 0 &&
                                    playerOwnedSquares.OfType<PropertySquare>()
-                                   .Where(p => p.Color == property.Color)
+                                   .Where(p => p.Group == property.Group)
                                    .All(p => p.Houses <= 0))
                 .Cast<Square>()
                 .Concat(playerOwnedSquares.Where(s => !(s is PropertySquare)))
@@ -96,13 +96,13 @@ namespace Monopoly.Core.Models.Board
             return playerMortgageableSquares;
         }
 
-        internal List<Square> GetPlayerMortgagedSquares(Player player)
+        public List<Square> GetPlayerMortgagedSquares(Player player)
         {
             List<Square> playerOwnedSquares = GetAllMortgageableSquaresForPlayer(player);
             return playerOwnedSquares.Where(s => s.IsMortgage).ToList();
         }
 
-        internal List<Square> GetPlayerUnmortgagedSquares(Player player)
+        public List<Square> GetPlayerUnmortgagedSquares(Player player)
         {
             List<Square> playerMortgageableSquares = GetPlayerMortgageableSquares(player);
             return playerMortgageableSquares.Where(s => !s.IsMortgage).ToList();

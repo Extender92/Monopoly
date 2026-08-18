@@ -8,10 +8,10 @@ namespace Monopoly.Console.Models.Board
 {
     internal abstract class SquareCard
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public ConsoleColor BorderColor { get; set; }
         public int BoardPosition { get; set; }
-        public string Info { get; set; }
+        public string Info { get; set; } = string.Empty;
 
     }
 }

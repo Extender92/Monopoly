@@ -1,7 +1,7 @@
 ﻿
 namespace Monopoly.Core.Logs
 {
-    internal interface ILogHandler
+    public interface ILogHandler
     {
         List<Log> LogList { get; }
         void CreateLog(string s);

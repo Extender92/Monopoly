@@ -9,7 +9,7 @@ using static Monopoly.Core.Models.FortuneCard.UKChanceCard;
 
 namespace Monopoly.Core.Models.FortuneCard
 {
-    internal class UKCommunityChestCard : ICommunityChestCard
+    public class UKCommunityChestCard : ICommunityChestCard
     {
         public string Info { get; }
         public UKCommunityChestCardType CardType { get; }
@@ -94,8 +94,7 @@ namespace Monopoly.Core.Models.FortuneCard
 
         private void DoctorsFee(Player player, Game game)
         {
-            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, 50)) return;
-            game.Transactions.PayFines(player, 50);
+            game.Handler.TryResolvePayment(player, 50, null, "Could not afford Doctor's fee", true);
         }
 
         private void FromSaleOfStock(Player player, Game game)
@@ -126,14 +125,11 @@ namespace Monopoly.Core.Models.FortuneCard
 
         private void ItIsYourBirthday(Player player, Game game)
         {
-            foreach (var gamePlayer in game.Players)
+            foreach (var gamePlayer in game.Players.ToList())
             {
                 if (player != gamePlayer)
                 {
-                    if (!game.Handler.IsPlayerBankrupt(player, 10))
-                        GameEvents.InvokePlayerInsufficientFunds(this, player, 10);
-                    else player.Money += game.Handler.GetMoneyFromBankruptPlayerAndBankruptPlayer(player);
-                    game.Transactions.PayPlayerFromPlayer(gamePlayer, 10, player);
+                    game.Handler.TryResolvePayment(gamePlayer, 10, player, "Could not pay birthday gift");
                 }
             }
         }
@@ -145,14 +141,12 @@ namespace Monopoly.Core.Models.FortuneCard
 
         private void PayHospitalFees(Player player, Game game)
         {
-            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, 100)) return;
-            game.Transactions.PayFines(player, 100);
+            game.Handler.TryResolvePayment(player, 100, null, "Could not afford hospital fees", true);
         }
 
         private void PaySchoolFees(Player player, Game game)
         {
-            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, 50)) return;
-            game.Transactions.PayFines(player, 50);
+            game.Handler.TryResolvePayment(player, 50, null, "Could not afford school fees", true);
         }
 
         private void ReceiveConsultancyFee(Player player, Game game)
@@ -174,8 +168,7 @@ namespace Monopoly.Core.Models.FortuneCard
 
             int sumToPay = (houses * 40) + (hotels * 115);
 
-            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, sumToPay)) return;
-            game.Transactions.PayMoneyToBank(player, sumToPay);
+            game.Handler.TryResolvePayment(player, sumToPay, null, $"Could not afford street repairs of {sumToPay}");
         }
 
         private void WonSecondPrizeInBeautyContest(Player player, Game game)

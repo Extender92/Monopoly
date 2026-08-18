@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Interface
 {
-    internal interface IGame
+    public interface IGame
     {
         GameHandler Handler { get; set; }
         ILogHandler Logs { get; set; }
@@ -21,12 +21,15 @@ namespace Monopoly.Core.Interface
         Transaction Transactions { get; set; }
         Jail TheJail { get; set; }
         FortuneCardHandler FortuneCard { get; set; }
+        IPlayerDecisionProvider Decisions { get; set; }
         int Fines { get; set; }
         int CurrentTurn { get; set; }
+        int ConsecutiveDoubles { get; }
+        Player? Winner { get; }
+        bool IsGameOver { get; }
 
         void NextPlayer();
         void RemovePlayer(Player player);
-        void PlayerTakeTurn();
-        void PlayerTakeTurnInJail();
+        TurnResult PlayTurn();
     }
 }

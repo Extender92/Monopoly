@@ -4,7 +4,7 @@ using System;
 
 namespace Monopoly.Core.Models.FortuneCard
 {
-    internal class USChanceCard : IChanceCard
+    public class USChanceCard : IChanceCard
     {
         public string Info { get; }
         public USChanceCardType CardType { get; }
@@ -123,8 +123,8 @@ namespace Monopoly.Core.Models.FortuneCard
 
             game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
 
-            var square = game.Board.GetSquareAtPosition(player.Position) as RailroadSquare;
-            square.LandOn(player, game, true);
+            if (game.Board.GetSquareAtPosition(player.Position) is RailroadSquare square)
+                square.LandOn(player, game, true);
         }
 
         private void AdvanceToNearestUtility(Player player, Game game)
@@ -137,8 +137,8 @@ namespace Monopoly.Core.Models.FortuneCard
 
             game.Handler.RollDice(player);
 
-            var square = game.Board.GetSquareAtPosition(player.Position) as UtilitySquare;
-            square.LandOn(player, game, true);
+            if (game.Board.GetSquareAtPosition(player.Position) is UtilitySquare square)
+                square.LandOn(player, game, true);
         }
 
         private void BankPaysDividend(Player player, Game game)
@@ -183,14 +183,12 @@ namespace Monopoly.Core.Models.FortuneCard
 
             int sumToPay = (houses * 25) + (hotels * 100);
 
-            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, sumToPay)) return;
-            game.Transactions.PayMoneyToBank(player, sumToPay);
+            game.Handler.TryResolvePayment(player, sumToPay, null, $"Could not afford general repairs of {sumToPay}");
         }
 
         private void SpeedingFine(Player player, Game game)
         {
-            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, 15)) return;
-            game.Transactions.PayFines(player, 15);
+            game.Handler.TryResolvePayment(player, 15, null, "Could not afford speeding fine", true);
         }
 
         private void TakeTripToReadingRailroad(Player player, Game game)
@@ -200,14 +198,14 @@ namespace Monopoly.Core.Models.FortuneCard
 
             game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
 
-            var square = game.Board.GetSquareAtPosition(player.Position) as RailroadSquare;
-            square.LandOn(player, game);
+            if (game.Board.GetSquareAtPosition(player.Position) is RailroadSquare square)
+                square.LandOn(player, game);
         }
 
         private void ElectedChairmanOfTheBoard(Player player, Game game)
         {
             int totalSumToPay = (game.Players.Count - 1) * 50;
-            if (game.Handler.IfPlayerCantPayInvokeOrBankrupt(player, totalSumToPay)) return;
+            if (!game.Handler.EnsureFunds(player, totalSumToPay, null, $"Could not afford Chairman payments of {totalSumToPay}")) return;
 
             foreach (var gamePlayer in game.Players)
                 if (player != gamePlayer) game.Transactions.PayPlayerFromPlayer(player, 50, gamePlayer);

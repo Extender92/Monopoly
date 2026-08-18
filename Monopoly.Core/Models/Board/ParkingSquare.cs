@@ -1,6 +1,6 @@
 ﻿namespace Monopoly.Core.Models.Board
 {
-    internal class ParkingSquare : Square
+    public class ParkingSquare : Square
     {
         public ParkingSquare(int position, string name)
         {

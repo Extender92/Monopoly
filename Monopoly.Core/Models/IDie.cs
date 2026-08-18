@@ -1,6 +1,6 @@
 ﻿namespace Monopoly.Core.Models
 {
-    internal interface IDie
+    public interface IDie
     {
         int GetDieResult();
         int GetDieType();

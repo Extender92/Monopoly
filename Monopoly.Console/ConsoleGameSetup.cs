@@ -13,7 +13,7 @@ namespace Monopoly.Console
     internal class ConsoleGameSetup
     {
         private readonly TablePieceInputManager _tablePieceSelector;
-        internal List<TablePiece> TablePieces { get; set; }
+        internal List<TablePiece> TablePieces { get; set; } = new();
         internal GameRules GameRules { get; set; }
 
         public ConsoleGameSetup(GameRules gameRules, TablePieceInputManager tablePieceInputManager)

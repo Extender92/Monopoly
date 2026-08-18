@@ -1,4 +1,5 @@
 ﻿using Monopoly.Core.Events;
+using Monopoly.Core.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,10 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Logs
 {
-    internal class LogHandler : ILogHandler
+    public class LogHandler : ILogHandler
     {
         public List<Log> LogList { get; } = new List<Log>();
+        internal IGame? OwnerGame { get; set; }
 
         public void CreateLog(string text)
         {
@@ -19,7 +21,7 @@ namespace Monopoly.Core.Logs
                 Info = text
             };
             LogList.Add(log);
-            GameEvents.InvokeLogAdded(this);
+            GameEvents.InvokeLogAdded((object?)OwnerGame ?? this);
         }
     }
 }

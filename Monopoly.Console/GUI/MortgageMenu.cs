@@ -17,8 +17,8 @@ namespace Monopoly.Console.GUI
         private readonly IMenuOptionSelector MenuOptionSelector;
         private readonly ListOptionSelector ListOptionSelector;
         private readonly Player Player;
-        private List<Square> AvailableMortgageList;
-        private List<Square> AvailableLiftMortgageList;
+        private List<Square> AvailableMortgageList = new();
+        private List<Square> AvailableLiftMortgageList = new();
 
         int SelectedOption = 0;
 

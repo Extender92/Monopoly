@@ -7,7 +7,7 @@ using Monopoly.Core.Models.Board;
 
 namespace Monopoly.Core.Models
 {
-    internal class Player(string name, int id)
+    public class Player(string name, int id)
     {
         public int Id { get; set; } = id;
         public string Name { get; set; } = name;

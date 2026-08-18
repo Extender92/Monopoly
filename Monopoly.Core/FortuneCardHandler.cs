@@ -8,42 +8,75 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core
 {
-    internal class FortuneCardHandler
+    public class FortuneCardHandler
     {
-        internal Queue<IChanceCard> ChanceQueue { get; set; }
-        internal Queue<ICommunityChestCard> CommunityChestQueue { get; set; }
+        public Queue<IChanceCard> ChanceQueue { get; set; } = new();
+        public Queue<ICommunityChestCard> CommunityChestQueue { get; set; } = new();
+        private List<IChanceCard> ChanceCards { get; set; } = new();
+        private List<ICommunityChestCard> CommunityChestCards { get; set; } = new();
 
         public FortuneCardHandler(GameRules gameRules)
         {
             InitializeQueues(gameRules);
         }
 
-        internal void InitializeQueues(GameRules gameRules)
+        public void InitializeQueues(GameRules gameRules)
         {
-            ChanceQueue = new Queue<IChanceCard>(Data.FortuneCardBuilder.GetChanceCards(gameRules));
-            CommunityChestQueue = new Queue<ICommunityChestCard>(Data.FortuneCardBuilder.GetCommunityChestCards(gameRules));
+            ChanceCards = Data.FortuneCardBuilder.GetChanceCards(gameRules);
+            CommunityChestCards = Data.FortuneCardBuilder.GetCommunityChestCards(gameRules);
+            ChanceQueue = new Queue<IChanceCard>(ChanceCards);
+            CommunityChestQueue = new Queue<ICommunityChestCard>(CommunityChestCards);
             ShuffleQueues();
         }
 
-        internal void ShuffleQueues()
+        public void ShuffleQueues()
         {
             Random random = new Random();
             ChanceQueue = new Queue<IChanceCard>(ChanceQueue.OrderBy(c => random.Next()));
             CommunityChestQueue = new Queue<ICommunityChestCard>(CommunityChestQueue.OrderBy(c => random.Next()));
         }
 
-        internal IChanceCard DrawNextChanceCard()
+        public IChanceCard DrawNextChanceCard()
         {
             var drawnCard = ChanceQueue.Dequeue();
             ChanceQueue.Enqueue(drawnCard);
             return drawnCard;
         }
 
-        internal ICommunityChestCard DrawNextCommunityChestCard()
+        public ICommunityChestCard DrawNextCommunityChestCard()
         {
             var drawnCard = CommunityChestQueue.Dequeue();
             CommunityChestQueue.Enqueue(drawnCard);
             return drawnCard;
+        }
+
+        internal IReadOnlyList<string> GetChanceDeckOrder() => ChanceQueue.Select(card => ChanceCards.IndexOf(card).ToString()).ToList();
+
+        internal IReadOnlyList<string> GetCommunityChestDeckOrder() => CommunityChestQueue.Select(card => CommunityChestCards.IndexOf(card).ToString()).ToList();
+
+        internal void RestoreDeckOrder(IReadOnlyList<string> chanceOrder, IReadOnlyList<string> communityChestOrder)
+        {
+            ChanceQueue = RestoreQueue(ChanceQueue, chanceOrder, ChanceCards);
+            CommunityChestQueue = RestoreQueue(CommunityChestQueue, communityChestOrder, CommunityChestCards);
+        }
+
+        private static Queue<T> RestoreQueue<T>(IEnumerable<T> source, IReadOnlyList<string> order, IReadOnlyList<T> canonicalCards)
+            where T : class
+        {
+            List<T> remaining = source.ToList();
+            List<T> restored = new();
+            foreach (string key in order)
+            {
+                if (!int.TryParse(key, out int index) || index < 0 || index >= canonicalCards.Count)
+                    continue;
+
+                T card = canonicalCards[index];
+                if (!remaining.Remove(card)) continue;
+                restored.Add(card);
+            }
+
+            restored.AddRange(remaining);
+            return new Queue<T>(restored);
         }
     }
 }

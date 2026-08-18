@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models.Board
 {
-    internal class TaxSquare : Square
+    public class TaxSquare : Square
     {
         public TaxSquare(int position, int tax, string name, string info)
         {
@@ -19,16 +19,7 @@ namespace Monopoly.Core.Models.Board
 
         public override void LandOn(Player player, Game game)
         {
-            while(!game.Transactions.PayTax(player, Price))
-            {
-                if (game.Handler.IsPlayerBankrupt(player, Price))
-                {
-                    game.Handler.HandlePlayerBankruptcy(player);
-                    return;
-                }
-
-                GameEvents.InvokePlayerInsufficientFunds(this, player, Price);
-            }
+            game.Handler.TryResolvePayment(player, Price, null, $"Could not afford tax of {Price}");
         }
     }
 }

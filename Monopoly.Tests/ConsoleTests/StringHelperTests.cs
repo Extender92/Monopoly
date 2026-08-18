@@ -17,7 +17,7 @@ namespace Monopoly.Tests.ConsoleTests
             int expectedTotalLength = 10;
 
             //Act
-            var actual = StringHelper.CenterString(expectedInputString, expectedTotalLength);
+            var actual = StringHelper.CenterString(expectedInputString!, expectedTotalLength);
 
             //Assert
             Assert.Equal(expectedInputString, actual);
@@ -31,7 +31,7 @@ namespace Monopoly.Tests.ConsoleTests
             int expectedTotalLength = 10;
 
             //Act
-            var actual = StringHelper.CenterString(expectedInputString, expectedTotalLength);
+            var actual = StringHelper.CenterString(expectedInputString!, expectedTotalLength);
 
             //Assert
             Assert.Equal(expectedInputString, actual);
@@ -45,7 +45,7 @@ namespace Monopoly.Tests.ConsoleTests
             int expectedTotalLength = 10;
 
             //Act
-            var actual = StringHelper.CenterString(expectedInputString, expectedTotalLength);
+            var actual = StringHelper.CenterString(expectedInputString!, expectedTotalLength);
 
             //Assert
             Assert.Equal(expectedInputString, actual);
@@ -188,7 +188,7 @@ namespace Monopoly.Tests.ConsoleTests
         [Theory]
         [InlineData("Test1", "Test2", "Test3", new[] { "Test1", "Test2", "Test3" })]
         [InlineData("", "", "", new string[] { "", "", "" })]
-        [InlineData(null, null, null, new string[] { null, null, null })]
+        [InlineData(null!, null!, null!, new string[] { null!, null!, null! })]
         public void CreateStringList_ShouldCreateListWithGivenStrings(string one, string two, string three ,string[] expected)
         {
             // Act
@@ -201,7 +201,7 @@ namespace Monopoly.Tests.ConsoleTests
         [Theory]
         [InlineData("Test1", "Test2", new[] { "Test1", "Test2" })]
         [InlineData("", "", new string[] { "", "" })]
-        [InlineData(null, null, new string[] { null, null })]
+        [InlineData(null!, null!, new string[] { null!, null! })]
         public void CreateStringList_ShouldCreateListWithLessStrings(string one, string two, string[] expected)
         {
             // Act
