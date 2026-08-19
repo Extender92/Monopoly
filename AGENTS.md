@@ -1,56 +1,76 @@
-# Monopoly repository instructions
+# Agent instructions
 
-## Purpose
+These instructions apply to every agent working in this repository.
 
-This repository contains the Monopoly game core, the console frontend, and automated tests. Keep the core reusable so future frontends can reference it without depending on console classes.
+## Before starting work
 
-## Before changing code
+- Read the root `README.md` and the relevant documentation linked from it before
+  changing code, tests, workflows or documentation.
+- Inspect the relevant implementation before proposing or making changes.
+- Check the current branch, Git status, staged changes and unstaged changes.
+- Preserve existing user changes. Do not reset, discard, overwrite or reformat
+  unrelated work.
+- Check relevant open GitHub Issues before changing an area. Issues are the
+  source of truth for current defects and planned work.
+- Perform implementation work on an existing matching focused branch or create
+  one according to the documented workflow. Do not implement changes directly
+  on `main`.
 
-- Read the relevant project files and inspect the current Git status and diff first.
-- Preserve existing user changes. Do not reset, discard, overwrite, or reformat unrelated work.
-- Confirm the change belongs in `Monopoly.Core`, `Monopoly.Console`, or `Monopoly.Tests` before editing.
+## While working
 
-## Architecture rules
+- Follow the contracts and boundaries defined by the relevant documentation.
+- Keep the work focused on the requested objective and its acceptance criteria.
+- Do not add unrelated cleanup merely because nearby files are open.
+- Distinguish intended target behavior from the current implementation.
+- Do not claim that documented target behavior is implemented without verifying
+  the code and tests.
+- Update tests and documentation when a behavior or contract changes.
+- Add a regression test for every corrected defect.
+- Do not remove, skip or weaken tests merely to make verification pass.
+- Do not use destructive Git or filesystem operations that could remove user
+  work.
 
-- `Monopoly.Core` is a reusable class library. It must not write to `Console`, call `ReadLine`, pause for user input, or depend on console UI types.
-- `Monopoly.Console` owns menus, rendering, input, and mapping core-neutral values to console-specific values.
-- Keep game rules in the core. The main turn flow goes through `Game.PlayTurn()` and returns a `TurnResult`.
-- Use injected decision providers for frontend choices such as purchasing property, paying to leave jail, and resolving insufficient funds.
-- Keep movement, wrapping, landing effects, payment, jail, doubles, bankruptcy, active-player rotation, and winner state in the core.
-- Do not add a second console game loop or duplicate rule implementation.
-- Events are notifications for presentation and integration only; they must not be the source of truth for game state or turn progression.
+## Git and GitHub actions
 
-## Save and load
+- Follow `docs/development-workflow.md` for branches, commits, pull requests,
+  issue references, squash merges and releases.
+- Read-only inspection of repository history, pull requests and issues is
+  allowed when relevant to the task.
+- Do not create commits, push branches, open pull requests, merge, delete
+  branches, create tags or publish releases unless the user explicitly requests
+  that action.
+- Do not create, edit, comment on or close GitHub Issues unless the user
+  explicitly requests that action.
+- Use `Closes #N` only when all acceptance criteria for issue `#N` are satisfied.
+- Do not reuse a closed issue as the completion reference for later follow-up
+  work.
 
-- Use the versioned core save format (`Version = 1`).
-- Persist IDs and reconstruct references after players, board, rules, and decks have been created.
-- Preserve current player, turn/doubles state, fines, jail state, square state, ownership, mortgage state, and card deck order.
-- Validate versions, IDs, positions, and collection lengths. Fail clearly for invalid or unsupported saves.
-- Keep save/load logic independent of console output and interactive input.
+## Verification
 
-## Testing and verification
+Before reporting work as complete:
 
-- Add or update integration tests for complete game flows when changing rules or state transitions.
-- At minimum, run `dotnet build` and `dotnet test` before considering a change complete.
-- Do not accept new warnings or failures without explaining them in the handoff.
-- Pay special attention to exact-balance payments, correct debt amounts, wrap over Go, jail doubles, third doubles, bankruptcy transfers, winner state, save/load round-trips, and duplicate event subscriptions.
+1. Review the final Git status and complete diff.
+2. Check for accidental, unrelated, generated or temporary files.
+3. Validate affected documentation links and formatting.
+4. Run the repository's required restore, Release build and Release test
+   commands from the root unless the task cannot affect the repository output.
+5. Perform relevant manual or interactive checks when automated tests do not
+   cover the changed behavior.
+6. Report warnings, failures, skipped tests and checks that could not be run.
 
-## Git and GitHub workflow
+Do not hide or dismiss verification failures. Investigate them and clearly
+separate failures that existed before the current work from failures introduced
+by it.
 
-- Never work directly on `main`; create a focused branch such as `feature/...`, `fix/...`, or `refactor/...` from `main`.
-- Keep one branch and one pull request focused on one coherent objective.
-- Multiple local commits are acceptable while working, but use squash merge so `main` receives one clean logical commit per pull request.
-- Use concise commit titles that match the existing repository style. Describe the actual change; do not reuse a closed issue number as if it were being closed again.
-- In pull requests, use `Refs #N` or `Related to #N` for partial or follow-up work. Use `Closes #N` only when the issue is completely resolved.
-- Run the full build and test suite before opening or merging a pull request.
-- Create a Git tag only for a meaningful stable milestone or release, and tag the merged commit on `main`.
-- Do not push, merge, close issues, or create releases unless the user explicitly requests that external action.
+## Completion report
 
-## Completion checklist
+State:
 
-Before reporting completion:
-
-1. Review the final diff for accidental or unrelated changes.
-2. Run `dotnet build`.
-3. Run `dotnet test`.
-4. Report the branch, commit, tests, warnings, and any remaining limitations.
+- What changed.
+- The current branch.
+- Whether a commit was created.
+- Build warnings and errors.
+- Passed, failed and skipped test counts.
+- Manual or external checks performed.
+- Checks that could not be performed.
+- Remaining limitations or follow-up work.

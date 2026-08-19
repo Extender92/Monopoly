@@ -8,6 +8,9 @@
 # to opt in
 \bto opt in\b
 
+# URLs
+(?:\b(?:https?|ftp|file)://)[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]
+
 # acceptable duplicates
 # ls directory listings
 [-bcdlpsw](?:[-r][-w][-Ssx]){3}\s+\d+\s+\S+\s+\S+\s+\d+\s+
