@@ -82,3 +82,4 @@ ignore$
 ^\.github/actions/spelling/
 ^\Q.github/workflows/spelling.yml\E$
 ^\.github/workflows/
+^eng/publication/manifest\.json$

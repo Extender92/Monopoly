@@ -373,6 +373,12 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+# Local game saves and clean-publication audit output
+game_data.json
+saves/
+publication-audit*.json
+publication-audit*.txt
+
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 

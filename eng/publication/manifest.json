@@ -1,0 +1,727 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "uncertainContent": "review",
+    "publicationBlocks": [
+      "replace",
+      "remove",
+      "review"
+    ]
+  },
+  "auditMaterial": [
+    "docs/clean-publication-audit.md",
+    "eng/publication/**",
+    "publication-audit*.json",
+    "publication-audit*.txt"
+  ],
+  "textExtensions": [
+    ".cs",
+    ".csproj",
+    ".gitignore",
+    ".json",
+    ".md",
+    ".patterns",
+    ".ps1",
+    ".props",
+    ".sln",
+    ".targets",
+    ".txt",
+    ".xml",
+    ".yaml",
+    ".yml"
+  ],
+  "textFileNames": [
+    ".gitignore",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "artifactBinaryRules": [
+    {
+      "extensions": [
+        "",
+        ".dll",
+        ".exe",
+        ".pdb"
+      ],
+      "classification": "allow",
+      "rationale": "Expected unpacked .NET Release output; filenames and embedded UTF-8/ASCII and UTF-16 text are still scanned."
+    }
+  ],
+  "requiredPublicationFiles": [
+    {
+      "path": "LICENSE",
+      "ownerIssues": [57]
+    },
+    {
+      "path": "NOTICE",
+      "ownerIssues": [57]
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "ownerIssues": [57]
+    }
+  ],
+  "forbiddenPaths": [
+    {
+      "patterns": [
+        ".git",
+        ".git/**",
+        "**/.git",
+        "**/.git/**",
+        ".vs",
+        ".vs/**",
+        "**/.vs",
+        "**/.vs/**",
+        "bin",
+        "bin/**",
+        "**/bin",
+        "**/bin/**",
+        "obj",
+        "obj/**",
+        "**/obj",
+        "**/obj/**",
+        "TestResults",
+        "TestResults/**",
+        "**/TestResults",
+        "**/TestResults/**",
+        "test_results",
+        "test_results/**",
+        "**/test_results",
+        "**/test_results/**",
+        "artifacts",
+        "artifacts/**",
+        "**/artifacts",
+        "**/artifacts/**",
+        "game_data.json",
+        "saves",
+        "saves/**",
+        "**/saves",
+        "**/saves/**",
+        "publication-audit*.json",
+        "publication-audit*.txt",
+        "**/*.tmp",
+        "**/*.temp",
+        "**/*.log"
+      ],
+      "classification": "remove",
+      "ownerIssues": [58]
+    }
+  ],
+  "fileRules": [
+    {
+      "id": "root-project-files",
+      "patterns": [
+        "*"
+      ],
+      "ownership": "project-owned",
+      "classification": "allow",
+      "ownerIssues": [55]
+    },
+    {
+      "id": "generic-source-files",
+      "patterns": [
+        "**/*.cs",
+        "**/*.csproj",
+        "**/*.props",
+        "**/*.targets",
+        "**/*.sln"
+      ],
+      "ownership": "project-owned",
+      "classification": "allow",
+      "ownerIssues": [55]
+    },
+    {
+      "id": "generic-documentation-and-configuration",
+      "patterns": [
+        "**/*.md",
+        "**/*.json",
+        "**/*.txt",
+        "**/*.patterns",
+        "**/*.yml",
+        "**/*.yaml",
+        ".github/**"
+      ],
+      "ownership": "project-owned",
+      "classification": "allow",
+      "ownerIssues": [55]
+    },
+    {
+      "id": "raw-publication-audit",
+      "patterns": [
+        "docs/clean-publication-audit.md",
+        "eng/publication/**"
+      ],
+      "ownership": "project-owned",
+      "classification": "remove",
+      "ownerIssues": [58]
+    },
+    {
+      "id": "regional-board-and-card-data",
+      "patterns": [
+        "Monopoly.Core/Data/Data.cs",
+        "Monopoly.Core/Models/FortuneCard/UKChanceCard.cs",
+        "Monopoly.Core/Models/FortuneCard/UKCommunityChestCard.cs",
+        "Monopoly.Core/Models/FortuneCard/USChanceCard.cs",
+        "Monopoly.Core/Models/FortuneCard/USCommunityChestCard.cs"
+      ],
+      "ownership": "project-owned-with-third-party-presentation",
+      "classification": "replace",
+      "ownerIssues": [4, 37]
+    },
+    {
+      "id": "regional-rule-documents",
+      "patterns": [
+        "docs/game-rules.md",
+        "docs/rules/uk-classic.md",
+        "docs/rules/us-classic.md",
+        "docs/rules/custom.md"
+      ],
+      "ownership": "project-owned-with-third-party-references",
+      "classification": "replace",
+      "ownerIssues": [4, 37, 56]
+    },
+    {
+      "id": "product-shaped-tests",
+      "patterns": [
+        "Monopoly.Tests/CoreTests/CardTests.cs",
+        "Monopoly.Tests/CoreTests/DataTests.cs",
+        "Monopoly.Tests/CoreTests/FortuneCardHandlerTests.cs",
+        "Monopoly.Tests/CoreTests/GameBoardTests.cs",
+        "Monopoly.Tests/CoreTests/GameFlowIntegrationTests.cs"
+      ],
+      "ownership": "project-owned-with-third-party-fixtures",
+      "classification": "replace",
+      "ownerIssues": [4, 37]
+    },
+    {
+      "id": "legacy-save-contract",
+      "patterns": [
+        "Monopoly.Core/SaveAndLoad/**"
+      ],
+      "ownership": "project-owned",
+      "classification": "replace",
+      "ownerIssues": [52]
+    },
+    {
+      "id": "derived-spelling-configuration",
+      "patterns": [
+        ".github/actions/spelling/**"
+      ],
+      "ownership": "third-party-derived-configuration",
+      "classification": "review",
+      "ownerIssues": [57]
+    }
+  ],
+  "contentRules": [
+    {
+      "id": "legacy-product-and-repository-identity",
+      "matchType": "regex",
+      "patterns": [
+        "(?i)\\bMonopoly\\b",
+        "(?i)CCMR-Monopoly",
+        "(?i)CodeCraftersMR/CCMR-Monopoly"
+      ],
+      "targets": [
+        "path",
+        "content"
+      ],
+      "classification": "replace",
+      "ownerIssues": [56]
+    },
+    {
+      "id": "publisher-and-edition-evidence",
+      "matchType": "literal",
+      "patterns": [
+        "Hasbro",
+        "C1009",
+        "0622C1009780",
+        "C10090000 17 I MN",
+        "instructions.hasbro.com",
+        "www.hasbro.com"
+      ],
+      "targets": [
+        "path",
+        "content"
+      ],
+      "caseSensitive": false,
+      "classification": "remove",
+      "ownerIssues": [4]
+    },
+    {
+      "id": "regional-profile-symbols",
+      "matchType": "regex",
+      "patterns": [
+        "(?i)\\bUK Classic\\b",
+        "(?i)\\bUS Classic\\b",
+        "\\bGameLanguage\\b",
+        "\\bLanguage\\.(UK|US)\\b",
+        "\\b(UK|US)(Chance|CommunityChest)Card(Type)?\\b"
+      ],
+      "targets": [
+        "path",
+        "content"
+      ],
+      "classification": "replace",
+      "ownerIssues": [4, 37, 52]
+    },
+    {
+      "id": "official-board-and-square-names",
+      "matchType": "literal",
+      "patterns": [
+        "Atlantic Avenue",
+        "Baltic Avenue",
+        "Boardwalk",
+        "Bond Street",
+        "Bow Street",
+        "Connecticut Avenue",
+        "Coventry Street",
+        "Euston Road",
+        "Fleet Street",
+        "Illinois Avenue",
+        "Indiana Avenue",
+        "Kentucky Avenue",
+        "Leicester Square",
+        "Marlborough Street",
+        "Marvin Gardens",
+        "Mayfair",
+        "Mediterranean Avenue",
+        "New York Avenue",
+        "North Carolina Avenue",
+        "Northumberland Avenue",
+        "Old Kent Road",
+        "Oriental Avenue",
+        "Oxford Street",
+        "Pacific Avenue",
+        "Pall Mall",
+        "Park Lane",
+        "Park Place",
+        "Pennsylvania Avenue",
+        "Pentonville Road",
+        "Piccadilly",
+        "Regent Street",
+        "St. Charles Place",
+        "St. James Place",
+        "States Avenue",
+        "Tennessee Avenue",
+        "The Angel Islington",
+        "The Strand",
+        "Trafalgar Square",
+        "Ventnor Avenue",
+        "Vermont Avenue",
+        "Vine Street",
+        "Virginia Avenue",
+        "Whitechapel Road",
+        "Whitehall",
+        "B&O Railroad",
+        "Electric Company",
+        "Fenchurch Street Station",
+        "Income Tax",
+        "Kings Cross Station",
+        "Luxury Tax",
+        "Marylebone Station",
+        "Pennsylvania Railroad",
+        "Reading Railroad",
+        "Short Line",
+        "Water Works"
+      ],
+      "targets": [
+        "path",
+        "content"
+      ],
+      "caseSensitive": false,
+      "classification": "replace",
+      "ownerIssues": [4]
+    },
+    {
+      "id": "verbatim-card-text",
+      "matchType": "literal",
+      "patterns": [
+        "Advance to Boardwalk",
+        "Advance to Go (Collect $200)",
+        "Advance to Go (Collect £200)",
+        "Advance to Go (Collect 200)",
+        "Advance to Illinois Avenue. If you pass Go, collect $200",
+        "Advance to Mayfair",
+        "Advance to Pall Mall. If you pass Go, collect £200",
+        "Advance to St. Charles Place. If you pass Go, collect $200",
+        "Advance to the nearest Railroad. If unowned, you may buy it from the Bank. If owned, pay owner twice the rental to which they are otherwise entitled",
+        "Advance to the nearest Station. If unowned, you may buy it from the Bank. If owned, pay wonder twice the rental to which they are otherwise entitled",
+        "Advance to Trafalgar Square. If you pass Go, collect £200",
+        "Advance token to nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total ten times amount thrown.",
+        "Advance token to nearest Utility. If unowned, you may buy it from the Bank. If owned, throw dice and pay owner a total ten times the amount thrown",
+        "Bank error in your favor. Collect $200",
+        "Bank error in your favour. Collect £200",
+        "Bank pays you a dividend of $50",
+        "Bank pays you dividend of £50",
+        "Doctor’s fee. Pay $50",
+        "Doctor’s fee. Pay £50",
+        "From sale of stock you get $50",
+        "From sale of stock you get £50",
+        "Get Out of Jail Free",
+        "Go Back 3 Spaces",
+        "Go to Jail. Go directly to Jail, do not pass Go, do not collect $200",
+        "Go to Jail. Go directly to jail, do not pass Go, do not collect £200",
+        "Holiday fund matures. Receive $100",
+        "Holiday fund matures. Receive £100",
+        "Income tax refund. Collect $20",
+        "Income tax refund. Collect £20",
+        "It is your birthday. Collect $10 from every player",
+        "It is your birthday. Collect £10 from every player",
+        "Life insurance matures. Collect $100",
+        "Life insurance matures. Collect £100",
+        "Make general repairs on all your property. For each house pay £25. For each hotel pay £100",
+        "Make general repairs on all your property. For each house, pay $25. For each hotel, pay $100",
+        "Pay hospital fees of $100",
+        "Pay hospital fees of £100",
+        "Pay school fees of $50",
+        "Pay school fees of £50",
+        "Receive $25 consultancy fee",
+        "Receive £25 consultancy fee",
+        "Speeding fine $15",
+        "Speeding fine £15",
+        "Take a trip to Kings Cross Station. If you pass Go, collect £200",
+        "Take a trip to Reading Railroad. If you pass Go, collect $200",
+        "You are assessed for street repair. $40 per house. $115 per hotel",
+        "You are assessed for street repairs. £40 per house. £115 per hotel",
+        "You have been elected Chairman of the Board. Pay each player $50",
+        "You have been elected Chairman of the Board. Pay each player £50",
+        "You have won second prize in a beauty contest. Collect $10",
+        "You have won second prize in a beauty contest. Collect £10",
+        "You inherit $100",
+        "You inherit £100",
+        "Your building loan matures. Collect $150",
+        "Your building loan matures. Collect £150"
+      ],
+      "targets": [
+        "content"
+      ],
+      "caseSensitive": false,
+      "classification": "replace",
+      "ownerIssues": [4]
+    },
+    {
+      "id": "product-shaped-decks-and-detention",
+      "matchType": "regex",
+      "patterns": [
+        "(?i)\\bChance(Card|Deck|Square)?\\b",
+        "(?i)\\bCommunity\\s*Chest(Card|Deck|Square)?\\b",
+        "(?i)\\bFree Parking\\b",
+        "(?i)\\bGet Out of Jail Free\\b",
+        "(?i)\\bGo To Jail\\b",
+        "(?i)\\bJail\\b"
+      ],
+      "targets": [
+        "path",
+        "content"
+      ],
+      "classification": "replace",
+      "ownerIssues": [4, 37, 52]
+    },
+    {
+      "id": "legacy-save-symbols",
+      "matchType": "literal",
+      "patterns": [
+        "ChanceDeck",
+        "CommunityChestDeck",
+        "JailState",
+        "GameStateV1"
+      ],
+      "targets": [
+        "path",
+        "content"
+      ],
+      "caseSensitive": true,
+      "classification": "replace",
+      "ownerIssues": [52]
+    },
+    {
+      "id": "complete-official-data-shape",
+      "matchType": "regex",
+      "patterns": [
+        "(?i)\\b40[- ]?(space|square) board\\b",
+        "(?i)\\b32 houses?\\b.{0,80}\\b12 hotels?\\b",
+        "(?i)\\b16 chance\\b.{0,80}\\b16 community chest\\b",
+        "(?i)\\b28 title deeds?\\b"
+      ],
+      "targets": [
+        "content"
+      ],
+      "classification": "review",
+      "ownerIssues": [4, 37]
+    }
+  ],
+  "allowRules": [
+    {
+      "id": "independently-written-property-trading-code",
+      "patterns": [
+        "**/*.cs",
+        "**/*.csproj"
+      ],
+      "rationale": "Project-owned implementation may express generic mechanics when no deny rule matches."
+    },
+    {
+      "id": "generic-mechanics-terminology",
+      "patterns": [
+        "docs/**",
+        "**/*.cs"
+      ],
+      "terms": [
+        "dice",
+        "movement",
+        "ownership",
+        "rent",
+        "auction",
+        "detention",
+        "mortgage",
+        "building",
+        "trading",
+        "bankruptcy"
+      ],
+      "rationale": "Generic property-trading mechanics written in original language are allowed; this never overrides a deny finding."
+    }
+  ],
+  "dependencies": [
+    {
+      "ecosystem": "NuGet",
+      "name": "Microsoft.NET.Test.Sdk",
+      "version": "18.9.0",
+      "kind": "direct-test",
+      "upstream": "https://www.nuget.org/packages/Microsoft.NET.Test.Sdk/18.9.0",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "Moq",
+      "version": "4.20.72",
+      "kind": "direct-test",
+      "upstream": "https://www.nuget.org/packages/Moq/4.20.72",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "xunit",
+      "version": "2.9.3",
+      "kind": "direct-test",
+      "upstream": "https://www.nuget.org/packages/xunit/2.9.3",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "xunit.runner.visualstudio",
+      "version": "4.0.0",
+      "kind": "direct-test",
+      "upstream": "https://www.nuget.org/packages/xunit.runner.visualstudio/4.0.0",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "coverlet.collector",
+      "version": "10.0.1",
+      "kind": "direct-test",
+      "upstream": "https://www.nuget.org/packages/coverlet.collector/10.0.1",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "Castle.Core",
+      "version": "5.1.1",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/Castle.Core/5.1.1",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "Microsoft.CodeCoverage",
+      "version": "18.9.0",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/Microsoft.CodeCoverage/18.9.0",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "Microsoft.TestPlatform.ObjectModel",
+      "version": "18.9.0",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/Microsoft.TestPlatform.ObjectModel/18.9.0",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "Microsoft.TestPlatform.TestHost",
+      "version": "18.9.0",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/Microsoft.TestPlatform.TestHost/18.9.0",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "System.Diagnostics.EventLog",
+      "version": "6.0.0",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/System.Diagnostics.EventLog/6.0.0",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "xunit.abstractions",
+      "version": "2.0.3",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/xunit.abstractions/2.0.3",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "xunit.analyzers",
+      "version": "1.18.0",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/xunit.analyzers/1.18.0",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "xunit.assert",
+      "version": "2.9.3",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/xunit.assert/2.9.3",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "xunit.core",
+      "version": "2.9.3",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/xunit.core/2.9.3",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "xunit.extensibility.core",
+      "version": "2.9.3",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/xunit.extensibility.core/2.9.3",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "NuGet",
+      "name": "xunit.extensibility.execution",
+      "version": "2.9.3",
+      "kind": "transitive-test",
+      "upstream": "https://www.nuget.org/packages/xunit.extensibility.execution/2.9.3",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "dotnet-sdk",
+      "name": ".NET SDK",
+      "version": "10.0.201",
+      "kind": "build-platform",
+      "upstream": "https://github.com/dotnet/core",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "github-action",
+      "name": "actions/checkout",
+      "version": "v4",
+      "kind": "workflow",
+      "upstream": "https://github.com/actions/checkout",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "github-action",
+      "name": "actions/setup-dotnet",
+      "version": "v6",
+      "kind": "workflow",
+      "upstream": "https://github.com/actions/setup-dotnet",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "github-action",
+      "name": "actions/upload-artifact",
+      "version": "v7",
+      "kind": "workflow",
+      "upstream": "https://github.com/actions/upload-artifact",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "github-action",
+      "name": "check-spelling/check-spelling",
+      "version": "v0.0.26, main, prerelease",
+      "kind": "workflow-and-derived-config",
+      "upstream": "https://github.com/check-spelling/check-spelling",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    },
+    {
+      "ecosystem": "workflow-data",
+      "name": "cspell software terms dictionary",
+      "version": "workflow-resolved",
+      "kind": "remote-dictionary",
+      "upstream": "https://github.com/streetsidesoftware/cspell-dicts",
+      "licenseEvidence": null,
+      "licenseStatus": "review-required",
+      "noticeStatus": "review-required",
+      "ownerIssues": [57]
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 # Monopoly
 
+> **Development status:** This repository is an unofficial work in progress.
+> No supported releases or deployment artifacts are provided.
+
 [![Build and tests](https://github.com/Extender92/Monopoly/actions/workflows/Build-And-Tests.yml/badge.svg?branch=main)](https://github.com/Extender92/Monopoly/actions/workflows/Build-And-Tests.yml)
 [![Spelling](https://github.com/Extender92/Monopoly/actions/workflows/SpellChecker.yml/badge.svg?branch=main)](https://github.com/Extender92/Monopoly/actions/workflows/SpellChecker.yml)
 
