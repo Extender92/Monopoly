@@ -1,0 +1,11 @@
+exe
+LASTEXITCODE
+notin
+pdb
+pscustomobject
+pwsh
+scriptblock
+tmp
+Unicode
+Utc
+utf
