@@ -16,7 +16,7 @@ These instructions apply to every agent working in this repository.
   one according to the documented workflow. Do not implement changes directly
   on `main`.
 
-## Roadmap and issue selection
+## Work plan and issue selection
 
 - Before selecting implementation work, read GitHub issue #59 and its current
   execution-order section.
@@ -28,11 +28,11 @@ These instructions apply to every agent working in this repository.
   changing the repository.
 - Verify the current GitHub state because completed work may have changed the
   next eligible issue.
-- Do not create, reprioritize, move or rewrite issues merely to resolve a
-  planning ambiguity without explicit owner approval.
+- Do not create or rewrite issues, or change their priority or milestone,
+  merely to resolve a planning ambiguity without explicit owner approval.
 - If #59, milestone metadata and an issue dependency conflict, report the
   conflict before implementation.
-- These roadmap instructions apply only to this legacy repository. During #58,
+- These planning instructions apply only to this legacy repository. During #58,
   replace them with the new repository's planning entry point before creating
   the clean root commit.
 
