@@ -16,6 +16,26 @@ These instructions apply to every agent working in this repository.
   one according to the documented workflow. Do not implement changes directly
   on `main`.
 
+## Roadmap and issue selection
+
+- Before selecting implementation work, read GitHub issue #59 and its current
+  execution-order section.
+- Follow milestones in order from M1 through M6.
+- Within #59's execution order, select the first open issue whose declared
+  dependencies are complete; issue numbers alone do not define execution
+  order.
+- Read the selected issue and its direct dependencies and related issues before
+  changing the repository.
+- Verify the current GitHub state because completed work may have changed the
+  next eligible issue.
+- Do not create, reprioritize, move or rewrite issues merely to resolve a
+  planning ambiguity without explicit owner approval.
+- If #59, milestone metadata and an issue dependency conflict, report the
+  conflict before implementation.
+- These roadmap instructions apply only to this legacy repository. During #58,
+  replace them with the new repository's planning entry point before creating
+  the clean root commit.
+
 ## While working
 
 - Follow the contracts and boundaries defined by the relevant documentation.
