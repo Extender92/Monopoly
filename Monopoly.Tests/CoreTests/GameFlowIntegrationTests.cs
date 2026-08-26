@@ -212,6 +212,136 @@ public sealed class GameFlowIntegrationTests
         Assert.True(debtor.IsBankrupt);
     }
 
+    [Fact]
+    public void PlayerCreditorBankruptcyDuringPlayTurnAdvancesToImmediateNextPlayer()
+    {
+        Game game = CreateGame(3);
+        Player debtor = game.Players[0];
+        Player expectedNext = game.Players[1];
+        Player creditor = game.Players[2];
+        PropertySquare property = game.Board.GetAllPropertySquares().Single(square => square.Position == 3);
+        property.Owner = creditor;
+        debtor.Money = 0;
+        game.CurrentTurn = 4;
+        game.RestoreConsecutiveDoubles(1);
+        game.Dice = new List<IDie> { new FixedDie(1), new FixedDie(2) };
+
+        TurnResult result = game.PlayTurn();
+
+        Assert.True(result.PlayerBankrupt);
+        Assert.False(result.ExtraTurn);
+        Assert.False(result.GameOver);
+        Assert.Null(result.Winner);
+        Assert.DoesNotContain(debtor, game.Players);
+        Assert.Same(expectedNext, game.CurrentPlayer);
+        Assert.Equal(1, game.CurrentTurn);
+        Assert.Equal(0, game.ConsecutiveDoubles);
+    }
+
+    [Fact]
+    public void BankCreditorBankruptcyDuringPlayTurnAdvancesToImmediateNextPlayer()
+    {
+        Game game = CreateGame(3);
+        Player debtor = game.Players[0];
+        Player expectedNext = game.Players[1];
+        debtor.Money = 0;
+        game.CurrentTurn = 3;
+        game.RestoreConsecutiveDoubles(2);
+        game.Dice = new List<IDie> { new FixedDie(1), new FixedDie(3) };
+
+        TurnResult result = game.PlayTurn();
+
+        Assert.IsType<TaxSquare>(result.LandedSquare);
+        Assert.True(result.PlayerBankrupt);
+        Assert.False(result.ExtraTurn);
+        Assert.False(result.GameOver);
+        Assert.Null(result.Winner);
+        Assert.DoesNotContain(debtor, game.Players);
+        Assert.Same(expectedNext, game.CurrentPlayer);
+        Assert.Equal(1, game.CurrentTurn);
+        Assert.Equal(0, game.ConsecutiveDoubles);
+    }
+
+    [Theory]
+    [InlineData(1, 2)]
+    [InlineData(3, 0)]
+    public void BankruptcyOutsidePlayTurnAdvancesFromOriginalPosition(int currentIndex, int expectedNextIndex)
+    {
+        Game game = CreateGame(4);
+        Player debtor = game.Players[currentIndex];
+        Player expectedNext = game.Players[expectedNextIndex];
+        game.CurrentPlayer = debtor;
+        game.CurrentTurn = 5;
+        game.RestoreConsecutiveDoubles(2);
+
+        game.Handler.DeclareBankruptcy(debtor, null, "Could not pay bank debt");
+
+        Assert.DoesNotContain(debtor, game.Players);
+        Assert.Same(expectedNext, game.CurrentPlayer);
+        Assert.Equal(1, game.CurrentTurn);
+        Assert.Equal(0, game.ConsecutiveDoubles);
+        Assert.Null(game.Winner);
+    }
+
+    [Fact]
+    public void NonCurrentPlayerBankruptcyDoesNotRotateOrResetTurnState()
+    {
+        Game game = CreateGame(4);
+        Player current = game.Players[0];
+        Player creditor = game.Players[1];
+        Player debtor = game.Players[2];
+        game.CurrentPlayer = current;
+        game.CurrentTurn = 6;
+        game.RestoreConsecutiveDoubles(2);
+
+        game.Handler.DeclareBankruptcy(debtor, creditor, "Could not pay player debt");
+
+        Assert.DoesNotContain(debtor, game.Players);
+        Assert.Same(current, game.CurrentPlayer);
+        Assert.Equal(6, game.CurrentTurn);
+        Assert.Equal(2, game.ConsecutiveDoubles);
+        Assert.Null(game.Winner);
+    }
+
+    [Fact]
+    public void RemovingAlreadyRemovedPlayerDoesNotAdvanceAgain()
+    {
+        Game game = CreateGame(4);
+        Player removed = game.Players[0];
+        Player expectedCurrent = game.Players[1];
+
+        game.RemovePlayer(removed);
+        game.RemovePlayer(removed);
+
+        Assert.Same(expectedCurrent, game.CurrentPlayer);
+        Assert.Equal(3, game.Players.Count);
+    }
+
+    [Fact]
+    public void FinalBankruptcySetsSurvivorAsCurrentWinnerAndStopsFurtherTurns()
+    {
+        (Game game, Player debtor, Player survivor, _) = CreateGame();
+        PropertySquare property = game.Board.GetAllPropertySquares().Single(square => square.Position == 3);
+        property.Owner = survivor;
+        debtor.Money = 0;
+        FixedDie firstDie = new(1);
+        FixedDie secondDie = new(2);
+        game.Dice = new List<IDie> { firstDie, secondDie };
+
+        TurnResult bankruptcyResult = game.PlayTurn();
+        TurnResult gameOverResult = game.PlayTurn();
+
+        Assert.True(bankruptcyResult.PlayerBankrupt);
+        Assert.True(bankruptcyResult.GameOver);
+        Assert.Same(survivor, bankruptcyResult.Winner);
+        Assert.Same(survivor, game.CurrentPlayer);
+        Assert.Same(survivor, game.Winner);
+        Assert.True(gameOverResult.GameOver);
+        Assert.Same(survivor, gameOverResult.Winner);
+        Assert.Equal(1, firstDie.RollCount);
+        Assert.Equal(1, secondDie.RollCount);
+    }
+
     [Theory]
     [InlineData(GameRules.Language.UK, "£")]
     [InlineData(GameRules.Language.US, "$" )]
@@ -321,6 +451,11 @@ public sealed class GameFlowIntegrationTests
         return CreateGame(decisions, new GameRules(2, 2, 6));
     }
 
+    private static Game CreateGame(int playerCount)
+    {
+        return CoreGameSetup.Setup(new GameRules(playerCount, 2, 6), new TestDecisionProvider());
+    }
+
     private static (Game Game, Player First, Player Second, TestDecisionProvider Decisions) CreateGame(
         TestDecisionProvider? decisions,
         GameRules rules)
@@ -342,6 +477,8 @@ public sealed class GameFlowIntegrationTests
         private readonly Queue<int> values;
         private int result;
 
+        public int RollCount { get; private set; }
+
         public FixedDie(params int[] values)
         {
             this.values = new Queue<int>(values);
@@ -350,7 +487,11 @@ public sealed class GameFlowIntegrationTests
 
         public int GetDieResult() => result;
         public int GetDieType() => 20;
-        public void Roll() => result = values.Count > 0 ? values.Dequeue() : result;
+        public void Roll()
+        {
+            RollCount++;
+            result = values.Count > 0 ? values.Dequeue() : result;
+        }
         public void ScrambleDie() => result = -1;
     }
 
