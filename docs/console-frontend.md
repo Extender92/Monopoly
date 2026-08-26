@@ -437,7 +437,8 @@ Presentation token choices are collected again after load.
 3. Renders the initial board.
 4. Opens a `PlayerActionMenu` for `Game.CurrentPlayer`.
 5. Calls `Game.PlayTurn()` when Roll is selected.
-6. Refreshes the board, player information, landed-square card and newest logs.
+6. Refreshes the board, player information and landed-square card. Newest logs
+   refresh only when Core publishes `LogAddedEvent`.
 7. Continues until Core reports game over.
 8. Displays `Game.Winner`.
 9. Unsubscribes in a `finally` block.
@@ -473,11 +474,13 @@ legacy `PropertySquare.Color` value from Core.
 
 `ConsoleEventHandler` keeps one static current Console session and subscribes
 to static Core events. It filters notifications by the sending `Game` and
-unsubscribes the previous session before attaching another one.
+unsubscribes the previous session before attaching another one. Repeated
+subscription of the current session is idempotent, and cleanup from an already
+replaced session does not detach the active session.
 
-Logs can currently be rendered when `LogAddedEvent` fires and again during the
-post-turn refresh. This can display the same log more than once even when the
-underlying Core log exists only once.
+`LogAddedEvent` is the single rendering path for the newest-log view. The
+post-turn refresh reads the other current match state but does not render logs
+again, so one notified log change produces one log-view refresh.
 
 ### Current save behavior
 
