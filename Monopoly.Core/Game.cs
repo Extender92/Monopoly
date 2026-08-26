@@ -134,6 +134,12 @@ public class Game : IGame
         int diceSum = Handler.CalculateDiceSum();
         bool isDouble = Handler.IsDiceDouble();
 
+        if (!TheJail.TryGetJailInfo(player, out _))
+        {
+            AdvanceToNextActivePlayer();
+            return BuildResult(player, results, diceSum, null, isDouble, false, false, false);
+        }
+
         if (isDouble)
         {
             TheJail.ReleasePlayerFromJail(player, ", rolled doubles");
