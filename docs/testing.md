@@ -602,14 +602,13 @@ Current Console coverage includes:
 The current GitHub build workflow:
 
 - Runs on pushes to all branches and on pull requests.
-- Installs .NET 10.
-- Restores and builds the test project and its project references.
-- Runs the tests with an HTML logger.
-- Uploads the test results as an artifact.
+- Installs the stable .NET SDK selected by `global.json`.
+- Restores and builds the complete solution in Release configuration.
+- Runs the complete test suite in Release configuration without rebuilding.
+- Uploads readable HTML test results after successful and failed test runs.
 
-A separate workflow checks spelling. The current build workflow does not
-explicitly select Release configuration. Coverlet is referenced but coverage is
-not currently collected or published by CI.
+A separate workflow checks spelling. Coverlet is referenced but coverage is not
+currently collected or published by CI.
 
 ## Current limitations
 
@@ -623,7 +622,6 @@ The current suite does not yet fully provide:
 - Pending-decision persistence tests.
 - A deterministic automated match from setup to winner.
 - Explicit isolation of tests that use static events.
-- CI Release configuration equivalent to the required local verification.
 - Published code-coverage diagnostics.
 
 Some older tests are coupled to current constructors or internals. Several

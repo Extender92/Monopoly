@@ -13,9 +13,6 @@ on:
     - 'opened'
     - 'reopened'
     - 'synchronize'
-  issue_comment:
-    types:
-    - 'created'
 
 jobs:
   spelling:
@@ -24,7 +21,6 @@ jobs:
       contents: read
       pull-requests: read
       actions: read
-      security-events: write
     outputs:
       followup: ${{ steps.spelling.outputs.followup }}
     runs-on: ubuntu-latest
@@ -46,8 +42,6 @@ jobs:
         use_magic_file: 1
         report-timing: 1
         warnings: bad-regex,binary-file,deprecated-feature,large-file,limited-references,no-newline-at-eof,noisy-file,non-alpha-in-dictionary,token-is-substring,unexpected-line-ending,whitespace-in-dictionary,minified-file,unsupported-configuration,no-files-to-check
-        experimental_apply_changes_via_bot: 1
-        use_sarif: 0 # to show in pr page
         extra_dictionary_limit: 20
         only_check_changed_files: 0
         extra_dictionaries:
@@ -85,27 +79,3 @@ jobs:
         checkout: true
         spell_check_this: check-spelling/spell-check-this@prerelease
         task: ${{ needs.spelling.outputs.followup }}
-        experimental_apply_changes_via_bot: 1
-
-#  update:
-#    name: Update PR
-#    permissions:
-#      contents: write
-#      pull-requests: write
-#      actions: read
-#    runs-on: ubuntu-latest
-#    if: ${{
-#        github.event_name == 'issue_comment' &&
-#        github.event.issue.pull_request &&
-#        contains(github.event.comment.body, '@check-spelling-bot apply')
-#      }}
-#    concurrency:
-#      group: spelling-update-${{ github.event.issue.number }}
-#      cancel-in-progress: false
-#    steps:
-#    - name: apply spelling updates
-#      uses: check-spelling/check-spelling@main
-#      with:
-#        experimental_apply_changes_via_bot: 1
-#        checkout: true
-#        ssh_key: "${{ secrets.CHECK_SPELLING }}"

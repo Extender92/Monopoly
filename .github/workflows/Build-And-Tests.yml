@@ -17,20 +17,22 @@ jobs:
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
-      with:         
-        dotnet-version: 10.0.x
+      with:
+        global-json-file: global.json
         
     - name: Restore dependencies
-      run: dotnet restore ./Monopoly.Tests/Monopoly.Tests.csproj
+      run: dotnet restore
           
     - name: Build
-      run: dotnet build ./Monopoly.Tests/Monopoly.Tests.csproj --no-restore
+      run: dotnet build --configuration Release
 
     - name: Test
-      run: dotnet test ./Monopoly.Tests/Monopoly.Tests.csproj --no-build --logger "html" --results-directory "test_results"
+      run: dotnet test --configuration Release --no-build --logger "html" --results-directory "test_results"
 
     - name: Upload test results
+      if: ${{ !cancelled() }}
       uses: actions/upload-artifact@v7
       with:
         name: test-results
         path: test_results
+        if-no-files-found: warn
