@@ -31,18 +31,19 @@ namespace Monopoly.Core
         /// <summary>Attempts to get the current jail status for a player.</summary>
         /// <param name="player">The player whose status should be queried.</param>
         /// <param name="jailStatus">
-        /// The stored status when the player is in jail; otherwise <see langword="null"/>.
+        /// The stored status when the player is in jail; otherwise null.
         /// </param>
-        /// <returns><see langword="true"/> when the player has a jail entry; otherwise <see langword="false"/>.</returns>
+        /// <returns>True when the player has a jail entry; otherwise false.</returns>
         public bool TryGetJailInfo(Player player, [NotNullWhen(true)] out JailStatus? jailStatus)
         {
             ValidatePlayer(player);
             return playersInJail.TryGetValue(player, out jailStatus);
         }
 
-        /// <summary>Gets the current jail status for a player known to be in jail.</summary>
-        /// <exception cref="ArgumentNullException"><paramref name="player"/> is <see langword="null"/>.</exception>
-        /// <exception cref="InvalidOperationException">The player does not have a jail entry.</exception>
+        /// <summary>
+        /// Gets the current jail status for a player known to be in jail. A null player causes
+        /// an ArgumentNullException; a player without a jail entry causes an InvalidOperationException.
+        /// </summary>
         public JailStatus GetJailInfo(Player player)
         {
             if (TryGetJailInfo(player, out JailStatus? jailStatus))
