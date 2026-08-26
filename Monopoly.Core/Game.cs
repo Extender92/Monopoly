@@ -94,12 +94,12 @@ public class Game : IGame
 
         bool bankrupt = player.IsBankrupt;
         bool sentToJail = TheJail.IsPlayerInJail(player);
-        if (bankrupt || sentToJail || !isDouble)
+        if (!bankrupt && (sentToJail || !isDouble))
         {
             ConsecutiveDoubles = 0;
             AdvanceToNextActivePlayer();
         }
-        else
+        else if (!bankrupt)
         {
             ConsecutiveDoubles++;
             CurrentTurn++;
@@ -221,6 +221,8 @@ public class Game : IGame
         if (activePlayers.Count <= 1)
         {
             Winner = activePlayers.SingleOrDefault();
+            if (Winner is not null && !ReferenceEquals(CurrentPlayer, Winner))
+                TransitionToPlayer(Winner);
             return;
         }
 
@@ -232,9 +234,7 @@ public class Game : IGame
             Player candidate = Players[(currentIndex + offset + Players.Count) % Players.Count];
             if (!candidate.IsBankrupt)
             {
-                CurrentPlayer = candidate;
-                CurrentTurn = 1;
-                ConsecutiveDoubles = 0;
+                TransitionToPlayer(candidate);
                 return;
             }
         }
@@ -242,17 +242,45 @@ public class Game : IGame
 
     public void RemovePlayer(Player player)
     {
-        if (!Players.Remove(player)) return;
+        int removedIndex = Players.IndexOf(player);
+        if (removedIndex < 0) return;
+
+        bool removedCurrentPlayer = ReferenceEquals(CurrentPlayer, player);
+        Players.RemoveAt(removedIndex);
+
         if (Players.Count == 0)
         {
             Winner = null;
             return;
         }
 
-        if (CurrentPlayer == player)
-            AdvanceToNextActivePlayer();
-        else if (Players.Count(p => !p.IsBankrupt) <= 1)
-            AdvanceToNextActivePlayer();
+        List<Player> activePlayers = Players.Where(candidate => !candidate.IsBankrupt).ToList();
+        Winner = activePlayers.Count == 1 ? activePlayers[0] : null;
+
+        if (Winner is not null)
+        {
+            if (!ReferenceEquals(CurrentPlayer, Winner))
+                TransitionToPlayer(Winner);
+            return;
+        }
+
+        if (!removedCurrentPlayer) return;
+
+        for (int offset = 0; offset < Players.Count; offset++)
+        {
+            Player candidate = Players[(removedIndex + offset) % Players.Count];
+            if (!candidate.IsBankrupt)
+            {
+                TransitionToPlayer(candidate);
+                return;
+            }
+        }
     }
 
+    private void TransitionToPlayer(Player player)
+    {
+        CurrentPlayer = player;
+        CurrentTurn = 1;
+        ConsecutiveDoubles = 0;
+    }
 }
