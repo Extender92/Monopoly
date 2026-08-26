@@ -9,24 +9,71 @@ namespace Monopoly.Tests.CoreTests
     public class JailTests
     {
         [Fact]
-        public void TryGetJailInfo_ShouldReturnCorrectJailInfo()
+        public void TryGetJailInfo_PlayerInJail_ReturnsStoredStatus()
         {
             // Arrange
             Player player = new Player("player", 0);
             var gameMock = new Mock<IGame>();
 
             Jail jail = new Jail(gameMock.Object, 0);
-            jail.playersInJail[player] = new JailStatus();
+            JailStatus expectedStatus = new() { TurnsInJail = 2 };
+            jail.playersInJail[player] = expectedStatus;
 
             // Act
-            var GetJailInfoMethod = jail.GetJailInfo(player);
-            jail.playersInJail.TryGetValue(player, out JailStatus? JailInfo);
+            bool found = jail.TryGetJailInfo(player, out JailStatus? jailStatus);
 
             // Assert
-            Assert.NotNull(GetJailInfoMethod);
-            Assert.NotNull(JailInfo);
-            Assert.Equal(JailInfo, GetJailInfoMethod);
-            Assert.Equal(0, GetJailInfoMethod.TurnsInJail);
+            Assert.True(found);
+            Assert.NotNull(jailStatus);
+            Assert.Same(expectedStatus, jailStatus);
+            Assert.Equal(2, jailStatus.TurnsInJail);
+        }
+
+        [Fact]
+        public void TryGetJailInfo_PlayerNotInJail_ReturnsFalseAndNull()
+        {
+            // Arrange
+            Player player = new Player("player", 0);
+            var gameMock = new Mock<IGame>();
+            Jail jail = new Jail(gameMock.Object, 0);
+
+            // Act
+            bool found = jail.TryGetJailInfo(player, out JailStatus? jailStatus);
+
+            // Assert
+            Assert.False(found);
+            Assert.Null(jailStatus);
+        }
+
+        [Fact]
+        public void TryGetJailInfo_NullPlayer_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var gameMock = new Mock<IGame>();
+            Jail jail = new Jail(gameMock.Object, 0);
+
+            // Act
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
+                () => jail.TryGetJailInfo(null!, out _));
+
+            // Assert
+            Assert.Equal("player", exception.ParamName);
+        }
+
+        [Fact]
+        public void GetJailInfo_PlayerNotInJail_ThrowsControlledException()
+        {
+            // Arrange
+            Player player = new Player("player", 0);
+            var gameMock = new Mock<IGame>();
+            Jail jail = new Jail(gameMock.Object, 0);
+
+            // Act
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+                () => jail.GetJailInfo(player));
+
+            // Assert
+            Assert.Equal("Player 'player' is not in jail.", exception.Message);
         }
 
         [Fact]
@@ -194,6 +241,21 @@ namespace Monopoly.Tests.CoreTests
         }
 
         [Fact]
+        public void TryPlayerBuyOut_PlayerNotInJail_ReturnsFalse()
+        {
+            // Arrange
+            Player player = new Player("player", 0);
+            var gameMock = new Mock<IGame>();
+            Jail jail = new Jail(gameMock.Object, 0);
+
+            // Act
+            bool result = jail.TryPlayerBuyOut(player);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
         public void TryPlayerBuyOut_ShouldReturnTrueWithMoney()
         {
             // Arrange
@@ -336,6 +398,21 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.True(result);
+        }
+
+        [Fact]
+        public void PlayerReachedMaxTurnsInJail_PlayerNotInJail_ReturnsFalse()
+        {
+            // Arrange
+            Player player = new Player("player", 0);
+            var gameMock = new Mock<IGame>();
+            Jail jail = new Jail(gameMock.Object, 0);
+
+            // Act
+            bool result = jail.PlayerReachedMaxTurnsInJail(player);
+
+            // Assert
+            Assert.False(result);
         }
 
         [Fact]
@@ -593,6 +670,8 @@ namespace Monopoly.Tests.CoreTests
             logsMock.Verify(l => l.CreateLog("JailTurn 0: Player has been released from jail."), Times.Once);
             logsMock.VerifyNoOtherCalls();
             Assert.DoesNotContain(player, jail.playersInJail.Keys);
+            Assert.False(jail.TryGetJailInfo(player, out JailStatus? jailStatus));
+            Assert.Null(jailStatus);
         }
 
         [Fact]

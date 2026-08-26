@@ -108,6 +108,51 @@ public sealed class GameFlowIntegrationTests
     }
 
     [Fact]
+    public void PaidJailReleaseFollowedByNonDoubleCompletesWithoutStaleStateLookup()
+    {
+        TestDecisionProvider decisions = new() { ConfirmJailBuyoutResult = true };
+        (Game game, Player player, Player next, _) = CreateGame(decisions);
+        game.CurrentPlayer = player;
+        player.Money = 100;
+        game.TheJail.PlayerGoToJail(player);
+        game.Dice = new List<IDie> { new FixedDie(1), new FixedDie(4) };
+
+        TurnResult? result = null;
+        Exception? exception = Record.Exception(() => result = game.PlayTurn());
+
+        Assert.Null(exception);
+        Assert.NotNull(result);
+        Assert.Equal(new[] { 1, 4 }, result.DiceResults);
+        Assert.False(result.WasDouble);
+        Assert.Equal(50, player.Money);
+        Assert.False(game.TheJail.TryGetJailInfo(player, out _));
+        Assert.Same(next, game.CurrentPlayer);
+    }
+
+    [Fact]
+    public void PaidJailReleaseFollowedByDoubleDoesNotReleasePlayerTwice()
+    {
+        TestDecisionProvider decisions = new() { ConfirmJailBuyoutResult = true };
+        (Game game, Player player, Player next, _) = CreateGame(decisions);
+        game.CurrentPlayer = player;
+        player.Money = 100;
+        game.TheJail.PlayerGoToJail(player);
+        game.Dice = new List<IDie> { new FixedDie(2), new FixedDie(2) };
+
+        TurnResult? result = null;
+        Exception? exception = Record.Exception(() => result = game.PlayTurn());
+
+        Assert.Null(exception);
+        Assert.NotNull(result);
+        Assert.Equal(new[] { 2, 2 }, result.DiceResults);
+        Assert.True(result.WasDouble);
+        Assert.False(result.WasReleasedFromJailByDouble);
+        Assert.Equal(50, player.Money);
+        Assert.False(game.TheJail.TryGetJailInfo(player, out _));
+        Assert.Same(next, game.CurrentPlayer);
+    }
+
+    [Fact]
     public void ThirdConsecutiveDoublesSendPlayerDirectlyToJail()
     {
         (Game game, Player player, Player next, _) = CreateGame();
@@ -212,7 +257,10 @@ public sealed class GameFlowIntegrationTests
             Assert.Equal(4, loadedProperty.Houses);
             Assert.True(loadedProperty.IsMortgage);
             Assert.True(loaded.TheJail.IsPlayerInJail(loadedSecond));
-            Assert.Equal(1, loaded.TheJail.GetJailInfo(loadedSecond).TurnsInJail);
+            Assert.True(loaded.TheJail.TryGetJailInfo(loadedSecond, out Jail.JailStatus? jailStatus));
+            Assert.NotNull(jailStatus);
+            Assert.Equal(1, jailStatus.TurnsInJail);
+            Assert.False(loaded.TheJail.TryGetJailInfo(second, out _));
             Assert.Equal(chanceOrder, loaded.FortuneCard.ChanceQueue.Select(card => card.Info));
             Assert.Equal(chestOrder, loaded.FortuneCard.CommunityChestQueue.Select(card => card.Info));
         }
@@ -309,10 +357,11 @@ public sealed class GameFlowIntegrationTests
     private sealed class TestDecisionProvider : IPlayerDecisionProvider
     {
         public bool ResolveFunds { get; init; }
+        public bool ConfirmJailBuyoutResult { get; init; }
         public List<int> PaymentRequests { get; } = new();
 
         public bool ConfirmPurchase(Player player, Square square) => false;
-        public bool ConfirmJailBuyout(Player player) => false;
+        public bool ConfirmJailBuyout(Player player) => ConfirmJailBuyoutResult;
 
         public bool ResolveInsufficientFunds(Game game, Player player, int amount)
         {
