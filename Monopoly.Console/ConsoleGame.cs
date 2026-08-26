@@ -69,11 +69,10 @@ internal class ConsoleGame
     [Obsolete("Use StartConsoleGame instead.")]
     internal void StartGame() => StartConsoleGame();
 
-    private void UpdateGameInformation(Square landedSquare, Player player)
+    internal void UpdateGameInformation(Square landedSquare, Player player)
     {
         Printer.PrintGameBoard(TablePieces, CurrentGame.Players);
         Printer.DisplayPlayersInformation(player, CurrentGame.Players);
         CardPrinter.PrepareAndPrintSquareCard(landedSquare.Position);
-        LogPrinter.PrintNewestLogs(10, CurrentGame.Logs.LogList);
     }
 }

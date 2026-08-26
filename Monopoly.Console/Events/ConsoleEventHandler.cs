@@ -13,6 +13,9 @@ namespace Monopoly.Console.Events
 
         public static void SubscribeToEvents(ConsoleGame consoleGame)
         {
+            if (ReferenceEquals(CurrentConsoleGame, consoleGame))
+                return;
+
             if (CurrentConsoleGame is not null)
                 UnsubscribeFromEvents(CurrentConsoleGame);
 
@@ -28,6 +31,9 @@ namespace Monopoly.Console.Events
 
         public static void UnsubscribeFromEvents(ConsoleGame consoleGame)
         {
+            if (!ReferenceEquals(CurrentConsoleGame, consoleGame))
+                return;
+
             GameEvents.LogAddedEvent -= LogAdded;
             GameEvents.ChanceCardDrawnEvent -= DrawChanceCard;
             GameEvents.CommunityChestCardDrawnEvent -= DrawCommunityChestCard;
@@ -35,9 +41,7 @@ namespace Monopoly.Console.Events
             GameEvents.LandOnSquareEvent -= LandOnSquare;
             GameEvents.UpdateGameBoard -= UpdateGameBoard;
             GameEvents.UpdatePlayerInformation -= UpdatePlayerInformation;
-
-            if (ReferenceEquals(CurrentConsoleGame, consoleGame))
-                CurrentConsoleGame = null;
+            CurrentConsoleGame = null;
         }
 
         private static void LogAdded(object? sender, EventArgs e)

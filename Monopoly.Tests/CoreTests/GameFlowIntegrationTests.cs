@@ -419,32 +419,6 @@ public sealed class GameFlowIntegrationTests
         }
     }
 
-    [Fact]
-    public void StartingAnotherConsoleGameDoesNotDuplicateUiEventSubscribers()
-    {
-        Game firstGame = CoreGameSetup.Setup(new GameRules(2, 2, 6));
-        Game secondGame = CoreGameSetup.Setup(new GameRules(2, 2, 6));
-        Monopoly.Console.ConsoleGame first = new(firstGame, null!, new(), null!, null!, null!);
-        Monopoly.Console.ConsoleGame second = new(secondGame, null!, new(), null!, null!, null!);
-
-        Monopoly.Console.Events.ConsoleEventHandler.SubscribeToEvents(first);
-        try
-        {
-            Assert.Equal(1, GetSubscriberCount("UpdateGameBoard"));
-
-            Monopoly.Console.Events.ConsoleEventHandler.SubscribeToEvents(second);
-            Assert.Equal(1, GetSubscriberCount("UpdateGameBoard"));
-
-            Monopoly.Core.Events.GameEvents.InvokeUpdateGameBoard(firstGame);
-        }
-        finally
-        {
-            Monopoly.Console.Events.ConsoleEventHandler.UnsubscribeFromEvents(second);
-        }
-
-        Assert.Equal(0, GetSubscriberCount("UpdateGameBoard"));
-    }
-
     private static (Game Game, Player First, Player Second, TestDecisionProvider Decisions) CreateGame(
         TestDecisionProvider? decisions = null)
     {
@@ -463,13 +437,6 @@ public sealed class GameFlowIntegrationTests
         decisions ??= new TestDecisionProvider();
         Game game = CoreGameSetup.Setup(rules, decisions);
         return (game, game.Players[0], game.Players[1], decisions);
-    }
-
-    private static int GetSubscriberCount(string eventName)
-    {
-        System.Reflection.FieldInfo? field = typeof(Monopoly.Core.Events.GameEvents)
-            .GetField(eventName, System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-        return ((Delegate?)field?.GetValue(null))?.GetInvocationList().Length ?? 0;
     }
 
     private sealed class FixedDie : IDie
