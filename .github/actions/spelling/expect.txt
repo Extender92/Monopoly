@@ -1,9 +1,11 @@
-exe
+IDisposable
+IFile
 LASTEXITCODE
 notin
 pdb
 pscustomobject
 pwsh
+roundtrip
 scriptblock
 tmp
 Unicode
