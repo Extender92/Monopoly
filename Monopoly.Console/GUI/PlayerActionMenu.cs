@@ -15,7 +15,7 @@ namespace Monopoly.Console.GUI
         private readonly Player Player;
         private readonly IGameSaveStore SaveStore;
         private readonly IConsoleWrapper ConsoleWrapper;
-        internal TurnResult? LastTurnResult { get; private set; }
+        internal GameActionResult? LastActionResult { get; private set; }
         internal IGameSaveStore CurrentSaveStore => SaveStore;
 
         public PlayerActionMenu(Game game, Player player, IGameSaveStore saveStore)
@@ -157,12 +157,12 @@ namespace Monopoly.Console.GUI
 
         private void RollDice()
         {
-            LastTurnResult = CurrentGame.PlayTurn();
+            LastActionResult = CurrentGame.PlayTurn();
         }
 
         private void RollDiceInJail()
         {
-            LastTurnResult = CurrentGame.PlayTurn();
+            LastActionResult = CurrentGame.PlayTurn();
         }
 
         private void SaveGame()

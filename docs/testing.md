@@ -572,7 +572,7 @@ The project currently uses:
 - xUnit Visual Studio runner.
 - Coverlet collector.
 
-The suite currently contains 242 passing tests split between `CoreTests`,
+The suite currently contains 260 passing tests split between `CoreTests`,
 `InfrastructureTests` and `ConsoleTests`.
 
 Current Core coverage includes:
@@ -593,6 +593,11 @@ Current Core coverage includes:
   rejection and foreign-object validation.
 - Complete Version 1 candidate validation and failure atomicity.
 - Static event-subscription replacement.
+- Resumable purchase and Jail decisions, immutable snapshots, stable IDs and
+  exactly-once continuation through chained decisions.
+- Atomic typed rejection of malformed, stale, duplicate and disallowed
+  decision responses.
+- Detached primitive-only phase, decision and continuation projections.
 
 State-heavy Core tests use the internal `GameTestBuilder`. It starts from a
 detached Version 1 DTO, applies explicit test arrangements, injects decisions or
@@ -609,6 +614,8 @@ Current Console coverage includes:
 - String formatting.
 - Calls recorded through mocked Console abstractions.
 - Injected save-store use and typed save/load error presentation.
+- Purchase/Jail prompt mapping, configured Jail values, typed rejection display
+  and synchronous driving through multiple Core results.
 
 Current Infrastructure coverage includes:
 
@@ -616,6 +623,8 @@ Current Infrastructure coverage includes:
 - Missing, invalid, incompatible and inaccessible storage classification.
 - Atomic file creation and replacement.
 - Preservation of an existing save after write, flush or promotion failures.
+- Rejection of awaiting-decision Version 1 saves before an existing file is
+  touched.
 
 The current GitHub build workflow:
 
@@ -636,7 +645,8 @@ The current suite does not yet fully provide:
 - Stable card-identity and held-card round trips.
 - Complete auction, rent-claim, trade, building and mortgage flow coverage.
 - Complete multi-player debt and bankruptcy settlement scenarios.
-- Pending-decision persistence tests.
+- Physical pending-decision round trips; Version 1 rejects pending state and
+  the primitive Version 2 projections are tested without storage.
 - A deterministic automated match from setup to winner.
 - Published code-coverage diagnostics.
 

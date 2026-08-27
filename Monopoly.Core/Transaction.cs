@@ -154,20 +154,18 @@ namespace Monopoly.Core
             return true;
         }
 
-        internal void HandleCanBuySquare(Player player, Square square)
+        internal bool TryBuyPurchasableSquareAfterDecision(Player player, Square square)
         {
             ValidatePlayer(player);
             ValidateSquare(square);
-            if (square.Owner is not null) return;
+            if (player.IsBankrupt || square.Owner is not null || square.Price < 0 ||
+                !CurrentGame.Handler.CanAffordWithAssets(player, square.Price))
+                return false;
 
-            if (square.Price > player.Money && AskToManagePropertiesForBuyingSquare(player, square))
-            {
-                BuyPurchasableSquare(player, square);
-            }
-            else if (CurrentGame.Decisions.ConfirmPurchase(player, square))
-            {
-                BuyPurchasableSquare(player, square);
-            }
+            if (square.Price > player.Money && !AskToManagePropertiesForBuyingSquare(player, square))
+                return false;
+
+            return BuyPurchasableSquare(player, square);
         }
 
         private bool AskToManagePropertiesForBuyingSquare(Player player, Square square)

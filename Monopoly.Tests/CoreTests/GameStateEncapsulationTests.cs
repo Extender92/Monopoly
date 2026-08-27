@@ -397,8 +397,6 @@ public sealed class GameStateEncapsulationTests
 
     private sealed class TestDecisionProvider : IPlayerDecisionProvider
     {
-        public bool ConfirmPurchase(Player player, Square square) => false;
-        public bool ConfirmJailBuyout(Player player) => false;
         public bool ResolveInsufficientFunds(Game game, Player player, int amount) => false;
     }
 }

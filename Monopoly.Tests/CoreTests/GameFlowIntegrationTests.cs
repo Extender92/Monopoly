@@ -99,7 +99,7 @@ public sealed class GameFlowIntegrationTests
             .Build();
         Player player = game.Players[0];
 
-        TurnResult result = game.PlayTurn();
+        TurnResult result = game.PlayTurnToCompletion();
 
         Assert.Equal(3, player.Position);
         Assert.Equal(1200, player.Money);
@@ -116,7 +116,7 @@ public sealed class GameFlowIntegrationTests
         Player player = game.Players[0];
         Player next = game.Players[1];
 
-        TurnResult result = game.PlayTurn();
+        TurnResult result = game.PlayTurnToCompletion();
 
         Assert.False(game.TheJail.IsPlayerInJail(player));
         Assert.Equal(12, player.Position);
@@ -129,7 +129,7 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void PaidJailReleaseFollowedByNonDoubleCompletesWithoutStaleStateLookup()
     {
-        TestDecisionProvider decisions = new() { ConfirmJailBuyoutResult = true };
+        TestDecisionProvider decisions = new();
         Game game = new GameTestBuilder()
             .WithPlayer(0, money: 100)
             .WithPlayerInJail(0)
@@ -140,7 +140,8 @@ public sealed class GameFlowIntegrationTests
         Player next = game.Players[1];
 
         TurnResult? result = null;
-        Exception? exception = Record.Exception(() => result = game.PlayTurn());
+        Exception? exception = Record.Exception(() => result = game.PlayTurnToCompletion(
+            decision => decision is JailReleaseDecision ? DecisionOption.LeaveJail : DecisionOption.Decline));
 
         Assert.Null(exception);
         Assert.NotNull(result);
@@ -154,7 +155,7 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void PaidJailReleaseFollowedByDoubleDoesNotReleasePlayerTwice()
     {
-        TestDecisionProvider decisions = new() { ConfirmJailBuyoutResult = true };
+        TestDecisionProvider decisions = new();
         Game game = new GameTestBuilder()
             .WithPlayer(0, money: 100)
             .WithPlayerInJail(0)
@@ -165,7 +166,8 @@ public sealed class GameFlowIntegrationTests
         Player next = game.Players[1];
 
         TurnResult? result = null;
-        Exception? exception = Record.Exception(() => result = game.PlayTurn());
+        Exception? exception = Record.Exception(() => result = game.PlayTurnToCompletion(
+            decision => decision is JailReleaseDecision ? DecisionOption.LeaveJail : DecisionOption.Decline));
 
         Assert.Null(exception);
         Assert.NotNull(result);
@@ -187,9 +189,9 @@ public sealed class GameFlowIntegrationTests
         Player player = game.Players[0];
         Player next = game.Players[1];
 
-        game.PlayTurn();
-        game.PlayTurn();
-        TurnResult result = game.PlayTurn();
+        game.PlayTurnToCompletion();
+        game.PlayTurnToCompletion();
+        TurnResult result = game.PlayTurnToCompletion();
 
         Assert.True(game.TheJail.IsPlayerInJail(player));
         Assert.True(result.WasSentToJail);
@@ -259,7 +261,7 @@ public sealed class GameFlowIntegrationTests
         Player expectedNext = game.Players[1];
         Player creditor = game.Players[2];
 
-        TurnResult result = game.PlayTurn();
+        TurnResult result = game.PlayTurnToCompletion();
 
         Assert.True(result.PlayerBankrupt);
         Assert.False(result.ExtraTurn);
@@ -282,7 +284,7 @@ public sealed class GameFlowIntegrationTests
         Player debtor = game.Players[0];
         Player expectedNext = game.Players[1];
 
-        TurnResult result = game.PlayTurn();
+        TurnResult result = game.PlayTurnToCompletion();
 
         Assert.IsType<TaxSquare>(result.LandedSquare);
         Assert.True(result.PlayerBankrupt);
@@ -362,8 +364,8 @@ public sealed class GameFlowIntegrationTests
         Player debtor = game.Players[0];
         Player survivor = game.Players[1];
 
-        TurnResult bankruptcyResult = game.PlayTurn();
-        TurnResult gameOverResult = game.PlayTurn();
+        TurnResult bankruptcyResult = game.PlayTurnToCompletion();
+        TurnResult gameOverResult = game.PlayTurnToCompletion();
 
         Assert.True(bankruptcyResult.PlayerBankrupt);
         Assert.True(bankruptcyResult.GameOver);
@@ -410,11 +412,7 @@ public sealed class GameFlowIntegrationTests
     private sealed class TestDecisionProvider : IPlayerDecisionProvider
     {
         public bool ResolveFunds { get; init; }
-        public bool ConfirmJailBuyoutResult { get; init; }
         public List<int> PaymentRequests { get; } = new();
-
-        public bool ConfirmPurchase(Player player, Square square) => false;
-        public bool ConfirmJailBuyout(Player player) => ConfirmJailBuyoutResult;
 
         public bool ResolveInsufficientFunds(Game game, Player player, int amount)
         {

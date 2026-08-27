@@ -29,7 +29,8 @@ namespace Monopoly.Console
             Input input,
             ConsoleLogPrinter logPrint,
             ConsoleCardPrinter cardPrinter,
-            IGameSaveStore saveStore)
+            IGameSaveStore saveStore,
+            ConsolePlayerDecisionProvider decisionProvider)
         {
             TablePieces = new();
             foreach (Player player in game.Players)
@@ -37,7 +38,7 @@ namespace Monopoly.Console
                 TablePieces.Add(_tablePieceSelector.GetTablePieceFromUserInput(player.Id, TablePieces, input));
             }
 
-            ConsoleGame consoleGame = new ConsoleGame(game, consolePrinter, TablePieces, input, logPrint, cardPrinter, saveStore);
+            ConsoleGame consoleGame = new ConsoleGame(game, consolePrinter, TablePieces, input, logPrint, cardPrinter, saveStore, decisionProvider);
             return consoleGame;
         }
     }

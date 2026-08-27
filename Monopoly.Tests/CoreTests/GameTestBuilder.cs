@@ -97,3 +97,28 @@ internal sealed class GameTestBuilder
 
     internal Game Build() => GameStateV1Mapper.FromState(_state, _decisions, _dice);
 }
+
+internal static class GameTestActions
+{
+    internal static TurnResult PlayTurnToCompletion(
+        this Game game,
+        Func<PendingDecision, DecisionOption>? chooseResponse = null)
+    {
+        GameActionResult result = game.PlayTurn();
+        while (result.Status == GameActionStatus.DecisionRequired)
+        {
+            PendingDecision decision = result.PendingDecision
+                ?? throw new InvalidOperationException("A required decision did not contain a snapshot.");
+            DecisionOption response = chooseResponse?.Invoke(decision) ?? decision switch
+            {
+                PropertyPurchaseDecision => DecisionOption.Decline,
+                JailReleaseDecision => DecisionOption.RollForDoubles,
+                _ => throw new InvalidOperationException("Unknown test decision type.")
+            };
+            result = game.SubmitDecision(new DecisionResponse(decision.DecisionId, response));
+        }
+
+        return result.TurnResult
+            ?? throw new InvalidOperationException($"The test turn did not complete: {result.Status} ({result.RejectionReason}).");
+    }
+}

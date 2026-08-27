@@ -13,6 +13,8 @@ public static class GameStateV1Mapper
     public static GameStateV1 ToState(Game game)
     {
         ArgumentNullException.ThrowIfNull(game);
+        if (game.Phase == GamePhase.AwaitingDecision)
+            throw new GameStateValidationException("Version 1 cannot represent a game with a pending decision.");
 
         return new GameStateV1
         {
@@ -76,6 +78,7 @@ public static class GameStateV1Mapper
                 game.RestoreWinner(activePlayers.SingleOrDefault());
 
             game.ValidateAuthoritativeState();
+            game.ResetProgressForVersionOne();
             return game;
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)

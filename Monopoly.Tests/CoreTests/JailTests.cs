@@ -118,46 +118,6 @@ public class JailTests
     }
 
     [Fact]
-    public void TryPlayerBuyOut_ShouldReturnTrueWithGetOutOfJailCard()
-    {
-        Game game = CreateGameInJail(jailCards: 1);
-
-        Assert.True(InvokeBuyOutDecision(game));
-    }
-
-    [Fact]
-    public void TryPlayerBuyOut_PlayerNotInJail_ReturnsFalse()
-    {
-        Game game = new GameTestBuilder().Build();
-
-        Assert.False(game.TheJail.TryPlayerBuyOut(PlayerZero(game)));
-    }
-
-    [Fact]
-    public void TryPlayerBuyOut_ShouldReturnTrueWithMoney()
-    {
-        Game game = CreateGameInJail(money: 50);
-
-        Assert.True(InvokeBuyOutDecision(game));
-    }
-
-    [Fact]
-    public void TryPlayerBuyOut_ShouldReturnTrueWithAssets()
-    {
-        Game game = CreateGameInJail(money: 0, ownsProperty: true);
-
-        Assert.True(InvokeBuyOutDecision(game));
-    }
-
-    [Fact]
-    public void TryPlayerBuyOut_ShouldReturnFalse()
-    {
-        Game game = CreateGameInJail(money: 0);
-
-        Assert.False(InvokeBuyOutDecision(game));
-    }
-
-    [Fact]
     public void TryIncrementTurnsInJail_ShouldIncrementTurnsInJailForPlayer()
     {
         Game game = CreateGameInJail(turnsInJail: 1);
@@ -329,32 +289,15 @@ public class JailTests
     private static Game CreateGameInJail(
         int money = 3_000,
         int jailCards = 0,
-        int turnsInJail = 0,
-        bool ownsProperty = false)
+        int turnsInJail = 0)
     {
         GameTestBuilder builder = new GameTestBuilder()
             .WithPlayer(0, money: money, jailCards: jailCards)
             .WithPlayerInJail(0, turnsInJail);
-
-        if (ownsProperty)
-            builder.WithSquare(5, ownerId: 0);
 
         return builder.Build();
     }
 
     private static Player PlayerZero(Game game) => game.Players.Single(player => player.Id == 0);
 
-    private static bool InvokeBuyOutDecision(Game game)
-    {
-        PlayerEventHandler handler = (_, args) => ReferenceEquals(args.Player, PlayerZero(game));
-        GameEvents.AskPlayerToBuyOutOfJailEvent += handler;
-        try
-        {
-            return game.TheJail.TryPlayerBuyOut(PlayerZero(game));
-        }
-        finally
-        {
-            GameEvents.AskPlayerToBuyOutOfJailEvent -= handler;
-        }
-    }
 }

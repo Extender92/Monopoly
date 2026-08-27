@@ -41,13 +41,14 @@ namespace Monopoly.Console
 
             Input input = new Input(consoleWrapper, menu);
 
-            game.SetDecisionProvider(new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules, saveStore));
+            ConsolePlayerDecisionProvider decisionProvider = new(consolePrinter, input, game, saveStore);
+            game.SetDecisionProvider(decisionProvider);
 
             ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
 
             ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game.Board.Squares, gameRules);
 
-            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter, saveStore);
+            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter, saveStore, decisionProvider);
 
             consoleGame.StartConsoleGame();
         }
@@ -91,13 +92,14 @@ namespace Monopoly.Console
 
             Input input = new Input(consoleWrapper, menu);
 
-            game.SetDecisionProvider(new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules, saveStore));
+            ConsolePlayerDecisionProvider decisionProvider = new(consolePrinter, input, game, saveStore);
+            game.SetDecisionProvider(decisionProvider);
 
             ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
 
             ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game.Board.Squares, gameRules);
 
-            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter, saveStore);
+            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter, saveStore, decisionProvider);
 
             consoleGame.StartConsoleGame();
         }

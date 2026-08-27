@@ -89,7 +89,7 @@ namespace Monopoly.Core.Models.Board
             {
                 if (game.Handler.CanAffordWithAssets(player, Price))
                 {
-                    game.Transactions.HandleCanBuySquare(player, this);
+                    game.RequestPropertyPurchase(player, this);
                 }
             }
             else if (!IsMortgage && Owner != player)

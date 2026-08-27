@@ -96,6 +96,25 @@ public sealed class JsonFileGameSaveStoreTests
     }
 
     [Fact]
+    public void PendingVersionOneSaveIsRejectedBeforeExistingFileIsTouched()
+    {
+        using TemporaryDirectory temporaryDirectory = new();
+        string savePath = temporaryDirectory.GetPath("game.json");
+        JsonFileGameSaveStore store = new(savePath);
+        store.Save(CreateGame());
+        byte[] originalBytes = File.ReadAllBytes(savePath);
+        Game pendingGame = new GameTestBuilder().WithPlayerInJail(0).Build();
+        Assert.Equal(GameActionStatus.DecisionRequired, pendingGame.PlayTurn().Status);
+
+        SaveStoreException exception = Assert.Throws<SaveStoreException>(() => store.Save(pendingGame));
+
+        Assert.Equal(SaveStoreErrorKind.InvalidData, exception.Kind);
+        Assert.IsType<GameStateValidationException>(exception.InnerException);
+        Assert.Equal(originalBytes, File.ReadAllBytes(savePath));
+        Assert.Equal(new[] { savePath }, Directory.GetFiles(temporaryDirectory.Path));
+    }
+
+    [Fact]
     public void LoadClassifiesMissingFile()
     {
         using TemporaryDirectory temporaryDirectory = new();

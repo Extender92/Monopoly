@@ -13,6 +13,9 @@ public sealed class Game : IGame
     private readonly ReadOnlyCollection<Player> _playersView;
     private readonly List<IDie> _dice;
     private readonly ReadOnlyCollection<IDieView> _diceView;
+    private readonly HashSet<Guid> _consumedDecisionIds = new();
+    private TurnContinuation? _turnContinuation;
+    private Guid? _lastConsumedDecisionId;
 
     internal GameHandler Handler { get; }
     private readonly ILogHandler _logs;
@@ -33,6 +36,11 @@ public sealed class Game : IGame
     public int ConsecutiveDoubles { get; private set; }
     public Player? Winner { get; private set; }
     public bool IsGameOver => Winner is not null || Players.Count(p => !p.IsBankrupt) <= 1;
+    public GamePhase Phase { get; private set; }
+    public PendingDecision? PendingDecision { get; private set; }
+    internal TurnContinuation? TurnContinuationSnapshot => _turnContinuation;
+    internal Guid? LastConsumedDecisionId => _lastConsumedDecisionId;
+    internal IReadOnlyCollection<Guid> ConsumedDecisionIds => _consumedDecisionIds;
 
     public Game(
         IEnumerable<Player> players,
@@ -97,6 +105,7 @@ public sealed class Game : IGame
 
         Fines = 0;
         CurrentTurn = 1;
+        Phase = GamePhase.ReadyForTurn;
         Board = new GameBoard(rules);
         FortuneCard = new FortuneCardHandler(rules);
         TheJail = new Jail(this, Board.Squares.First(s => s.Name == "Jail").Position);
@@ -124,24 +133,28 @@ public sealed class Game : IGame
     public bool TryRepayMortgage(Player player, Square square) =>
         Transactions.TryRepayMortgageProperty(player, square);
 
-    /// <summary>Executes one complete dice roll.</summary>
-    public TurnResult PlayTurn()
+    /// <summary>Starts a turn and runs until it completes or requires a frontend decision.</summary>
+    public GameActionResult PlayTurn()
     {
+        if (Phase == GamePhase.AwaitingDecision)
+            return GameActionResult.Rejected(GameActionRejectionReason.PendingDecisionRequired, PendingDecision);
+
         if (IsGameOver)
         {
             Winner ??= Players.FirstOrDefault(p => !p.IsBankrupt);
-            return new TurnResult { Player = CurrentPlayer, GameOver = true, Winner = Winner };
+            Phase = GamePhase.GameOver;
+            return GameActionResult.Over(new TurnResult { Player = CurrentPlayer, GameOver = true, Winner = Winner });
         }
 
         Player player = CurrentPlayer;
         if (player.IsBankrupt)
         {
             AdvanceToNextActivePlayer();
-            return new TurnResult { Player = player, PlayerBankrupt = true, GameOver = IsGameOver, Winner = Winner };
+            return CompleteAction(new TurnResult { Player = player, PlayerBankrupt = true, GameOver = IsGameOver, Winner = Winner });
         }
 
         if (TheJail.IsPlayerInJail(player))
-            return PlayJailTurn(player);
+            return RequestJailDecision(player);
 
         Handler.RollDice(player);
         IReadOnlyList<int> results = Dice.Select(die => die.GetDieResult()).ToList().AsReadOnly();
@@ -153,32 +166,144 @@ public sealed class Game : IGame
             ConsecutiveDoubles = 0;
             TheJail.PlayerGoToJail(player, "Rolled doubles three times in a row");
             AdvanceToNextActivePlayer();
-            return BuildResult(player, results, diceSum, null, true, true, false, false);
+            return CompleteAction(BuildResult(player, results, diceSum, null, true, true, false, false));
         }
 
         Square landedSquare = MovePlayerBySteps(player, diceSum);
+        _turnContinuation = new TurnContinuation(
+            TurnContinuationKind.StandardLanding,
+            player.Id,
+            results,
+            diceSum,
+            landedSquare.Position,
+            isDouble,
+            false);
         GameEvents.InvokeLandOnSquare(this, landedSquare);
         landedSquare.LandOn(player, this);
 
-        bool bankrupt = player.IsBankrupt;
-        bool sentToJail = !bankrupt && TheJail.IsPlayerInJail(player);
-        if (!bankrupt && (sentToJail || !isDouble))
-        {
-            ConsecutiveDoubles = 0;
-            AdvanceToNextActivePlayer();
-        }
-        else if (!bankrupt)
-        {
-            ConsecutiveDoubles++;
-            CurrentTurn++;
-        }
+        if (PendingDecision is not null)
+            return GameActionResult.DecisionRequired(PendingDecision);
 
-        return BuildResult(player, results, diceSum, landedSquare, isDouble, sentToJail, false, isDouble && !bankrupt && !sentToJail);
+        return CompleteTurnContinuation(player);
     }
 
-    private TurnResult PlayJailTurn(Player player)
+    public GameActionResult SubmitDecision(DecisionResponse? response)
     {
-        if (Decisions.ConfirmJailBuyout(player))
+        if (response is null || response.DecisionId == Guid.Empty || !Enum.IsDefined(response.Response))
+            return GameActionResult.Rejected(GameActionRejectionReason.MalformedResponse, PendingDecision);
+
+        if (PendingDecision is null)
+        {
+            GameActionRejectionReason reason = response.DecisionId == _lastConsumedDecisionId
+                ? GameActionRejectionReason.DuplicateDecision
+                : _consumedDecisionIds.Contains(response.DecisionId)
+                    ? GameActionRejectionReason.StaleDecision
+                    : GameActionRejectionReason.NoPendingDecision;
+            return GameActionResult.Rejected(reason);
+        }
+
+        if (response.DecisionId != PendingDecision.DecisionId)
+        {
+            GameActionRejectionReason reason = response.DecisionId == _lastConsumedDecisionId
+                ? GameActionRejectionReason.DuplicateDecision
+                : GameActionRejectionReason.StaleDecision;
+            return GameActionResult.Rejected(reason, PendingDecision);
+        }
+
+        if (!PendingDecision.AllowedResponses.Contains(response.Response) || !CanApplyPendingDecision(PendingDecision, response.Response))
+            return GameActionResult.Rejected(GameActionRejectionReason.ResponseNotAllowed, PendingDecision);
+
+        PendingDecision acceptedDecision = PendingDecision;
+        ConsumePendingDecision(acceptedDecision.DecisionId);
+
+        return acceptedDecision switch
+        {
+            PropertyPurchaseDecision purchase => ResumePropertyPurchase(purchase, response.Response),
+            JailReleaseDecision => ResumeJailTurn(response.Response),
+            _ => throw new InvalidOperationException("The pending decision type is not supported.")
+        };
+    }
+
+    internal void RequestPropertyPurchase(Player player, Square square)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(square);
+        if (!ContainsPlayer(player) || !ReferenceEquals(player, CurrentPlayer))
+            throw new ArgumentException("The purchasing player must be the current player in this game.", nameof(player));
+        if (!ContainsSquare(square))
+            throw new ArgumentException("The square does not belong to this game.", nameof(square));
+        if (_turnContinuation is null)
+            throw new InvalidOperationException("A purchase decision can only be requested while a turn is in progress.");
+        if (PendingDecision is not null)
+            throw new InvalidOperationException("Only one decision can be pending at a time.");
+        if (player.IsBankrupt || square.Owner is not null || square.Price < 0 || !Handler.CanAffordWithAssets(player, square.Price))
+            return;
+
+        PendingDecision = new PropertyPurchaseDecision(Guid.NewGuid(), player.Id, square.Position, square.Price);
+        Phase = GamePhase.AwaitingDecision;
+    }
+
+    private GameActionResult RequestJailDecision(Player player)
+    {
+        Jail.JailStatus jailStatus = TheJail.GetJailInfo(player);
+        PendingDecision = new JailReleaseDecision(
+            Guid.NewGuid(),
+            player.Id,
+            Rules.JailFine,
+            player.NumberOfGetOutOFJailCards > 0,
+            jailStatus.TurnsInJail,
+            Rules.MaxTurnsInJail);
+        Phase = GamePhase.AwaitingDecision;
+        return GameActionResult.DecisionRequired(PendingDecision);
+    }
+
+    private bool CanApplyPendingDecision(PendingDecision decision, DecisionOption response)
+    {
+        Player? player = _players.SingleOrDefault(candidate => candidate.Id == decision.PlayerId);
+        if (player is null || player.IsBankrupt || !ReferenceEquals(player, CurrentPlayer))
+            return false;
+
+        return decision switch
+        {
+            PropertyPurchaseDecision purchase =>
+                _turnContinuation is not null &&
+                Board.GetSquareAtPosition(purchase.SquarePosition) is Square square &&
+                square.Owner is null &&
+                square.Price == purchase.Price &&
+                (response != DecisionOption.Purchase || Handler.CanAffordWithAssets(player, purchase.Price)),
+            JailReleaseDecision jail =>
+                _turnContinuation is null &&
+                TheJail.TryGetJailInfo(player, out Jail.JailStatus? status) &&
+                jail.Fine == Rules.JailFine &&
+                jail.HasGetOutOfJailCard == (player.NumberOfGetOutOFJailCards > 0) &&
+                jail.TurnsInJail == status.TurnsInJail &&
+                jail.MaximumTurnsInJail == Rules.MaxTurnsInJail,
+            _ => false
+        };
+    }
+
+    private void ConsumePendingDecision(Guid decisionId)
+    {
+        _consumedDecisionIds.Add(decisionId);
+        _lastConsumedDecisionId = decisionId;
+        PendingDecision = null;
+        Phase = GamePhase.ReadyForTurn;
+    }
+
+    private GameActionResult ResumePropertyPurchase(PropertyPurchaseDecision decision, DecisionOption response)
+    {
+        Player player = _players.Single(candidate => candidate.Id == decision.PlayerId);
+        Square square = Board.GetSquareAtPosition(decision.SquarePosition);
+        if (response == DecisionOption.Purchase)
+            Transactions.TryBuyPurchasableSquareAfterDecision(player, square);
+
+        return CompleteTurnContinuation(player);
+    }
+
+    private GameActionResult ResumeJailTurn(DecisionOption response)
+    {
+        Player player = CurrentPlayer;
+        if (response == DecisionOption.LeaveJail)
         {
             if (player.NumberOfGetOutOFJailCards > 0)
             {
@@ -193,7 +318,7 @@ public sealed class Game : IGame
             if (player.IsBankrupt)
             {
                 AdvanceToNextActivePlayer();
-                return BuildResult(player, Array.Empty<int>(), 0, null, false, false, false, false, true);
+                return CompleteAction(BuildResult(player, Array.Empty<int>(), 0, null, false, false, false, false, true));
             }
         }
 
@@ -205,18 +330,27 @@ public sealed class Game : IGame
         if (!TheJail.TryGetJailInfo(player, out _))
         {
             AdvanceToNextActivePlayer();
-            return BuildResult(player, results, diceSum, null, isDouble, false, false, false);
+            return CompleteAction(BuildResult(player, results, diceSum, null, isDouble, false, false, false));
         }
 
         if (isDouble)
         {
             TheJail.ReleasePlayerFromJail(player, ", rolled doubles");
             Square landedSquare = MovePlayerBySteps(player, diceSum);
+            _turnContinuation = new TurnContinuation(
+                TurnContinuationKind.JailDoubleLanding,
+                player.Id,
+                results,
+                diceSum,
+                landedSquare.Position,
+                true,
+                true);
             GameEvents.InvokeLandOnSquare(this, landedSquare);
             landedSquare.LandOn(player, this);
-            ConsecutiveDoubles = 0;
-            AdvanceToNextActivePlayer();
-            return BuildResult(player, results, diceSum, landedSquare, true, false, true, false);
+            if (PendingDecision is not null)
+                return GameActionResult.DecisionRequired(PendingDecision);
+
+            return CompleteTurnContinuation(player);
         }
 
         TheJail.IncrementTurnsInJail(player);
@@ -234,12 +368,72 @@ public sealed class Game : IGame
             else
             {
                 AdvanceToNextActivePlayer();
-                return BuildResult(player, results, diceSum, null, false, false, false, false, true);
+                return CompleteAction(BuildResult(player, results, diceSum, null, false, false, false, false, true));
             }
         }
 
         AdvanceToNextActivePlayer();
-        return BuildResult(player, results, diceSum, null, false, false, false, false);
+        return CompleteAction(BuildResult(player, results, diceSum, null, false, false, false, false));
+    }
+
+    private GameActionResult CompleteTurnContinuation(Player? knownPlayer = null)
+    {
+        TurnContinuation continuation = _turnContinuation
+            ?? throw new InvalidOperationException("There is no turn continuation to complete.");
+        _turnContinuation = null;
+
+        Player player = knownPlayer ?? _players.Single(candidate => candidate.Id == continuation.PlayerId);
+        Square landedSquare = Board.GetSquareAtPosition(continuation.LandedSquarePosition);
+
+        if (continuation.Kind == TurnContinuationKind.JailDoubleLanding)
+        {
+            ConsecutiveDoubles = 0;
+            AdvanceToNextActivePlayer();
+            return CompleteAction(BuildResult(
+                player,
+                continuation.DiceResults,
+                continuation.DiceSum,
+                landedSquare,
+                true,
+                false,
+                continuation.WasReleasedFromJailByDouble,
+                false));
+        }
+
+        bool bankrupt = player.IsBankrupt;
+        bool sentToJail = !bankrupt && TheJail.IsPlayerInJail(player);
+        if (!bankrupt && (sentToJail || !continuation.WasDouble))
+        {
+            ConsecutiveDoubles = 0;
+            AdvanceToNextActivePlayer();
+        }
+        else if (!bankrupt)
+        {
+            ConsecutiveDoubles++;
+            CurrentTurn++;
+        }
+
+        return CompleteAction(BuildResult(
+            player,
+            continuation.DiceResults,
+            continuation.DiceSum,
+            landedSquare,
+            continuation.WasDouble,
+            sentToJail,
+            false,
+            continuation.WasDouble && !bankrupt && !sentToJail));
+    }
+
+    private GameActionResult CompleteAction(TurnResult result)
+    {
+        if (result.GameOver)
+        {
+            Phase = GamePhase.GameOver;
+            return GameActionResult.Over(result);
+        }
+
+        Phase = GamePhase.ReadyForTurn;
+        return GameActionResult.Completed(result);
     }
 
     private TurnResult BuildResult(
@@ -282,6 +476,7 @@ public sealed class Game : IGame
         if (Players.Count == 0)
         {
             Winner = null;
+            Phase = GamePhase.GameOver;
             return;
         }
 
@@ -291,6 +486,7 @@ public sealed class Game : IGame
             Winner = activePlayers.SingleOrDefault();
             if (Winner is not null && !ReferenceEquals(CurrentPlayer, Winner))
                 TransitionToPlayer(Winner);
+            Phase = GamePhase.GameOver;
             return;
         }
 
@@ -319,6 +515,7 @@ public sealed class Game : IGame
         if (Players.Count == 0)
         {
             Winner = null;
+            Phase = GamePhase.GameOver;
             return;
         }
 
@@ -329,6 +526,7 @@ public sealed class Game : IGame
         {
             if (!ReferenceEquals(CurrentPlayer, Winner))
                 TransitionToPlayer(Winner);
+            Phase = GamePhase.GameOver;
             return;
         }
 
@@ -387,6 +585,16 @@ public sealed class Game : IGame
         if (winner is not null && (!ContainsPlayer(winner) || winner.IsBankrupt))
             throw new ArgumentException("The winner must be an active player in the game.", nameof(winner));
         Winner = winner;
+        Phase = winner is null ? GamePhase.ReadyForTurn : GamePhase.GameOver;
+    }
+
+    internal void ResetProgressForVersionOne()
+    {
+        PendingDecision = null;
+        _turnContinuation = null;
+        _consumedDecisionIds.Clear();
+        _lastConsumedDecisionId = null;
+        Phase = GamePhase.ReadyForTurn;
     }
 
     internal void ValidateAuthoritativeState()

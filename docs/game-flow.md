@@ -24,10 +24,13 @@ Official Classic profiles are immutable definitions during a match. A Custom pro
 
 - A **match** is represented by one `Game` instance and continues until a winner is determined.
 - A **player turn** starts when a player becomes `CurrentPlayer` and ends when Core advances to another active player.
-- A **roll/action cycle** is one call to `Game.PlayTurn()`. It includes one roll and all effects caused by that roll.
+- A **roll/action cycle** starts with `Game.PlayTurn()` and may continue through
+  one or more `Game.SubmitDecision()` calls. It includes at most one main roll
+  and all effects caused by that roll.
 - An **extra roll** is another roll/action cycle for the same player, normally granted after eligible doubles.
 
-One player turn may therefore require more than one call to `PlayTurn()`.
+One player turn may therefore require several completed cycles, and one cycle
+may require several Core calls when a decision pauses it.
 
 `CurrentTurn` identifies the roll/action cycle within the current player's retained turn. It starts at one, increases when that player receives an extra roll and resets when Core advances to another player.
 
@@ -59,16 +62,50 @@ Read CurrentPlayer and current Game state
         |
 Call Game.PlayTurn()
         |
-Core requests any required player decisions
+Read GameActionResult
         |
-Receive TurnResult
+If DecisionRequired, render PendingDecision
+        |
+Submit DecisionResponse and repeat as needed
+        |
+Receive completed TurnResult or GameOver
         |
 Read the resulting Game state
         |
 Render the result and offer the next valid action
 ```
 
-The frontend must use the returned `TurnResult` together with the current `Game` state. Events may provide intermediate presentation notifications, but they do not control the turn.
+The frontend must use `GameActionResult` together with the current `Game`
+state. A completed action contains `TurnResult`; a paused action contains the
+same immutable pending snapshot exposed by `Game.PendingDecision`. Events may
+provide intermediate presentation notifications, but they do not control the
+turn.
+
+## Resumable action boundary
+
+`Game.Phase` is `ReadyForTurn`, `AwaitingDecision` or `GameOver`. The current
+resumable decisions are:
+
+- `PropertyPurchaseDecision`, with player ID, square position, price and the
+  `Purchase`/`Decline` responses.
+- `JailReleaseDecision`, with player ID, configured fine, card/Jail context and
+  the `LeaveJail`/`RollForDoubles` responses.
+
+Each decision has a stable `Guid` for its lifetime. `SubmitDecision()` validates
+the complete response before mutation. Null, malformed, stale, duplicate and
+defined-but-disallowed responses are typed rejections and leave both live state
+and pending progress unchanged. Calling `PlayTurn()` while a decision waits is
+also rejected without rerolling or moving.
+
+Core stores continuation data as IDs, enums, dice results, positions and turn
+flags rather than delegates or domain references. An accepted response may
+continue to another pending decision, such as rolling doubles out of Jail and
+then reaching an unowned Utility. Previous dice, movement, payments and player
+rotation occur at most once.
+
+The only remaining synchronous decision-provider operation is
+`ResolveInsufficientFunds()`. It is temporary until debt and payment phases are
+made resumable.
 
 ## Roll/action cycle
 
@@ -84,7 +121,8 @@ The frontend must use the returned `TurnResult` together with the current `Game`
 8. Resolve required payments, decisions and possible bankruptcy.
 9. Decide whether the player receives an extra roll or the next active player takes over.
 10. Determine the winner when only one active player remains.
-11. Return a `TurnResult` describing the completed cycle.
+11. Return `GameActionResult`: a completed `TurnResult`, a pending decision or
+    game over.
 
 If the match is already over, `PlayTurn()` performs no roll or state transition and returns a game-over result containing the winner.
 
@@ -144,13 +182,18 @@ When a player receives a Get Out of Jail Free card, that specific card leaves it
 When a player lands on an unowned purchasable square:
 
 1. Core checks whether the square is eligible for purchase.
-2. Core asks `IPlayerDecisionProvider.ConfirmPurchase()` whether the player wants to buy it.
+2. Core creates `PropertyPurchaseDecision` before money or ownership changes
+   and returns control to the frontend.
 3. If the player declines, no purchase-related asset management occurs and Core starts the configured auction flow.
 4. If the player accepts but lacks cash, Core uses the insufficient-funds flow to let the player raise the required amount when their total eligible assets are sufficient.
 5. Core purchases the square only after the decision is confirmed and the required cash is available.
 6. If the confirmed purchase cannot be completed, the square remains unowned and Core starts the configured auction flow.
 
 The frontend reports the decision; Core validates affordability and changes ownership and money.
+
+The current #49 implementation deliberately leaves a declined or unsuccessfully
+funded purchase unowned. The auction transition in the following target flow is
+owned by #42 and is not yet part of the resumable purchase continuation.
 
 ### Auctions
 
@@ -241,6 +284,11 @@ If the player cannot resolve the required fine, Core declares bankruptcy using t
 
 Jail membership and jail status must always change together. Looking up jail details for a player who is not jailed must fail clearly or return an explicit absence; it must never produce an unhandled dictionary error during normal play.
 
+The current resumable boundary groups the pre-roll choice into `LeaveJail`
+(use a held card first, otherwise pay the configured fine) and
+`RollForDoubles`. The complete profile-driven release and third-roll movement
+semantics remain owned by #30.
+
 ## Bankruptcy
 
 Bankruptcy is resolved by Core as part of the action that created the unpaid debt.
@@ -286,7 +334,10 @@ Bonuses such as collecting fines on Free Parking, receiving double salary on GO 
 
 ## TurnResult
 
-`PlayTurn()` returns a `TurnResult` with the information required to present the completed roll/action cycle:
+`PlayTurn()` and `SubmitDecision()` return `GameActionResult`. Its status is
+`TurnCompleted`, `DecisionRequired`, `GameOver` or `Rejected`. Completion and
+game-over results contain a `TurnResult` with the information required to
+present the completed roll/action cycle:
 
 | Field | Meaning |
 | --- | --- |
@@ -313,7 +364,8 @@ Notifications must be scoped to the correct match, must not execute game rules a
 ## Flow invariants
 
 - One `Game` instance owns one isolated match.
-- `PlayTurn()` is the only public entry point for a roll/action cycle.
+- `PlayTurn()` starts a roll/action cycle and `SubmitDecision()` is the only
+  public continuation entry point.
 - One validated rule profile controls the complete match.
 - UK, US and Custom matches use the same game-flow engine.
 - Every movement and landing effect is resolved by Core.

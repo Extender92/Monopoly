@@ -17,6 +17,7 @@ internal class ConsoleGame
     internal readonly List<TablePiece> TablePieces;
     internal readonly Input PlayerInput;
     internal readonly IGameSaveStore SaveStore;
+    internal readonly ConsolePlayerDecisionProvider DecisionProvider;
 
     internal bool StartedGame { get; private set; }
 
@@ -27,7 +28,8 @@ internal class ConsoleGame
         Input input,
         ConsoleLogPrinter logPrinter,
         ConsoleCardPrinter cardPrinter,
-        IGameSaveStore saveStore)
+        IGameSaveStore saveStore,
+        ConsolePlayerDecisionProvider decisionProvider)
     {
         CurrentGame = game;
         Printer = consolePrinter;
@@ -36,6 +38,7 @@ internal class ConsoleGame
         LogPrinter = logPrinter;
         CardPrinter = cardPrinter;
         SaveStore = saveStore;
+        DecisionProvider = decisionProvider ?? throw new ArgumentNullException(nameof(decisionProvider));
     }
 
     internal void StartConsoleGame()
@@ -49,7 +52,9 @@ internal class ConsoleGame
             System.Console.Clear();
             Printer.PrintGameBoard(TablePieces, CurrentGame.Players);
 
-            while (StartedGame && !CurrentGame.IsGameOver)
+            while (StartedGame &&
+                   CurrentGame.Phase != GamePhase.GameOver &&
+                   !CurrentGame.IsGameOver)
             {
                 Player player = CurrentGame.CurrentPlayer;
                 Printer.StartPlayerTurnInfo(player, CurrentGame.Players);
@@ -57,8 +62,14 @@ internal class ConsoleGame
                 PlayerActionMenu playerActionMenu = CreatePlayerActionMenu(player);
                 playerActionMenu.DisplayPlayerActionMainMenu();
 
-                if (playerActionMenu.LastTurnResult is TurnResult result)
+                if (playerActionMenu.LastActionResult is GameActionResult actionResult)
                 {
+                    actionResult = ResolvePendingDecisions(actionResult);
+                    if (actionResult.Status == GameActionStatus.Rejected)
+                        continue;
+
+                    TurnResult result = actionResult.TurnResult
+                        ?? throw new InvalidOperationException("A completed game action must contain a turn result.");
                     UpdateGameInformation(result.LandedSquare ?? CurrentGame.Board.GetSquareAtPosition(player.Position), player);
                     Printer.EndPlayerTurnInfo(player, CurrentGame.Players);
                 }
@@ -88,4 +99,25 @@ internal class ConsoleGame
 
     internal PlayerActionMenu CreatePlayerActionMenu(Player player) =>
         new(CurrentGame, player, SaveStore);
+
+    internal GameActionResult ResolvePendingDecisions(GameActionResult result)
+    {
+        while (true)
+        {
+            if (result.Status == GameActionStatus.Rejected)
+            {
+                Printer.PrintText($"The decision was rejected: {result.RejectionReason}.");
+                if (CurrentGame.Phase != GamePhase.AwaitingDecision)
+                    return result;
+            }
+            else if (result.Status != GameActionStatus.DecisionRequired)
+            {
+                return result;
+            }
+
+            PendingDecision decision = result.PendingDecision ?? CurrentGame.PendingDecision
+                ?? throw new InvalidOperationException("A required decision must include its snapshot.");
+            result = CurrentGame.SubmitDecision(DecisionProvider.GetResponse(decision));
+        }
+    }
 }

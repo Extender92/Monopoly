@@ -91,16 +91,6 @@ namespace Monopoly.Core
                 throw new ArgumentException("The player does not belong to this game.", nameof(player));
         }
 
-        internal bool TryPlayerBuyOut(Player player)
-        {
-            if (!IsPlayerInJail(player))
-                return false;
-
-            return player.NumberOfGetOutOFJailCards > 0 || CurrentGame.Handler.CanAffordWithAssets(player, CurrentGame.Rules.JailFine)
-                ? GameEvents.InvokeAskPlayerToBuyOutOfJail(CurrentGame, player)
-                : false;
-        }
-
         internal void IncrementTurnsInJail(Player player)
         {
             var jailInfo = GetJailInfo(player);

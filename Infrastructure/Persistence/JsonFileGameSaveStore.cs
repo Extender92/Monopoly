@@ -35,7 +35,15 @@ public sealed class JsonFileGameSaveStore : IGameSaveStore
     {
         ArgumentNullException.ThrowIfNull(game);
 
-        GameStateV1 state = GameStateV1Mapper.ToState(game);
+        GameStateV1 state;
+        try
+        {
+            state = GameStateV1Mapper.ToState(game);
+        }
+        catch (GameStateValidationException exception)
+        {
+            throw InvalidData(exception.Message, exception);
+        }
         string serializedState = JsonSerializer.Serialize(state, JsonOptions);
         string directory = Path.GetDirectoryName(_filePath)
             ?? throw new ArgumentException("The configured save path has no parent directory.", nameof(_filePath));

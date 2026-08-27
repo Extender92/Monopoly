@@ -299,6 +299,18 @@ case-insensitive property matching, numeric enums and UTF-8 without a byte-order
 mark. `GameStateV1Mapper` maps and reconstructs the logical state without file
 or JSON dependencies.
 
+Version 1 has no phase, pending-decision or continuation fields. A Version 1
+load therefore reconstructs no pending interaction and always starts in
+`ReadyForTurn`; an already completed match moves to `GameOver` when Core next
+processes it. `GameStateV1Mapper.ToState()`
+explicitly rejects `AwaitingDecision`; `JsonFileGameSaveStore.Save()` translates
+that rejection before creating a temporary file or replacing an existing save.
+
+`GameProgressState`, `PendingDecisionState` and `TurnContinuationState` are
+detached primitive/enum DTO projections prepared for Version 2. They are not
+serialized into the Version 1 envelope and have no physical persistence path
+in this version.
+
 The current top-level JSON structure is:
 
 ```json
@@ -401,9 +413,10 @@ operations. A DTO or source list retained by a caller cannot mutate the
 reconstructed game afterward. Validation and reconstruction complete before the
 new `Game` is returned, so failure cannot partially change an existing match.
 
-`IPlayerDecisionProvider` is a runtime service rather than saved state. Loading
-may supply it during reconstruction, and a frontend may later reconnect it with
-`Game.SetDecisionProvider()`.
+`IPlayerDecisionProvider` is the transitional insufficient-funds runtime service
+rather than saved state. Loading may supply it during reconstruction, and a
+frontend may later reconnect it with `Game.SetDecisionProvider()`. Purchase and
+Jail choices are authoritative pending state rather than provider callbacks.
 
 `IGameSaveStore.Load()` returns a newly reconstructed `Game`. The removed
 `SaveCoreData`, `LoadCoreData` and `GameStateSerializer` APIs are not part of
@@ -451,14 +464,17 @@ Version 1 does not currently preserve or fully validate:
 - Get Out of Jail Free card ownership by identity and source deck.
 - Bank House and Hotel inventory.
 - Auctions, rent claims, trades or pending decisions.
+- Resumable phase, consumed decision IDs or continuation data; saving while a
+  decision waits is rejected atomically.
 - Pending payment or bankruptcy settlement.
 - Winner as an explicit field.
 - Runtime services, logs, events or frontend state.
 - Every legal relationship between ownership, mortgages and buildings.
 
 The current tests verify Core-only Version 1 round trips for UK and US games,
-an existing Version 1 JSON fixture, the stable wire shape, all error categories
-and atomic create/replacement failure behavior.
+an existing Version 1 JSON fixture, the stable wire shape, all error categories,
+atomic create/replacement failure behavior and preservation of an existing file
+when an awaiting-decision save is rejected.
 
 ## Current Console behavior
 
