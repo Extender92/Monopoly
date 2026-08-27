@@ -21,7 +21,7 @@ namespace Monopoly.Console.GUI
         private int CardPosX { get; set; }
         private int CardPosY { get; set; }
 
-        public ConsoleCardPrinter(IConsoleWrapper consoleWrapper, List<Square> squares, GameRules gameRules)
+        public ConsoleCardPrinter(IConsoleWrapper consoleWrapper, IReadOnlyList<Square> squares, GameRules gameRules)
         {
             Console = consoleWrapper;
             SetCardPosition();
@@ -34,7 +34,7 @@ namespace Monopoly.Console.GUI
             CardPosY = ConsolePositions.CardPosY;
         }
 
-        internal void GetAllSquareCards(List<Square> squares, GameRules gameRules)
+        internal void GetAllSquareCards(IReadOnlyList<Square> squares, GameRules gameRules)
         {
             SquareCards = SquareCardBuilder.BuildAllSquareCards(squares, gameRules);
         }

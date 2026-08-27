@@ -572,7 +572,7 @@ The project currently uses:
 - xUnit Visual Studio runner.
 - Coverlet collector.
 
-The suite currently contains 215 passing tests split between `CoreTests`,
+The suite currently contains 242 passing tests split between `CoreTests`,
 `InfrastructureTests` and `ConsoleTests`.
 
 Current Core coverage includes:
@@ -588,7 +588,17 @@ Current Core coverage includes:
 - Doubles and Jail release.
 - Bankruptcy and winner state.
 - Version 1 state mapping without physical storage.
+- Public aggregate encapsulation and non-mutable collection contracts.
+- Successful and rejected building and mortgage commands, including atomic
+  rejection and foreign-object validation.
+- Complete Version 1 candidate validation and failure atomicity.
 - Static event-subscription replacement.
+
+State-heavy Core tests use the internal `GameTestBuilder`. It starts from a
+detached Version 1 DTO, applies explicit test arrangements, injects decisions or
+test dice when needed, and always constructs the live match through
+`GameStateV1Mapper`'s validated reconstruction path. Tests do not arrange live
+state through public setters or mutable aggregate collections.
 
 Current Console coverage includes:
 
@@ -630,7 +640,9 @@ The current suite does not yet fully provide:
 - A deterministic automated match from setup to winner.
 - Published code-coverage diagnostics.
 
-Some older tests are coupled to current constructors or internals. Several
+Some lower-level rule tests still exercise internal Core primitives through the
+test assembly's friend boundary; externally observable integration behavior is
+also covered through `Game.PlayTurn()` and the public asset commands. Several
 `ConsoleWrapperTests` exercise a mock of `IConsoleWrapper` rather than the
 concrete wrapper or a consuming component. `TablePieceInputTests`,
 `PropertySquareTests` and `TaxSquareTests` are currently empty.

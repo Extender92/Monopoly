@@ -10,18 +10,18 @@ namespace Monopoly.Core.Models.Board
 {
     public class PropertySquare : Square
     {
-        public ConsoleColor Color { get; set; }
-        public PropertyGroup Group { get; set; }
-        public int Rent { get; set; }
-        public int RentWithColorGroup { get; set; }
-        public int RentOneHouse { get; set; }
-        public int RentTwoHouses { get; set; }
-        public int RentThreeHouses { get; set; }
-        public int RentFourHouses { get; set; }
-        public int RentHotel { get; set; }
-        public int BuildHouseCost { get; set; }
-        public int BuildHotelCost { get; set; }
-        public int Houses { get; set; }
+        public ConsoleColor Color { get; private set; }
+        public PropertyGroup Group { get; }
+        public int Rent { get; }
+        public int RentWithColorGroup { get; }
+        public int RentOneHouse { get; }
+        public int RentTwoHouses { get; }
+        public int RentThreeHouses { get; }
+        public int RentFourHouses { get; }
+        public int RentHotel { get; }
+        public int BuildHouseCost { get; }
+        public int BuildHotelCost { get; }
+        public int Houses { get; private set; }
 
 
         public PropertySquare(PropertyGroup group, string name, int rent, int rentWithColorGroup,
@@ -83,7 +83,7 @@ namespace Monopoly.Core.Models.Board
             _ => ConsoleColor.DarkGray
         };
 
-        public override void LandOn(Player player, Game game)
+        internal override void LandOn(Player player, Game game)
         {
             if (Owner == null)
             {
@@ -105,7 +105,7 @@ namespace Monopoly.Core.Models.Board
             game.Handler.TryResolvePayment(player, rent, Owner, $"Could not afford rent of {rent}");
         }
 
-        private int CalculateRent(List<PropertySquare> propertySquares)
+        private int CalculateRent(IReadOnlyList<PropertySquare> propertySquares)
         {
             switch (Houses)
             {
@@ -132,7 +132,7 @@ namespace Monopoly.Core.Models.Board
             }
         }
 
-        public bool OwnerHasColorGroup(List<PropertySquare> propertySquares)
+        public bool OwnerHasColorGroup(IReadOnlyList<PropertySquare> propertySquares)
         {
             var propertiesInColorGroup = propertySquares
                 .Where(property => property.Group == Group);
@@ -156,6 +156,34 @@ namespace Monopoly.Core.Models.Board
                 return "1 Hotel";
             }
             return $"{Houses} Houses";
+        }
+
+        internal void AddBuilding()
+        {
+            if (Owner is null || IsMortgage || Houses >= 5)
+                throw new InvalidOperationException("The property cannot receive another building.");
+            Houses++;
+        }
+
+        internal void RemoveBuilding()
+        {
+            if (Houses <= 0)
+                throw new InvalidOperationException("The property has no building to remove.");
+            Houses--;
+        }
+
+        internal void ClearBuildings() => Houses = 0;
+
+        internal override void RestoreState(Player? owner, bool isMortgage, int houses)
+        {
+            if (houses is < 0 or > 5)
+                throw new ArgumentOutOfRangeException(nameof(houses));
+            if (owner is null && (isMortgage || houses > 0))
+                throw new ArgumentException("Mortgages and buildings require an owner.", nameof(owner));
+            if (isMortgage && houses > 0)
+                throw new ArgumentException("A mortgaged property cannot contain buildings.", nameof(isMortgage));
+            base.RestoreState(owner, isMortgage, 0);
+            Houses = houses;
         }
     }
 }

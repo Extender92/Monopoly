@@ -8,7 +8,7 @@
             Name = name;
         }
 
-        public override void LandOn(Player player, Game game)
+        internal override void LandOn(Player player, Game game)
         {
             switch (game.Rules.FreeParking)
             {
@@ -21,8 +21,7 @@
                     break;
 
                 case GameRules.Parking.Fines:
-                    game.Transactions.GetMoneyFromBank(player, game.Fines);
-                    game.Fines = 0;
+                    game.Transactions.GetMoneyFromBank(player, game.TakeFines());
                     break;
 
                 default:

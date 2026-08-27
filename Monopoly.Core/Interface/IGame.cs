@@ -11,25 +11,25 @@ namespace Monopoly.Core.Interface
 {
     public interface IGame
     {
-        GameHandler Handler { get; set; }
-        ILogHandler Logs { get; set; }
-        GameBoard Board { get; set; }
-        List<Player> Players { get; set; }
-        Player CurrentPlayer { get; set; }
-        List<IDie> Dice { get; set; }
-        GameRules Rules { get; set; }
-        Transaction Transactions { get; set; }
-        Jail TheJail { get; set; }
-        FortuneCardHandler FortuneCard { get; set; }
-        IPlayerDecisionProvider Decisions { get; set; }
-        int Fines { get; set; }
-        int CurrentTurn { get; set; }
+        IGameLog Logs { get; }
+        GameBoard Board { get; }
+        IReadOnlyList<Player> Players { get; }
+        Player CurrentPlayer { get; }
+        IReadOnlyList<IDieView> Dice { get; }
+        GameRules Rules { get; }
+        Jail TheJail { get; }
+        FortuneCardHandler FortuneCard { get; }
+        int Fines { get; }
+        int CurrentTurn { get; }
         int ConsecutiveDoubles { get; }
         Player? Winner { get; }
         bool IsGameOver { get; }
 
-        void NextPlayer();
-        void RemovePlayer(Player player);
+        void SetDecisionProvider(IPlayerDecisionProvider decisions);
+        bool TryBuyHouse(Player player, PropertySquare property);
+        bool TrySellHouse(Player player, PropertySquare property);
+        bool TryMortgageProperty(Player player, Square square);
+        bool TryRepayMortgage(Player player, Square square);
         TurnResult PlayTurn();
     }
 }

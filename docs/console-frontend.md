@@ -214,6 +214,14 @@ Core is authoritative for `CurrentPlayer`, extra rolls, pending decisions,
 bankruptcy and `Winner`. The Console must not increment turns, rotate players
 or infer completion itself.
 
+The current Console reads players, board squares, dice, logs, Jail entries and
+card decks through Core read-only views. Its building and mortgage menus submit
+`Game.TryBuyHouse()`, `TrySellHouse()`, `TryMortgageProperty()` and
+`TryRepayMortgage()` commands; their menu eligibility lists are presentation
+hints, while Core repeats authoritative validation before mutation. New and
+loaded sessions attach `ConsolePlayerDecisionProvider` with
+`Game.SetDecisionProvider()`.
+
 When Core introduces explicit pending phases, the session loop should render
 the pending choice and submit the matching response command. Console may answer
 synchronously, while the same Core state remains usable by asynchronous

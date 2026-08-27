@@ -12,32 +12,17 @@ namespace Monopoly.Tests.CoreTests
     public class FortuneCardHandlerTests
     {
         [Fact]
-        public void InitializeQueues_ShouldInitializeQueuesAndShuffle()
+        public void ConstructorInitializesCompleteReadOnlyDecks()
         {
             // Arrange
             var gameRules = new GameRules(numberOfPlayers: 4, numberOfDice: 2, dieSides: 6);
             var fortuneCardHandler = new FortuneCardHandler(gameRules);
 
-            // Check if the queues are shuffled by comparing the order before and after shuffle
-            var originalChanceOrder = fortuneCardHandler.ChanceQueue.Select(c => c.Info).ToList();
-            var originalCommunityChestOrder = fortuneCardHandler.CommunityChestQueue.Select(c => c.Info).ToList();
-
-            // Act
-            fortuneCardHandler.InitializeQueues(gameRules);
-
-            fortuneCardHandler.ShuffleQueues();
-
             // Assert
-            Assert.NotNull(fortuneCardHandler.ChanceQueue);
-            Assert.Equal(FortuneCardBuilder.GetChanceCards(gameRules).Count, fortuneCardHandler.ChanceQueue.Count);
-            Assert.NotNull(fortuneCardHandler.CommunityChestQueue);
-            Assert.Equal(FortuneCardBuilder.GetCommunityChestCards(gameRules).Count, fortuneCardHandler.CommunityChestQueue.Count);
-
-            var shuffledChanceOrder = fortuneCardHandler.ChanceQueue.Select(c => c.Info).ToList();
-            var shuffledCommunityChestOrder = fortuneCardHandler.CommunityChestQueue.Select(c => c.Info).ToList();
-
-            Assert.NotEqual(originalChanceOrder, shuffledChanceOrder);
-            Assert.NotEqual(originalCommunityChestOrder, shuffledCommunityChestOrder);
+            Assert.Equal(FortuneCardBuilder.GetChanceCards(gameRules).Count, fortuneCardHandler.ChanceDeck.Count);
+            Assert.Equal(FortuneCardBuilder.GetCommunityChestCards(gameRules).Count, fortuneCardHandler.CommunityChestDeck.Count);
+            Assert.Throws<NotSupportedException>(() => ((IList<IFortuneCardView>)fortuneCardHandler.ChanceDeck).Clear());
+            Assert.Throws<NotSupportedException>(() => ((IList<IFortuneCardView>)fortuneCardHandler.CommunityChestDeck).Clear());
         }
 
         [Fact]
@@ -55,11 +40,11 @@ namespace Monopoly.Tests.CoreTests
             Assert.IsAssignableFrom<IChanceCard>(drawnCard);
 
             // Check if the first card is not the same card in queue
-            var nextCard = fortuneCardHandler.ChanceQueue.Peek();
+            var nextCard = fortuneCardHandler.ChanceDeck[0];
             Assert.NotEqual(drawnCard, nextCard);
 
             // Check if the drawn card is enqueued back to the end of the queue
-            var cardsAfterDraw = fortuneCardHandler.ChanceQueue.ToList();
+            var cardsAfterDraw = fortuneCardHandler.ChanceDeck;
             Assert.Equal(drawnCard, cardsAfterDraw.Last());
         }
 
@@ -78,11 +63,11 @@ namespace Monopoly.Tests.CoreTests
             Assert.IsAssignableFrom<ICommunityChestCard>(drawnCard);
 
             // Check if the first card is not the same card in queue
-            var nextCard = fortuneCardHandler.CommunityChestQueue.Peek();
+            var nextCard = fortuneCardHandler.CommunityChestDeck[0];
             Assert.NotEqual(drawnCard, nextCard);
 
             // Check if the drawn card is enqueued back to the end of the queue
-            var cardsAfterDraw = fortuneCardHandler.CommunityChestQueue.ToList();
+            var cardsAfterDraw = fortuneCardHandler.CommunityChestDeck;
             Assert.Equal(drawnCard, cardsAfterDraw.Last());
         }
     }

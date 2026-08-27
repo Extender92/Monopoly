@@ -15,7 +15,7 @@ namespace Monopoly.Core.Models.Board
             Info = info;
         }
 
-        public override void LandOn(Player player, Game game)
+        internal override void LandOn(Player player, Game game)
         {
             game.TheJail.PlayerGoToJail(player);
         }

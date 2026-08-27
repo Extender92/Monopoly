@@ -7,59 +7,58 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core
 {
-    public class GameRules
+    public sealed class GameRules
     {
-        public int NumberOfPlayers { get; set; }
-        public int NumberOfDice { get; set; }
-        public int DieSides { get; set; }
-        private Language _gameLanguage = Language.UK;
-        public Language GameLanguage
-        {
-            get => _gameLanguage;
-            set
-            {
-                _gameLanguage = value;
-                SetCurrencySymbol();
-            }
-        }
-        public string CurrencySymbol { get; private set; } = "£";
-        public int Salary { get; set; }
-        public bool DoubleOnGo { get; set; }
-        public Parking FreeParking { get; set; }
-        public int MortgageInterestRate { get; set; }
-        public int JailFine { get; set; }
-        public int MaxTurnsInJail { get; set; }
+        public int NumberOfPlayers { get; }
+        public int NumberOfDice { get; }
+        public int DieSides { get; }
+        public Language GameLanguage { get; }
+        public string CurrencySymbol { get; }
+        public int Salary { get; }
+        public bool DoubleOnGo { get; }
+        public Parking FreeParking { get; }
+        public int MortgageInterestRate { get; }
+        public int JailFine { get; }
+        public int MaxTurnsInJail { get; }
 
-
-        public GameRules(int numberOfPlayers, int numberOfDice, int dieSides)
+        public GameRules(
+            int numberOfPlayers,
+            int numberOfDice,
+            int dieSides,
+            Language gameLanguage = Language.UK,
+            int salary = 200,
+            bool doubleOnGo = false,
+            Parking freeParking = Parking.Classic,
+            int mortgageInterestRate = 10,
+            int jailFine = 50,
+            int maxTurnsInJail = 3)
         {
+            if (numberOfPlayers <= 0) throw new ArgumentOutOfRangeException(nameof(numberOfPlayers));
+            if (numberOfDice <= 0) throw new ArgumentOutOfRangeException(nameof(numberOfDice));
+            if (dieSides <= 0) throw new ArgumentOutOfRangeException(nameof(dieSides));
+            if (!Enum.IsDefined(gameLanguage)) throw new ArgumentOutOfRangeException(nameof(gameLanguage));
+            if (!Enum.IsDefined(freeParking)) throw new ArgumentOutOfRangeException(nameof(freeParking));
+            if (salary < 0) throw new ArgumentOutOfRangeException(nameof(salary));
+            if (mortgageInterestRate < 0) throw new ArgumentOutOfRangeException(nameof(mortgageInterestRate));
+            if (jailFine < 0) throw new ArgumentOutOfRangeException(nameof(jailFine));
+            if (maxTurnsInJail <= 0) throw new ArgumentOutOfRangeException(nameof(maxTurnsInJail));
+
             NumberOfPlayers = numberOfPlayers;
             NumberOfDice = numberOfDice;
             DieSides = dieSides;
-            GameLanguage = Language.UK;
-            Salary = 200;
-            MortgageInterestRate = 10;
-            SetCurrencySymbol();
-            JailFine = 50;
-            MaxTurnsInJail = 3;
-        }
-
-        public void SetLanguage(Language language) => GameLanguage = language;
-
-        private void SetCurrencySymbol()
-        {
-            switch (GameLanguage)
+            GameLanguage = gameLanguage;
+            CurrencySymbol = gameLanguage switch
             {
-                case GameRules.Language.UK:
-                    CurrencySymbol = "£";
-                    break;
-                case GameRules.Language.US:
-                    CurrencySymbol = "$";
-                    break;
-                default:
-                    CurrencySymbol = "M";
-                    break;
-            }
+                Language.UK => "£",
+                Language.US => "$",
+                _ => "M"
+            };
+            Salary = salary;
+            DoubleOnGo = doubleOnGo;
+            FreeParking = freeParking;
+            MortgageInterestRate = mortgageInterestRate;
+            JailFine = jailFine;
+            MaxTurnsInJail = maxTurnsInJail;
         }
 
         public enum Language

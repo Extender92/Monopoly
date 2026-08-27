@@ -4,7 +4,7 @@ using System;
 
 namespace Monopoly.Core.Models.FortuneCard
 {
-    public class USChanceCard : IChanceCard
+    internal sealed class USChanceCard : IChanceCard
     {
         public string Info { get; }
         public USChanceCardType CardType { get; }
@@ -15,7 +15,7 @@ namespace Monopoly.Core.Models.FortuneCard
             CardType = cardType;
         }
 
-        public void ExecuteEffect(Player player, Game game)
+        void IChanceCard.ExecuteEffect(Player player, Game game)
         {
             // Implement logic specific to the US version
             switch (CardType)
@@ -148,8 +148,8 @@ namespace Monopoly.Core.Models.FortuneCard
 
         private void GetOutOfJailFree(Player player, Game game)
         {
-            player.NumberOfGetOutOFJailCards++;
-            game.Logs.CreateLog($"{player.Name} got a new Get Out Of Jail Card, and now has {player.NumberOfGetOutOFJailCards} Get Out Of Jail {(player.NumberOfGetOutOFJailCards == 1 ? "Card" : "Cards")}.");
+            player.AddJailCards();
+            game.LogWriter.CreateLog($"{player.Name} got a new Get Out Of Jail Card, and now has {player.NumberOfGetOutOFJailCards} Get Out Of Jail {(player.NumberOfGetOutOFJailCards == 1 ? "Card" : "Cards")}.");
         }
 
         private void GoBackThreeSpaces(Player player, Game game)

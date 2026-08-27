@@ -90,6 +90,13 @@ or collects the decision.
 
 A game is normally created through `CoreGameSetup.Setup()`.
 
+`Game` is the public mutation boundary for the live aggregate. Frontends receive
+getter-only state, `IReadOnlyList`/`IReadOnlyDictionary` collections backed by
+non-castable read-only wrappers, and immutable player, square, Jail and rule
+properties. They cannot rotate players, move tokens, execute square or card
+effects, change balances or ownership, draw cards, edit Jail entries or append
+game logs directly.
+
 ## Turn flow
 
 `Game.PlayTurn()` is the central entry point for one dice-roll and action cycle. A player may retain the turn after rolling doubles, so one call does not always represent the player's entire turn.
@@ -126,11 +133,15 @@ Read TurnResult and current Game state
 Render the result and request the next user action
 ```
 
-Frontends may read exposed game state for presentation. State changes must go through Core operations rather than direct frontend rule handling.
+Frontends may read exposed game state for presentation. State changes go through
+`Game.PlayTurn()` or validated `Game` commands. The current explicit asset
+commands are `TryBuyHouse()`, `TrySellHouse()`, `TryMortgageProperty()` and
+`TryRepayMortgage()`. An expected rule rejection returns `false` before any
+mutation; null or foreign aggregate objects cause an argument exception.
 
-Public state should therefore become read-only wherever practical. Core commands
-and domain operations perform mutations and enforce invariants; public setters
-and mutable collections are not the intended long-term API.
+`SetDecisionProvider()` reconnects the frontend's runtime decision service. The
+provider is intentionally not persisted and is not an authoritative state
+setter.
 
 A web frontend cannot be assumed to answer a decision during the same method
 call. Core must be able to represent a pending decision in match state, return
@@ -142,11 +153,13 @@ such as HTTP.
 
 ### Game
 
-`Game` orchestrates the game and exposes the main public API, including `PlayTurn()` and `MovePlayerBySteps()`.
+`Game` orchestrates the game and exposes the main public API: `PlayTurn()`, the
+validated asset commands and read-only state queries. Movement, player rotation,
+bankruptcy removal and payment primitives are internal Core operations.
 
 ### GameHandler
 
-`GameHandler` contains shared game operations such as:
+The internal `GameHandler` contains shared game operations such as:
 
 - Dice rolling
 - Movement and board wrapping
@@ -158,7 +171,8 @@ such as HTTP.
 
 ### Transaction
 
-`Transaction` performs money and property transactions, including:
+The internal `Transaction` type performs money and property transactions,
+including:
 
 - Buying properties
 - Paying rent
@@ -171,7 +185,9 @@ such as HTTP.
 
 `GameBoard` owns the 40 board squares.
 
-`Square` is the base type for board locations. Specific square types implement their own landing behavior through `LandOn()`.
+`Square` is the base type for board locations. Specific square types implement
+their internal landing behavior through `LandOn()`; a frontend cannot invoke a
+landing effect independently of Core turn flow.
 
 Examples include:
 
@@ -215,12 +231,16 @@ The public Core API provides explicit integration points for frontends and tests
 
 - `IPlayerDecisionProvider` supplies decisions that require user interaction.
 - `IDie` allows dice behavior to be provided and controlled in tests.
-- `ILogHandler` receives game log messages without coupling Core to a UI.
+- `IGameLog` exposes read-only game log entries without coupling Core to a UI;
+  log creation remains internal to the aggregate.
 - `TurnResult` describes the result of a call to `Game.PlayTurn()`.
 
 These abstractions are the current integration boundary. A frontend should not
-depend on Core internals. The boundary will grow with rule-driven decisions,
-while keeping those decisions independent of any particular UI technology.
+depend on Core internals. Tests that need a prepared live aggregate use the
+internal `GameTestBuilder`, which arranges detached Version 1 DTO state and then
+passes through the same validated reconstruction boundary as loading. The
+boundary will grow with rule-driven decisions while keeping those decisions
+independent of any particular UI technology.
 
 ## Frontend decisions
 

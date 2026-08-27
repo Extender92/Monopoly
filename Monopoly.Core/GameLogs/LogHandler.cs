@@ -5,22 +5,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
 namespace Monopoly.Core.Logs
 {
-    public class LogHandler : ILogHandler
+    internal sealed class LogHandler : ILogHandler
     {
-        public List<Log> LogList { get; } = new List<Log>();
+        private readonly List<Log> _logs = new();
+        private readonly ReadOnlyCollection<Log> _logsView;
+        public IReadOnlyList<Log> LogList => _logsView;
         internal IGame? OwnerGame { get; set; }
+
+        public LogHandler()
+        {
+            _logsView = _logs.AsReadOnly();
+        }
 
         public void CreateLog(string text)
         {
             Log log = new Log
             {
-                Id = LogList.Count,
+                Id = _logs.Count,
                 Info = text
             };
-            LogList.Add(log);
+            _logs.Add(log);
             GameEvents.InvokeLogAdded((object?)OwnerGame ?? this);
         }
     }

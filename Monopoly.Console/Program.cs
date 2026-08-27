@@ -41,7 +41,7 @@ namespace Monopoly.Console
 
             Input input = new Input(consoleWrapper, menu);
 
-            game.Decisions = new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules, saveStore);
+            game.SetDecisionProvider(new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules, saveStore));
 
             ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
 
@@ -91,7 +91,7 @@ namespace Monopoly.Console
 
             Input input = new Input(consoleWrapper, menu);
 
-            game.Decisions = new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules, saveStore);
+            game.SetDecisionProvider(new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules, saveStore));
 
             ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
 

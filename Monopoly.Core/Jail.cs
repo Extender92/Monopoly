@@ -1,32 +1,39 @@
 ﻿using Monopoly.Core.Events;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Monopoly.Core
 {
-    public class Jail
+    public sealed class Jail
     {
-        private readonly IGame CurrentGame;
+        private readonly Game CurrentGame;
+        private readonly Dictionary<Player, JailStatus> _playersInJail = new();
+        private readonly ReadOnlyDictionary<Player, JailStatus> _playersInJailView;
         public int JailPosition { get; }
+        public IReadOnlyDictionary<Player, JailStatus> PlayersInJail => _playersInJailView;
 
-        public Jail(IGame game, int jailPosition)
+        internal Jail(Game game, int jailPosition)
         {
-            CurrentGame = game;
+            CurrentGame = game ?? throw new ArgumentNullException(nameof(game));
+            if (jailPosition < 0) throw new ArgumentOutOfRangeException(nameof(jailPosition));
             JailPosition = jailPosition;
+            _playersInJailView = new ReadOnlyDictionary<Player, JailStatus>(_playersInJail);
         }
 
-        public class JailStatus
+        public sealed class JailStatus
         {
-            public int TurnsInJail { get; set; }
+            public int TurnsInJail { get; private set; }
 
-            public JailStatus()
+            internal JailStatus(int turnsInJail = 0)
             {
-                TurnsInJail = 0;
+                if (turnsInJail < 0) throw new ArgumentOutOfRangeException(nameof(turnsInJail));
+                TurnsInJail = turnsInJail;
             }
-        }
 
-        public Dictionary<Player, JailStatus> playersInJail = new Dictionary<Player, JailStatus>();
+            internal void Increment() => TurnsInJail++;
+        }
 
         /// <summary>Attempts to get the current jail status for a player.</summary>
         /// <param name="player">The player whose status should be queried.</param>
@@ -37,7 +44,7 @@ namespace Monopoly.Core
         public bool TryGetJailInfo(Player player, [NotNullWhen(true)] out JailStatus? jailStatus)
         {
             ValidatePlayer(player);
-            return playersInJail.TryGetValue(player, out jailStatus);
+            return _playersInJail.TryGetValue(player, out jailStatus);
         }
 
         /// <summary>
@@ -55,18 +62,20 @@ namespace Monopoly.Core
         internal void RestorePlayerInJail(Player player, int turnsInJail)
         {
             ValidatePlayer(player);
-            player.Position = JailPosition;
-            playersInJail[player] = new JailStatus { TurnsInJail = turnsInJail };
+            if (turnsInJail < 0 || turnsInJail > CurrentGame.Rules.MaxTurnsInJail)
+                throw new ArgumentOutOfRangeException(nameof(turnsInJail));
+            player.MoveTo(JailPosition);
+            _playersInJail[player] = new JailStatus(turnsInJail);
         }
 
 
-        public void PlayerGoToJail(Player player, string reason = "")
+        internal void PlayerGoToJail(Player player, string reason = "")
         {
             ValidatePlayer(player);
             CurrentGame.Handler.MovePlayerAndInvokeEvent(player, JailPosition);
-            playersInJail[player] = new JailStatus();
+            _playersInJail[player] = new JailStatus();
             string jailedReason = string.IsNullOrEmpty(reason) ? "" : $" {reason}";
-            CurrentGame.Logs.CreateLog($"{player.Name} has been sent to jail{jailedReason}.");
+            CurrentGame.LogWriter.CreateLog($"{player.Name} has been sent to jail{jailedReason}.");
         }
 
         public bool IsPlayerInJail(Player player)
@@ -78,9 +87,11 @@ namespace Monopoly.Core
         {
             if (player is null)
                 throw new ArgumentNullException(nameof(player), "Player cannot be null.");
+            if (!CurrentGame.ContainsPlayer(player))
+                throw new ArgumentException("The player does not belong to this game.", nameof(player));
         }
 
-        public bool TryPlayerBuyOut(Player player)
+        internal bool TryPlayerBuyOut(Player player)
         {
             if (!IsPlayerInJail(player))
                 return false;
@@ -90,25 +101,25 @@ namespace Monopoly.Core
                 : false;
         }
 
-        public void IncrementTurnsInJail(Player player)
+        internal void IncrementTurnsInJail(Player player)
         {
             var jailInfo = GetJailInfo(player);
-            jailInfo.TurnsInJail++;
+            jailInfo.Increment();
         }
 
-        public bool PlayerReachedMaxTurnsInJail(Player player)
+        internal bool PlayerReachedMaxTurnsInJail(Player player)
         {
             return TryGetJailInfo(player, out JailStatus? jailInfo) &&
                 jailInfo.TurnsInJail >= CurrentGame.Rules.MaxTurnsInJail;
         }
 
-        public void HandleMaxTurnsInJail(Player player)
+        internal void HandleMaxTurnsInJail(Player player)
         {
             _ = GetJailInfo(player);
             if (CurrentGame.Handler.IsPlayerBankrupt(player, CurrentGame.Rules.JailFine))
             {
                 string reason = $", {player.Name} Could not afford to pay Jail Fine of {CurrentGame.Rules.JailFine}{CurrentGame.Rules.CurrencySymbol}";
-                playersInJail.Remove(player);
+                _playersInJail.Remove(player);
                 CurrentGame.Handler.HandlePlayerBankruptcy(player, reason);
             }
             else
@@ -118,13 +129,13 @@ namespace Monopoly.Core
             }
         }
 
-        public string BuyOutPlayerFromJail(Player player)
+        internal string BuyOutPlayerFromJail(Player player)
         {
             _ = GetJailInfo(player);
             string reason;
             if (player.NumberOfGetOutOFJailCards > 0)
             {
-                player.NumberOfGetOutOFJailCards--;
+                player.TryUseJailCard();
                 reason = $", {player.Name} used a Get Out of Jail For Free card and have {player.NumberOfGetOutOFJailCards} left";
             }
             else
@@ -144,17 +155,17 @@ namespace Monopoly.Core
             return reason;
         }
 
-        public void ReleasePlayerFromJail(Player player, string reason = "")
+        internal void ReleasePlayerFromJail(Player player, string reason = "")
         {
             JailStatus jailInfo = GetJailInfo(player);
             string releaseReason = $"{player.Name} has been released from jail" + (string.IsNullOrEmpty(reason) ? "" : $"{reason}");
             CreateJailLog(jailInfo, releaseReason);
-            playersInJail.Remove(player);
+            _playersInJail.Remove(player);
         }
 
         private void CreateJailLog(JailStatus jailInfo, string log)
         {
-            CurrentGame.Logs.CreateLog($"JailTurn {jailInfo.TurnsInJail}: {log}.");
+            CurrentGame.LogWriter.CreateLog($"JailTurn {jailInfo.TurnsInJail}: {log}.");
         }
     }
 }

@@ -9,10 +9,10 @@ namespace Monopoly.Core.Models.Board
 {
     public class RailroadSquare : Square
     {
-        public int RentOneStation { get; set; }
-        public int RentTwoStation { get; set; }
-        public int RentThreeStation { get; set; }
-        public int RentFourStation { get; set; }
+        public int RentOneStation { get; }
+        public int RentTwoStation { get; }
+        public int RentThreeStation { get; }
+        public int RentFourStation { get; }
 
 
         public RailroadSquare(int position, string name, int price, int rentOneStation, int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
@@ -27,12 +27,12 @@ namespace Monopoly.Core.Models.Board
             MortgageValue = mortgageValue;
         }
 
-        public override void LandOn(Player player, Game game)
+        internal override void LandOn(Player player, Game game)
         {
             LandOn(player, game, false);
         }
 
-        public void LandOn(Player player, Game game, bool doubleRent = false)
+        internal void LandOn(Player player, Game game, bool doubleRent = false)
         {
             if (Owner == null)
             {
@@ -55,7 +55,7 @@ namespace Monopoly.Core.Models.Board
             game.Handler.TryResolvePayment(player, rent, Owner, $"Could not afford rent of {rent}");
         }
 
-        private int CalculateRent(List<Square> squares)
+        private int CalculateRent(IReadOnlyList<Square> squares)
         {
             int ownedStations = squares.OfType<RailroadSquare>()
                          .Count(square => square.Owner == Owner);

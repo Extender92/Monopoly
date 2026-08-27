@@ -20,8 +20,8 @@ namespace Monopoly.Console.GUI
         private readonly ListOptionSelector ListOptionSelector;
         private readonly Player Player;
         private readonly IGameSaveStore SaveStore;
-        private List<PropertySquare> AvailableBuyHouseList = new();
-        private List<PropertySquare> AvailableSellHouseList = new();
+        private IReadOnlyList<PropertySquare> AvailableBuyHouseList = Array.Empty<PropertySquare>();
+        private IReadOnlyList<PropertySquare> AvailableSellHouseList = Array.Empty<PropertySquare>();
 
         int SelectedOption = 0;
 
@@ -37,8 +37,8 @@ namespace Monopoly.Console.GUI
 
         public void UpdateLists()
         {
-            AvailableBuyHouseList = CurrentGame.Board.GetAllPropertySquaresPlayerCanBuyHousesIn(Player) ?? new List<PropertySquare>();
-            AvailableSellHouseList = CurrentGame.Board.GetAllPropertySquaresPlayerCanSellHousesIn(Player) ?? new List<PropertySquare>();
+            AvailableBuyHouseList = CurrentGame.Board.GetAllPropertySquaresPlayerCanBuyHousesIn(Player);
+            AvailableSellHouseList = CurrentGame.Board.GetAllPropertySquaresPlayerCanSellHousesIn(Player);
         }
 
         public enum HouseMenuOptions
@@ -126,7 +126,7 @@ namespace Monopoly.Console.GUI
                 else errorMessage = ($"Cannot buy more Houses or Hotels on {selectedProperty.Name}. It already has {selectedProperty.GetHouseCountAsString()}.");
 
             } while (!canBuy);
-            CurrentGame.Transactions.BuyPropertyHouse(Player, AvailableBuyHouseList[index]);
+            CurrentGame.TryBuyHouse(Player, AvailableBuyHouseList[index]);
             UpdateLists();
             StayOnCurrentMenu();
         }
@@ -151,7 +151,7 @@ namespace Monopoly.Console.GUI
                 else errorMessage = ($"Cannot sell Houses or Hotels on {selectedProperty.Name}. It has {selectedProperty.GetHouseCountAsString()}.");
 
             } while (!canSell);
-            CurrentGame.Transactions.SellPropertyHouse(Player, AvailableSellHouseList[index]);
+            CurrentGame.TrySellHouse(Player, AvailableSellHouseList[index]);
             UpdateLists();
             StayOnCurrentMenu();
         }

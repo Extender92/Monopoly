@@ -4,19 +4,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
 namespace Monopoly.Core.Models.Board
 {
-    public class GameBoard
+    public sealed class GameBoard
     {
-        public List<Square> Squares; // Array or list of all squares on the board
+        private readonly List<Square> _squares;
+        private readonly ReadOnlyCollection<Square> _squaresView;
+        public IReadOnlyList<Square> Squares => _squaresView;
 
         public GameBoard(GameRules gameRules)
         {
-            Squares = SquareBuilder.GetBoardSquares(gameRules);
+            ArgumentNullException.ThrowIfNull(gameRules);
+            _squares = SquareBuilder.GetBoardSquares(gameRules);
+            _squaresView = _squares.AsReadOnly();
         }
 
-        public void HandlePlayerLandingOnSquare(Player player, Game game)
+        internal void HandlePlayerLandingOnSquare(Player player, Game game)
         {
             Squares.First(s => s.Position == player.Position).LandOn(player, game);
         }
@@ -26,62 +31,64 @@ namespace Monopoly.Core.Models.Board
             return Squares.First(s => s.Position == position);
         }
 
-        public List<T> GetAllSquaresOfType<T>() where T : Square
+        public IReadOnlyList<T> GetAllSquaresOfType<T>() where T : Square
         {
-            return Squares.OfType<T>().ToList();
+            return Squares.OfType<T>().ToList().AsReadOnly();
         }
 
-        public List<PropertySquare> GetAllPropertySquares()
+        public IReadOnlyList<PropertySquare> GetAllPropertySquares()
         {
             return GetAllSquaresOfType<PropertySquare>();
         }
 
-        public List<PropertySquare> GetAllPlayerOwnedPropertySquares(Player player)
+        public IReadOnlyList<PropertySquare> GetAllPlayerOwnedPropertySquares(Player player)
         {
-            List<PropertySquare> propertySquares = GetAllPropertySquares();
-            return propertySquares.Where(s => s.Owner == player).ToList();
+            IReadOnlyList<PropertySquare> propertySquares = GetAllPropertySquares();
+            return propertySquares.Where(s => s.Owner == player).ToList().AsReadOnly();
         }
 
-        public List<PropertySquare> GetAllPropertySquaresPlayerCanBuyHousesIn(Player player)
+        public IReadOnlyList<PropertySquare> GetAllPropertySquaresPlayerCanBuyHousesIn(Player player)
         {
-            List<PropertySquare> playerOwnedPropertySquares = GetAllPlayerOwnedPropertySquares(player);
-            List<PropertySquare> propertySquares = GetAllPropertySquares();
+            IReadOnlyList<PropertySquare> playerOwnedPropertySquares = GetAllPlayerOwnedPropertySquares(player);
+            IReadOnlyList<PropertySquare> propertySquares = GetAllPropertySquares();
 
             return playerOwnedPropertySquares
                 .Where(property => property.OwnerHasColorGroup(propertySquares))
-                .ToList();
+                .ToList()
+                .AsReadOnly();
         }
 
-        public List<PropertySquare> GetAllPropertySquaresPlayerCanSellHousesIn(Player player)
+        public IReadOnlyList<PropertySquare> GetAllPropertySquaresPlayerCanSellHousesIn(Player player)
         {
-            List<PropertySquare> playerOwnedPropertySquares = GetAllPlayerOwnedPropertySquares(player);
+            IReadOnlyList<PropertySquare> playerOwnedPropertySquares = GetAllPlayerOwnedPropertySquares(player);
 
             return playerOwnedPropertySquares
                 .Where(property => property.Houses > 0)
-                .ToList();
+                .ToList()
+                .AsReadOnly();
         }
 
-        public List<Square> GetAllMortgageableSquares()
+        public IReadOnlyList<Square> GetAllMortgageableSquares()
         {
-            List<PropertySquare> propertySquares = GetAllSquaresOfType<PropertySquare>();
-            List<RailroadSquare> railroadSquares = GetAllSquaresOfType<RailroadSquare>();
-            List<UtilitySquare> utilitySquares = GetAllSquaresOfType<UtilitySquare>();
+            IReadOnlyList<PropertySquare> propertySquares = GetAllSquaresOfType<PropertySquare>();
+            IReadOnlyList<RailroadSquare> railroadSquares = GetAllSquaresOfType<RailroadSquare>();
+            IReadOnlyList<UtilitySquare> utilitySquares = GetAllSquaresOfType<UtilitySquare>();
             List<Square> allMortgageableSquares = new List<Square>();
             allMortgageableSquares.AddRange(propertySquares);
             allMortgageableSquares.AddRange(railroadSquares);
             allMortgageableSquares.AddRange(utilitySquares);
-            return allMortgageableSquares;
+            return allMortgageableSquares.AsReadOnly();
         }
 
-        public List<Square> GetAllMortgageableSquaresForPlayer(Player player)
+        public IReadOnlyList<Square> GetAllMortgageableSquaresForPlayer(Player player)
         {
-            List<Square> allMortgageableSquares = GetAllMortgageableSquares();
-            return allMortgageableSquares.Where(s => s.Owner == player).ToList();
+            IReadOnlyList<Square> allMortgageableSquares = GetAllMortgageableSquares();
+            return allMortgageableSquares.Where(s => s.Owner == player).ToList().AsReadOnly();
         }
 
-        public List<Square> GetPlayerMortgageableSquares(Player player)
+        public IReadOnlyList<Square> GetPlayerMortgageableSquares(Player player)
         {
-            List<Square> playerOwnedSquares = GetAllMortgageableSquaresForPlayer(player);
+            IReadOnlyList<Square> playerOwnedSquares = GetAllMortgageableSquaresForPlayer(player);
 
             var playerMortgageableSquares = playerOwnedSquares
                 .OfType<PropertySquare>()
@@ -91,21 +98,22 @@ namespace Monopoly.Core.Models.Board
                                    .All(p => p.Houses <= 0))
                 .Cast<Square>()
                 .Concat(playerOwnedSquares.Where(s => !(s is PropertySquare)))
-                .ToList();
+                .ToList()
+                .AsReadOnly();
 
             return playerMortgageableSquares;
         }
 
-        public List<Square> GetPlayerMortgagedSquares(Player player)
+        public IReadOnlyList<Square> GetPlayerMortgagedSquares(Player player)
         {
-            List<Square> playerOwnedSquares = GetAllMortgageableSquaresForPlayer(player);
-            return playerOwnedSquares.Where(s => s.IsMortgage).ToList();
+            IReadOnlyList<Square> playerOwnedSquares = GetAllMortgageableSquaresForPlayer(player);
+            return playerOwnedSquares.Where(s => s.IsMortgage).ToList().AsReadOnly();
         }
 
-        public List<Square> GetPlayerUnmortgagedSquares(Player player)
+        public IReadOnlyList<Square> GetPlayerUnmortgagedSquares(Player player)
         {
-            List<Square> playerMortgageableSquares = GetPlayerMortgageableSquares(player);
-            return playerMortgageableSquares.Where(s => !s.IsMortgage).ToList();
+            IReadOnlyList<Square> playerMortgageableSquares = GetPlayerMortgageableSquares(player);
+            return playerMortgageableSquares.Where(s => !s.IsMortgage).ToList().AsReadOnly();
         }
     }
 }

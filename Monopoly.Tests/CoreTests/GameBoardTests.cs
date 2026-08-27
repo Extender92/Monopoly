@@ -59,10 +59,9 @@ namespace Monopoly.Tests.CoreTests
         public void GetAllMortgageableSquaresForPlayer_ShouldReturnPlayerOwnedSquares()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-            board.GetAllPropertySquares().First().Owner = player;
+            Game game = new GameTestBuilder().WithSquare(1, ownerId: 0).Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
 
             // Act
             var playerMortgageableSquares = board.GetAllMortgageableSquaresForPlayer(player);
@@ -75,12 +74,9 @@ namespace Monopoly.Tests.CoreTests
         public void GetPlayerMortgageableSquares_ShouldReturnSquaresWithNoHouses()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-            var property = board.GetAllPropertySquares().First();
-            property.Houses = 0;
-            property.Owner = player;
+            Game game = new GameTestBuilder().WithSquare(1, ownerId: 0).Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
 
             // Act
             var playerMortgageableSquares = board.GetPlayerMortgageableSquares(player);
@@ -93,12 +89,9 @@ namespace Monopoly.Tests.CoreTests
         public void GetPlayerMortgagedSquares_ShouldReturnMortgagedSquares()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-            var property = board.GetAllPropertySquares().First();
-            property.Owner = player;
-            property.IsMortgage = true;
+            Game game = new GameTestBuilder().WithSquare(1, ownerId: 0, isMortgage: true).Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
 
             // Act
             var mortgagedSquares = board.GetPlayerMortgagedSquares(player);
@@ -111,12 +104,9 @@ namespace Monopoly.Tests.CoreTests
         public void GetPlayerUnmortgagedSquares_ShouldReturnUnmortgagedSquares()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-            var property = board.GetAllPropertySquares().First();
-            property.Owner = player;
-            property.IsMortgage = false;
+            Game game = new GameTestBuilder().WithSquare(1, ownerId: 0).Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
 
             // Act
             var unmortgagedSquares = board.GetPlayerUnmortgagedSquares(player);
@@ -129,13 +119,12 @@ namespace Monopoly.Tests.CoreTests
         public void GetAllPlayerOwnedPropertySquares_ShouldReturnCorrectOwnedProperties()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-            var property1 = board.GetAllPropertySquares()[0];
-            var property2 = board.GetAllPropertySquares()[1];
-            property1.Owner = player;
-            property2.Owner = player;
+            Game game = new GameTestBuilder()
+                .WithSquare(1, ownerId: 0)
+                .WithSquare(3, ownerId: 0)
+                .Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
 
             // Act
             var ownedProperties = board.GetAllPlayerOwnedPropertySquares(player);
@@ -148,14 +137,13 @@ namespace Monopoly.Tests.CoreTests
         public void GetAllPropertySquaresPlayerCanBuyHousesIn_ShouldReturnCorrectProperties()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-            var properties = board.GetAllPropertySquares().Take(2).ToList();
-            foreach (var property in properties)
-            {
-                property.Owner = player;
-            }
+            Game game = new GameTestBuilder()
+                .WithSquare(1, ownerId: 0)
+                .WithSquare(3, ownerId: 0)
+                .Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
+            IReadOnlyList<PropertySquare> properties = board.GetAllPropertySquares().Take(2).ToList();
 
             // Act
             var propertiesCanBuyHousesIn = board.GetAllPropertySquaresPlayerCanBuyHousesIn(player);
@@ -168,15 +156,13 @@ namespace Monopoly.Tests.CoreTests
         public void GetAllPropertySquaresPlayerCanBuyHousesIn_ShouldReturnPropertiesInFullColorGroup()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-
-            var colorGroup = board.GetAllPropertySquares().GroupBy(p => p.Color).First().ToList();
-            foreach (var property in colorGroup)
-            {
-                property.Owner = player;
-            }
+            Game game = new GameTestBuilder()
+                .WithSquare(1, ownerId: 0)
+                .WithSquare(3, ownerId: 0)
+                .Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
+            List<PropertySquare> colorGroup = board.GetAllPropertySquares().GroupBy(p => p.Color).First().ToList();
 
             // Act
             var propertiesCanBuyHousesIn = board.GetAllPropertySquaresPlayerCanBuyHousesIn(player);
@@ -193,22 +179,12 @@ namespace Monopoly.Tests.CoreTests
         public void GetAllPropertySquaresPlayerCanBuyHousesIn_ShouldNotReturnPropertiesNotInFullColorGroup()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-
-            var allProperties = board.GetAllPropertySquares();
-            var firstColorGroup = allProperties.GroupBy(p => p.Color).First().ToList();
-            var secondColorGroup = allProperties.GroupBy(p => p.Color).Skip(1).First().ToList();
-
-            foreach (var property in firstColorGroup.Take(1))
-            {
-                property.Owner = player;
-            }
-            foreach (var property in secondColorGroup.Take(1))
-            {
-                property.Owner = player;
-            }
+            Game game = new GameTestBuilder()
+                .WithSquare(1, ownerId: 0)
+                .WithSquare(6, ownerId: 0)
+                .Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
 
             // Act
             var propertiesCanBuyHousesIn = board.GetAllPropertySquaresPlayerCanBuyHousesIn(player);
@@ -221,22 +197,18 @@ namespace Monopoly.Tests.CoreTests
         public void GetAllPropertySquaresPlayerCanBuyHousesIn_ShouldReturnPropertiesInMultipleFullColorGroups()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-
-            var allProperties = board.GetAllPropertySquares();
-            var firstColorGroup = allProperties.GroupBy(p => p.Color).First().ToList();
-            var secondColorGroup = allProperties.GroupBy(p => p.Color).Skip(1).First().ToList();
-
-            foreach (var property in firstColorGroup)
-            {
-                property.Owner = player;
-            }
-            foreach (var property in secondColorGroup)
-            {
-                property.Owner = player;
-            }
+            Game game = new GameTestBuilder()
+                .WithSquare(1, ownerId: 0)
+                .WithSquare(3, ownerId: 0)
+                .WithSquare(6, ownerId: 0)
+                .WithSquare(8, ownerId: 0)
+                .WithSquare(9, ownerId: 0)
+                .Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
+            IReadOnlyList<PropertySquare> allProperties = board.GetAllPropertySquares();
+            List<PropertySquare> firstColorGroup = allProperties.GroupBy(p => p.Color).First().ToList();
+            List<PropertySquare> secondColorGroup = allProperties.GroupBy(p => p.Color).Skip(1).First().ToList();
 
             // Act
             var propertiesCanBuyHousesIn = board.GetAllPropertySquaresPlayerCanBuyHousesIn(player);
@@ -257,20 +229,12 @@ namespace Monopoly.Tests.CoreTests
         public void GetAllPropertySquaresPlayerCanBuyHousesIn_ShouldNotReturnPropertiesOwnedByOthers()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-            Player otherPlayer = new Player("otherPlayer", 1);
-
-            var colorGroup = board.GetAllPropertySquares().GroupBy(p => p.Color).First().ToList();
-            foreach (var property in colorGroup.Take(1))
-            {
-                property.Owner = player;
-            }
-            foreach (var property in colorGroup.Skip(1))
-            {
-                property.Owner = otherPlayer;
-            }
+            Game game = new GameTestBuilder()
+                .WithSquare(1, ownerId: 0)
+                .WithSquare(3, ownerId: 1)
+                .Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
 
             // Act
             var propertiesCanBuyHousesIn = board.GetAllPropertySquaresPlayerCanBuyHousesIn(player);
@@ -283,12 +247,9 @@ namespace Monopoly.Tests.CoreTests
         public void GetAllPropertySquaresPlayerCanSellHousesIn_ShouldReturnCorrectProperties()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-            var property = board.GetAllPropertySquares().First();
-            property.Owner = player;
-            property.Houses = 1;
+            Game game = new GameTestBuilder().WithSquare(1, ownerId: 0, houses: 1).Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
 
             // Act
             var propertiesCanSellHousesIn = board.GetAllPropertySquaresPlayerCanSellHousesIn(player);
@@ -301,18 +262,16 @@ namespace Monopoly.Tests.CoreTests
         public void GetPlayerMortgageableSquares_ShouldNotReturnPropertiesWithHouses()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
-            Player player = new Player("player", 0);
-            var propertyOne = board.GetAllPropertySquares()[0];
-            var propertyTwo = board.GetAllPropertySquares()[1];
-            var propertyThree = board.GetAllPropertySquares()[5];
-            propertyOne.Owner = player;
-            propertyOne.Houses = 1;
-            propertyTwo.Owner = player;
-            propertyTwo.Houses = 0;
-            propertyThree.Owner = player;
-            propertyThree.Houses = 0;
+            Game game = new GameTestBuilder()
+                .WithSquare(1, ownerId: 0, houses: 1)
+                .WithSquare(3, ownerId: 0)
+                .WithSquare(11, ownerId: 0)
+                .Build();
+            GameBoard board = game.Board;
+            Player player = game.Players[0];
+            PropertySquare propertyOne = (PropertySquare)board.GetSquareAtPosition(1);
+            PropertySquare propertyTwo = (PropertySquare)board.GetSquareAtPosition(3);
+            PropertySquare propertyThree = (PropertySquare)board.GetSquareAtPosition(11);
 
             // Act
             var mortgageableSquares = board.GetPlayerMortgageableSquares(player);

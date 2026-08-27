@@ -334,8 +334,9 @@ Enums are currently serialized as their numeric values.
 - `JailFine`
 - `MaxTurnsInJail`
 
-This represents the current mutable `GameRules` model, not the target UK
-Classic, US Classic and Custom profile model.
+This represents the current immutable `GameRules` model, not the target UK
+Classic, US Classic and Custom profile model. Its complete constructor validates
+the current numeric and enum ranges and supplies the existing default values.
 
 ### Version 1 players
 
@@ -393,6 +394,17 @@ The current loader:
 8. Restores both card queues.
 9. Derives a winner when exactly one active saved player remains.
 
+The Version 1 DTOs remain mutable serialization data and are deliberately
+separate from live match objects. Reconstruction creates new players, board
+state, Jail state and card queues and applies data only through internal restore
+operations. A DTO or source list retained by a caller cannot mutate the
+reconstructed game afterward. Validation and reconstruction complete before the
+new `Game` is returned, so failure cannot partially change an existing match.
+
+`IPlayerDecisionProvider` is a runtime service rather than saved state. Loading
+may supply it during reconstruction, and a frontend may later reconnect it with
+`Game.SetDecisionProvider()`.
+
 `IGameSaveStore.Load()` returns a newly reconstructed `Game`. The removed
 `SaveCoreData`, `LoadCoreData` and `GameStateSerializer` APIs are not part of
 the persistence boundary; compatibility applies to the Version 1 file format.
@@ -401,20 +413,28 @@ the persistence boundary; compatibility applies to the Version 1 file format.
 
 The current loader validates:
 
-- Presence of the main Rules, Players, Squares and Jail sections.
+- Version 1 and presence of all required sections and collection items.
 - At least one player and unique player IDs.
-- An existing `CurrentPlayerId`.
-- Player count matching `NumberOfPlayers`.
-- Positive dice count and die sides.
-- Positive current turn.
+- An existing, active `CurrentPlayerId`.
+- A non-empty current player roster no larger than the configured
+  `NumberOfPlayers`; eliminated players may already have been removed.
+- Positive player, dice and die-side counts and all current rule enum and
+  numeric ranges.
+- Positive current turn and non-negative fines.
 - Consecutive doubles from zero through two.
-- Non-negative fines, player money and jail-card counts.
+- Non-negative player money and jail-card counts, plus bankrupt-player asset
+  consistency.
 - Player and square positions from zero through 39.
 - Unique saved square positions.
-- Existing player IDs for owners and Jail entries.
-- Unique Jail entries with non-negative turn counts.
+- Existing, non-bankrupt player IDs for owners and active Jail entries.
+- Ownership only on purchasable square types.
+- Building levels from zero through five, an owner for mortgages and buildings,
+  and no buildings on a mortgaged property.
+- Unique Jail entries, Jail positions and turn counts within the configured
+  maximum.
 - Exact card-deck lengths, unique indexes and indexes valid for the selected
   current card lists.
+- Winner consistency derived from the remaining active players.
 
 Infrastructure translates expected failures to `SaveStoreException` with one
 of four categories: `NotFound`, `InvalidData`, `IncompatibleVersion` or
@@ -435,8 +455,6 @@ Version 1 does not currently preserve or fully validate:
 - Winner as an explicit field.
 - Runtime services, logs, events or frontend state.
 - Every legal relationship between ownership, mortgages and buildings.
-- Every enum and numeric range in `GameRules`.
-- Every malformed or explicit `null` JSON combination.
 
 The current tests verify Core-only Version 1 round trips for UK and US games,
 an existing Version 1 JSON fixture, the stable wire shape, all error categories

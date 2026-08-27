@@ -55,7 +55,7 @@ namespace Monopoly.Console.GUI
             Console.ResetColor();
         }
 
-        internal void PrintNewestLogs(int maxAmountOfLogs, List<Log> LogList)
+        internal void PrintNewestLogs(int maxAmountOfLogs, IReadOnlyList<Log> LogList)
         {
             // Ensure that maxAmountOfLogs is within the range of logList.Count
             int startIndex = Math.Max(0, LogList.Count - maxAmountOfLogs);

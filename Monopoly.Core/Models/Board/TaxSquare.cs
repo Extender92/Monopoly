@@ -17,7 +17,7 @@ namespace Monopoly.Core.Models.Board
             Price = tax;
         }
 
-        public override void LandOn(Player player, Game game)
+        internal override void LandOn(Player player, Game game)
         {
             game.Handler.TryResolvePayment(player, Price, null, $"Could not afford tax of {Price}");
         }

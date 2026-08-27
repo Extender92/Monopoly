@@ -27,7 +27,7 @@ public static class GameStateV1Mapper
                 .Where(square => square.Owner is not null || square.IsMortgage || square is PropertySquare { Houses: > 0 })
                 .Select(SquareState.From)
                 .ToList(),
-            Jail = game.TheJail.playersInJail
+            Jail = game.TheJail.PlayersInJail
                 .Select(pair => new JailState { PlayerId = pair.Key.Id, TurnsInJail = pair.Value.TurnsInJail })
                 .ToList(),
             ChanceDeck = game.FortuneCard.GetChanceDeckOrder().ToList(),
@@ -36,47 +36,58 @@ public static class GameStateV1Mapper
     }
 
     public static Game FromState(GameStateV1 state, IPlayerDecisionProvider? decisions = null)
+        => FromState(state, decisions, null);
+
+    internal static Game FromState(
+        GameStateV1 state,
+        IPlayerDecisionProvider? decisions,
+        IReadOnlyList<IDie>? dice)
     {
         ArgumentNullException.ThrowIfNull(state);
         Validate(state);
 
-        GameRules rules = state.Rules.ToGameRules();
-        List<Player> players = state.Players.Select(player => player.ToPlayer()).ToList();
-        Dictionary<int, Player> playersById = players.ToDictionary(player => player.Id);
-        Player currentPlayer = playersById[state.CurrentPlayerId];
-        List<IDie> dice = Enumerable.Range(0, rules.NumberOfDice)
-            .Select(_ => (IDie)new Die(rules.DieSides))
-            .ToList();
-
-        Game game = new(players, currentPlayer, dice, rules, new LogHandler(), decisions);
-        game.Fines = state.Fines;
-        game.CurrentTurn = state.CurrentTurn;
-        game.RestoreConsecutiveDoubles(state.ConsecutiveDoubles);
-
-        foreach (SquareState squareState in state.Squares)
+        try
         {
-            Square square = game.Board.GetSquareAtPosition(squareState.Position);
-            square.Owner = squareState.OwnerId is int ownerId ? playersById[ownerId] : null;
-            square.IsMortgage = squareState.IsMortgage;
-            if (square is PropertySquare property)
-                property.Houses = squareState.Houses;
+            GameRules rules = state.Rules.ToGameRules();
+            List<Player> players = state.Players.Select(player => player.ToPlayer()).ToList();
+            Dictionary<int, Player> playersById = players.ToDictionary(player => player.Id);
+            Player currentPlayer = playersById[state.CurrentPlayerId];
+            IReadOnlyList<IDie> runtimeDice = dice ?? Enumerable.Range(0, rules.NumberOfDice)
+                .Select(_ => (IDie)new Die(rules.DieSides))
+                .ToList();
+
+            Game game = new(players, currentPlayer, runtimeDice, rules, decisions);
+            game.RestoreTurnState(state.Fines, state.CurrentTurn, state.ConsecutiveDoubles);
+
+            foreach (SquareState squareState in state.Squares)
+            {
+                Square square = game.Board.GetSquareAtPosition(squareState.Position);
+                Player? owner = squareState.OwnerId is int ownerId ? playersById[ownerId] : null;
+                square.RestoreState(owner, squareState.IsMortgage, squareState.Houses);
+            }
+
+            foreach (JailState jailState in state.Jail)
+                game.TheJail.RestorePlayerInJail(playersById[jailState.PlayerId], jailState.TurnsInJail);
+
+            game.FortuneCard.RestoreDeckOrder(state.ChanceDeck, state.CommunityChestDeck);
+
+            List<Player> activePlayers = players.Where(player => !player.IsBankrupt).ToList();
+            if (activePlayers.Count <= 1)
+                game.RestoreWinner(activePlayers.SingleOrDefault());
+
+            game.ValidateAuthoritativeState();
+            return game;
         }
-
-        foreach (JailState jailState in state.Jail)
-            game.TheJail.RestorePlayerInJail(playersById[jailState.PlayerId], jailState.TurnsInJail);
-
-        game.FortuneCard.RestoreDeckOrder(state.ChanceDeck, state.CommunityChestDeck);
-
-        List<Player> activePlayers = players.Where(player => !player.IsBankrupt).ToList();
-        Player? winner = activePlayers.Count == 1 ? activePlayers[0] : null;
-        if (activePlayers.Count <= 1)
-            game.RestoreWinner(winner);
-
-        return game;
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            throw new GameStateValidationException("Saved game state could not be reconstructed.", exception);
+        }
     }
 
     private static void Validate(GameStateV1 state)
     {
+        if (state.Version != CurrentVersion)
+            throw new GameStateValidationException($"Unsupported save version '{state.Version}'.");
         if (state.Rules is null || state.Players is null || state.Squares is null || state.Jail is null ||
             state.ChanceDeck is null || state.CommunityChestDeck is null)
             throw new GameStateValidationException("Save data is missing required sections.");
@@ -92,29 +103,61 @@ public static class GameStateV1Mapper
             throw new GameStateValidationException("Player IDs must be unique.");
         if (!state.Players.Any(player => player.Id == state.CurrentPlayerId))
             throw new GameStateValidationException("CurrentPlayerId does not refer to a saved player.");
-        if (state.Rules.NumberOfPlayers != state.Players.Count || state.Rules.NumberOfDice <= 0 || state.Rules.DieSides <= 0)
+        if (state.Rules.NumberOfPlayers < state.Players.Count || state.Rules.NumberOfPlayers <= 0 ||
+            state.Rules.NumberOfDice <= 0 || state.Rules.DieSides <= 0 || state.Rules.Salary < 0 ||
+            state.Rules.MortgageInterestRate < 0 || state.Rules.JailFine < 0 || state.Rules.MaxTurnsInJail <= 0)
             throw new GameStateValidationException("Saved game rules are invalid.");
         if (!Enum.IsDefined(state.Rules.GameLanguage) || !Enum.IsDefined(state.Rules.FreeParking))
             throw new GameStateValidationException("Saved game-rule enum values are invalid.");
+
+        GameRules rules = state.Rules.ToGameRules();
+        GameBoard board = new(rules);
         if (state.CurrentTurn < 1 || state.ConsecutiveDoubles is < 0 or > 2 || state.Fines < 0)
             throw new GameStateValidationException("Saved turn state is invalid.");
-        if (state.Players.Any(player => player.Position < 0 || player.Position >= 40 || player.Money < 0 || player.NumberOfGetOutOfJailCards < 0))
+        if (state.Players.Any(player => player.Id < 0 || string.IsNullOrWhiteSpace(player.Name) ||
+            player.Position < 0 || player.Position >= board.Squares.Count || player.Money < 0 || player.NumberOfGetOutOfJailCards < 0))
             throw new GameStateValidationException("A saved player state is invalid.");
-        if (state.Squares.Any(square => square.Position < 0 || square.Position >= 40))
+        if (state.Players.Any(player => player.IsBankrupt &&
+            (player.Money != 0 || player.NumberOfGetOutOfJailCards != 0)))
+            throw new GameStateValidationException("A bankrupt saved player cannot retain money or jail cards.");
+        PlayerState savedCurrentPlayer = state.Players.Single(player => player.Id == state.CurrentPlayerId);
+        if (savedCurrentPlayer.IsBankrupt)
+            throw new GameStateValidationException("The current player cannot be bankrupt.");
+        if (state.Squares.Any(square => square.Position < 0 || square.Position >= board.Squares.Count))
             throw new GameStateValidationException("A saved square position is outside the board.");
         if (state.Squares.Select(square => square.Position).Distinct().Count() != state.Squares.Count)
             throw new GameStateValidationException("Saved square states must contain unique positions.");
+        if (state.Squares.Any(square => square.Houses is < 0 or > 5 ||
+            (square.OwnerId is null && (square.IsMortgage || square.Houses > 0)) ||
+            (square.IsMortgage && square.Houses > 0)))
+            throw new GameStateValidationException("Saved ownership, mortgage, or building state is invalid.");
 
         HashSet<int> playerIds = state.Players.Select(player => player.Id).ToHashSet();
         if (state.Squares.Any(square => square.OwnerId is int ownerId && !playerIds.Contains(ownerId)))
             throw new GameStateValidationException("A saved square refers to an unknown owner.");
+        HashSet<int> bankruptPlayerIds = state.Players
+            .Where(player => player.IsBankrupt)
+            .Select(player => player.Id)
+            .ToHashSet();
+        if (state.Squares.Any(square => square.OwnerId is int ownerId && bankruptPlayerIds.Contains(ownerId)))
+            throw new GameStateValidationException("A bankrupt player cannot own a saved square.");
         if (state.Jail.Any(jail => !playerIds.Contains(jail.PlayerId)))
             throw new GameStateValidationException("A saved jail entry refers to an unknown player.");
-        if (state.Jail.Any(jail => jail.TurnsInJail < 0) ||
+        if (state.Jail.Any(jail => jail.TurnsInJail < 0 || jail.TurnsInJail > state.Rules.MaxTurnsInJail) ||
             state.Jail.Select(jail => jail.PlayerId).Distinct().Count() != state.Jail.Count)
             throw new GameStateValidationException("Saved jail states are invalid.");
 
-        GameRules rules = state.Rules.ToGameRules();
+        Dictionary<int, Square> squaresByPosition = board.Squares.ToDictionary(square => square.Position);
+        if (state.Squares.Any(square => !squaresByPosition.TryGetValue(square.Position, out Square? boardSquare) ||
+            (square.Houses > 0 && boardSquare is not PropertySquare) ||
+            (square.OwnerId is not null && boardSquare is not PropertySquare and not RailroadSquare and not UtilitySquare)))
+            throw new GameStateValidationException("Saved square state is incompatible with the board.");
+
+        int jailPosition = board.Squares.Single(square => square.Name == "Jail").Position;
+        Dictionary<int, PlayerState> playersById = state.Players.ToDictionary(player => player.Id);
+        if (state.Jail.Any(jail => playersById[jail.PlayerId].IsBankrupt || playersById[jail.PlayerId].Position != jailPosition))
+            throw new GameStateValidationException("Saved jail players must be active and positioned in jail.");
+
         int expectedChanceCards = FortuneCardBuilder.GetChanceCards(rules).Count;
         int expectedCommunityChestCards = FortuneCardBuilder.GetCommunityChestCards(rules).Count;
         HashSet<string> validChanceCards = Enumerable.Range(0, expectedChanceCards).Select(index => index.ToString()).ToHashSet();
@@ -171,20 +214,17 @@ public sealed class GameRulesState
         MaxTurnsInJail = rules.MaxTurnsInJail
     };
 
-    public GameRules ToGameRules()
-    {
-        GameRules rules = new(NumberOfPlayers, NumberOfDice, DieSides)
-        {
-            Salary = Salary,
-            DoubleOnGo = DoubleOnGo,
-            FreeParking = FreeParking,
-            MortgageInterestRate = MortgageInterestRate,
-            JailFine = JailFine,
-            MaxTurnsInJail = MaxTurnsInJail
-        };
-        rules.SetLanguage(GameLanguage);
-        return rules;
-    }
+    public GameRules ToGameRules() => new(
+        NumberOfPlayers,
+        NumberOfDice,
+        DieSides,
+        GameLanguage,
+        Salary,
+        DoubleOnGo,
+        FreeParking,
+        MortgageInterestRate,
+        JailFine,
+        MaxTurnsInJail);
 }
 
 public sealed class PlayerState
@@ -206,13 +246,12 @@ public sealed class PlayerState
         IsBankrupt = player.IsBankrupt
     };
 
-    public Player ToPlayer() => new(Name, Id)
+    public Player ToPlayer()
     {
-        Money = Money,
-        Position = Position,
-        NumberOfGetOutOFJailCards = NumberOfGetOutOfJailCards,
-        IsBankrupt = IsBankrupt
-    };
+        Player player = new(Name, Id);
+        player.RestoreState(Money, Position, NumberOfGetOutOfJailCards, IsBankrupt);
+        return player;
+    }
 }
 
 public sealed class SquareState
