@@ -9,6 +9,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Monopoly.Core\Monopoly.Core.csproj" />
+		<ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
 		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
 		<InternalsVisibleTo Include="Monopoly.Tests" />
 	</ItemGroup>

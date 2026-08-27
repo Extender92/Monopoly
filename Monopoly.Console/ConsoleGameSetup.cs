@@ -2,6 +2,7 @@
 using Monopoly.Console.Models;
 using Monopoly.Core;
 using Monopoly.Core.Models;
+using Monopoly.Core.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,13 @@ namespace Monopoly.Console
             GameRules = gameRules;
         }
 
-        public ConsoleGame Setup(Game game, ConsolePrinter consolePrinter, Input input, ConsoleLogPrinter logPrint, ConsoleCardPrinter cardPrinter)
+        public ConsoleGame Setup(
+            Game game,
+            ConsolePrinter consolePrinter,
+            Input input,
+            ConsoleLogPrinter logPrint,
+            ConsoleCardPrinter cardPrinter,
+            IGameSaveStore saveStore)
         {
             TablePieces = new();
             foreach (Player player in game.Players)
@@ -30,7 +37,7 @@ namespace Monopoly.Console
                 TablePieces.Add(_tablePieceSelector.GetTablePieceFromUserInput(player.Id, TablePieces, input));
             }
 
-            ConsoleGame consoleGame = new ConsoleGame(game, consolePrinter, TablePieces, input, logPrint, cardPrinter);
+            ConsoleGame consoleGame = new ConsoleGame(game, consolePrinter, TablePieces, input, logPrint, cardPrinter, saveStore);
             return consoleGame;
         }
     }

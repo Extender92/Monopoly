@@ -3,6 +3,7 @@ using Monopoly.Core;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Persistence;
 
 namespace Monopoly.Console;
 
@@ -11,12 +12,14 @@ internal sealed class ConsolePlayerDecisionProvider : IPlayerDecisionProvider
     private readonly ConsolePrinter _printer;
     private readonly Input _input;
     private readonly GameRules _rules;
+    private readonly IGameSaveStore _saveStore;
 
-    internal ConsolePlayerDecisionProvider(ConsolePrinter printer, Input input, GameRules rules)
+    internal ConsolePlayerDecisionProvider(ConsolePrinter printer, Input input, GameRules rules, IGameSaveStore saveStore)
     {
         _printer = printer;
         _input = input;
         _rules = rules;
+        _saveStore = saveStore;
     }
 
     public bool ConfirmPurchase(Player player, Square square)
@@ -37,7 +40,7 @@ internal sealed class ConsolePlayerDecisionProvider : IPlayerDecisionProvider
 
         int moneyBefore = player.Money;
         _printer.PrintText($"{player.Name} does not have enough money; {amount}{game.Rules.CurrencySymbol} is required.");
-        new PlayerActionMenu(game, player).DisplayPlayerActionRealEstateMenu(true);
+        new PlayerActionMenu(game, player, _saveStore).DisplayPlayerActionRealEstateMenu(true);
         return player.Money > moneyBefore;
     }
 

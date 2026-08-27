@@ -41,9 +41,9 @@ An infrastructure implementation owns:
 - Safe and atomic writes.
 - Technical errors such as inaccessible storage or invalid serialized data.
 
-The current implementation performs JSON serialization and file access inside
-Core. This is transitional and does not define the permanent dependency
-boundary.
+The current implementation follows this boundary: Core exposes
+`IGameSaveStore` and owns Version 1 state mapping, while the neutral
+`Infrastructure` project implements JSON file storage.
 
 ### Frontend or application boundary
 
@@ -279,6 +279,12 @@ the valid save if serialization or writing fails. File storage should write to a
 temporary file in the target directory and replace the destination only after a
 successful complete write.
 
+The current file store writes through a unique same-directory temporary file,
+flushes encoded content and the underlying file, then uses replacement for an
+existing destination or a same-directory move for the first save. Failures
+remove the owned temporary file where storage access permits and never delete
+the previous destination.
+
 Storage APIs should support explicit save names and locations, and should allow
 the frontend to list and select available saves. Paths and naming rules are not
 part of the Core game model.
@@ -288,9 +294,10 @@ part of the Core game model.
 Version 1 is the current transitional implementation. It does not yet satisfy
 the complete target contract above.
 
-`GameStateSerializer` uses `System.Text.Json` with indented output and
-case-insensitive property matching. It writes JSON directly through
-`File.WriteAllText()` and reads it through `File.ReadAllText()`.
+`JsonFileGameSaveStore` uses `System.Text.Json` with indented output,
+case-insensitive property matching, numeric enums and UTF-8 without a byte-order
+mark. `GameStateV1Mapper` maps and reconstructs the logical state without file
+or JSON dependencies.
 
 The current top-level JSON structure is:
 
@@ -386,9 +393,9 @@ The current loader:
 8. Restores both card queues.
 9. Derives a winner when exactly one active saved player remains.
 
-`SaveCoreData` and `LoadCoreData` are compatibility facades over
-`GameStateSerializer`. `LoadCoreData.LoadData()` can still copy loaded state
-into an existing `Game`; this is not the target all-or-nothing load boundary.
+`IGameSaveStore.Load()` returns a newly reconstructed `Game`. The removed
+`SaveCoreData`, `LoadCoreData` and `GameStateSerializer` APIs are not part of
+the persistence boundary; compatibility applies to the Version 1 file format.
 
 ### Version 1 validation
 
@@ -409,9 +416,10 @@ The current loader validates:
 - Exact card-deck lengths, unique indexes and indexes valid for the selected
   current card lists.
 
-Malformed JSON may raise `JsonException`; a missing file raises
-`FileNotFoundException`; an unsupported version or rejected state raises
-`InvalidDataException`.
+Infrastructure translates expected failures to `SaveStoreException` with one
+of four categories: `NotFound`, `InvalidData`, `IncompatibleVersion` or
+`StorageFailure`. Raw JSON and file exceptions are retained as inner exceptions
+for diagnostics and are not exposed as unhandled Console errors.
 
 ### Version 1 limitations
 
@@ -430,23 +438,25 @@ Version 1 does not currently preserve or fully validate:
 - Every enum and numeric range in `GameRules`.
 - Every malformed or explicit `null` JSON combination.
 
-The current tests verify a Version 1 round trip for UK and US games, including
-current player, selected rule values, ownership, four Houses, mortgage state,
-Jail state, fines, consecutive doubles and both deck orders. They also verify
-that an unsupported version is rejected.
+The current tests verify Core-only Version 1 round trips for UK and US games,
+an existing Version 1 JSON fixture, the stable wire shape, all error categories
+and atomic create/replacement failure behavior.
 
 ## Current Console behavior
 
 The Console currently saves and loads `game_data.json` relative to the process
-working directory. Saving overwrites that path without a save-selection flow.
-Loading handles a missing file and displays invalid-data or JSON errors.
+working directory through one injected `JsonFileGameSaveStore`. Saving
+atomically replaces that path without a save-selection flow. Loading displays
+distinct missing, invalid, incompatible-version and storage errors.
 
 After loading, the Console creates new UI services and asks for frontend token
 choices again. Those token choices are presentation state and are not part of
 Version 1.
 
-Save naming, location selection and safe file replacement belong to the storage
-and Console integration work, not to Core rules.
+Save naming and location selection remain Console integration work, not Core
+rules. Version 1 remains supported only through the extraction: #4 later makes
+it incompatible, and no release may be produced until #52 closes the temporary
+save/load gap with Version 2.
 
 ## Testing requirements
 

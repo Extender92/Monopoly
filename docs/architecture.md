@@ -2,7 +2,8 @@
 
 ## Purpose
 
-Monopoly is split into a reusable game Core, a console frontend and automated tests.
+Monopoly is split into a reusable game Core, a console frontend, a persistence
+infrastructure implementation and automated tests.
 
 The long-term goal is to allow different frontends, such as a web application, desktop game or mobile game, to use the same Monopoly.Core game logic without duplicating rules.
 
@@ -12,7 +13,7 @@ override the permanent dependency and responsibility boundaries.
 
 ## Project structure
 
-The repository currently contains three projects:
+The repository currently contains four projects:
 
 ```text
 Monopoly.Core
@@ -21,23 +22,28 @@ Monopoly.Core
 Monopoly.Console
     Console menus, keyboard input and rendering
 
+Infrastructure
+    JSON serialization and atomic file persistence
+
 Monopoly.Tests
-    Core integration tests and Console UI tests
+    Core, Infrastructure and Console tests
 ```
 
 Project dependencies:
 
 ```text
 Monopoly.Console -> Monopoly.Core
+Monopoly.Console -> Infrastructure
+Infrastructure -> Monopoly.Core persistence contracts
 Monopoly.Tests -> Monopoly.Core
 Monopoly.Tests -> Monopoly.Console
+Monopoly.Tests -> Infrastructure
 ```
 
 `Monopoly.Core` does not reference the Console project.
 
-The target architecture also has an infrastructure boundary for storage and other
-technical integrations. It does not require a separate project until an
-implementation is needed, but the dependency direction must remain:
+The Infrastructure project is currently a neutral placeholder whose final
+identity is selected by #56. Its dependency direction remains:
 
 ```text
 Frontend/Application -> Monopoly.Core
@@ -283,10 +289,10 @@ Infrastructure owns:
 - Serialization transport details that are not domain rules
 
 The frontend or application composition root selects the storage
-implementation. The current `GameStateSerializer` performs file access inside
-Core and is a transitional implementation, not the final dependency boundary.
-
-`GameStateSerializer` stores a versioned state format. The current format is version 1.
+implementation through `IGameSaveStore`. Core's `GameStateV1Mapper` owns the
+Version 1 state mapping, validation and reconstruction. Infrastructure's
+`JsonFileGameSaveStore` owns JSON, paths, technical error translation and
+atomic file replacement.
 
 Save files store IDs instead of duplicated object references. During load:
 
@@ -348,7 +354,7 @@ reference.
 
 - Core unit tests
 - Core game-flow integration tests
-- Save/load round-trip tests
+- Core state-mapping and Infrastructure file-storage tests
 - Console menu and printer tests
 - Event subscription tests
 

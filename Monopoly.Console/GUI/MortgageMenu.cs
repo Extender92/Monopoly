@@ -1,7 +1,8 @@
 ﻿using Monopoly.Console.Utilities;
-using Monopoly.Core.Interface;
+using Monopoly.Core;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,21 +14,23 @@ namespace Monopoly.Console.GUI
 {
     internal class MortgageMenu
     {
-        private readonly IGame CurrentGame;
+        private readonly Game CurrentGame;
         private readonly IMenuOptionSelector MenuOptionSelector;
         private readonly ListOptionSelector ListOptionSelector;
         private readonly Player Player;
+        private readonly IGameSaveStore SaveStore;
         private List<Square> AvailableMortgageList = new();
         private List<Square> AvailableLiftMortgageList = new();
 
         int SelectedOption = 0;
 
-        public MortgageMenu(IMenuOptionSelector menuOptionSelector, IGame game, Player player)
+        public MortgageMenu(IMenuOptionSelector menuOptionSelector, Game game, Player player, IGameSaveStore saveStore)
         {
             MenuOptionSelector = menuOptionSelector;
             ListOptionSelector = new ListOptionSelector();
             CurrentGame = game;
             Player = player;
+            SaveStore = saveStore;
             UpdateLists();
         }
 
@@ -92,7 +95,7 @@ namespace Monopoly.Console.GUI
                     StayOnCurrentMenu();
                     break;
                 case MortgageMenuOptions.BackToRealEstateMenu:
-                    new PlayerActionMenu(CurrentGame, Player).DisplayPlayerActionRealEstateMenu();
+                    new PlayerActionMenu(CurrentGame, Player, SaveStore).DisplayPlayerActionRealEstateMenu();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");

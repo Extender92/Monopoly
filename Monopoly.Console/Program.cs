@@ -1,13 +1,12 @@
 ﻿using Monopoly.Console.GUI;
 using Monopoly.Console.Models;
+using Infrastructure.Persistence;
 using Monopoly.Core;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
-using Monopoly.Core.SaveAndLoad;
+using Monopoly.Core.Persistence;
 using System;
-using System.Runtime.InteropServices;
-using System.Text.Json;
 
 namespace Monopoly.Console
 {
@@ -18,12 +17,14 @@ namespace Monopoly.Console
             ConsolePositions.SetStandardPositions();
             IConsoleWrapper consoleWrapper = new ConsoleWrapper();
             MenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
-            MainMenu mainMenu = new MainMenu(menu);
+            IGameSaveStore saveStore = new JsonFileGameSaveStore("game_data.json");
+            MainMenu mainMenu = new MainMenu(menu, saveStore);
             mainMenu.DisplayMainMenu();
         }
 
-        internal static void StartNewGame()
+        internal static void StartNewGame(IGameSaveStore saveStore)
         {
+            ArgumentNullException.ThrowIfNull(saveStore);
             IConsoleWrapper consoleWrapper = new ConsoleWrapper();
 
             GameRules gameRules = SetupRules(consoleWrapper);
@@ -40,35 +41,41 @@ namespace Monopoly.Console
 
             Input input = new Input(consoleWrapper, menu);
 
-            game.Decisions = new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules);
+            game.Decisions = new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules, saveStore);
 
             ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
 
             ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game.Board.Squares, gameRules);
 
-            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter);
+            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter, saveStore);
 
             consoleGame.StartConsoleGame();
         }
 
-        internal static void LoadGame()
+        internal static void LoadGame(IGameSaveStore saveStore) =>
+            LoadGame(saveStore, new ConsoleWrapper());
+
+        internal static void LoadGame(IGameSaveStore saveStore, IConsoleWrapper consoleWrapper)
         {
-            IConsoleWrapper consoleWrapper = new ConsoleWrapper();
+            ArgumentNullException.ThrowIfNull(saveStore);
+            ArgumentNullException.ThrowIfNull(consoleWrapper);
 
             Game game;
             try
             {
-                game = LoadCoreData.LoadGame();
+                game = saveStore.Load();
             }
-            catch (FileNotFoundException)
+            catch (SaveStoreException exception)
             {
-                consoleWrapper.WriteLine("No save file was found. Press Enter to return to the main menu.");
-                consoleWrapper.ReadLine();
-                return;
-            }
-            catch (Exception ex) when (ex is InvalidDataException or JsonException)
-            {
-                consoleWrapper.WriteLine($"The save file could not be loaded: {ex.Message}");
+                string message = exception.Kind switch
+                {
+                    SaveStoreErrorKind.NotFound => "No save file was found.",
+                    SaveStoreErrorKind.InvalidData => "The save file contains invalid data.",
+                    SaveStoreErrorKind.IncompatibleVersion => "The save file uses an unsupported version.",
+                    SaveStoreErrorKind.StorageFailure => "The save storage could not be accessed.",
+                    _ => "The save file could not be loaded."
+                };
+                consoleWrapper.WriteLine($"{message} Press Enter to return to the main menu.");
                 consoleWrapper.ReadLine();
                 return;
             }
@@ -84,13 +91,13 @@ namespace Monopoly.Console
 
             Input input = new Input(consoleWrapper, menu);
 
-            game.Decisions = new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules);
+            game.Decisions = new ConsolePlayerDecisionProvider(consolePrinter, input, gameRules, saveStore);
 
             ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
 
             ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game.Board.Squares, gameRules);
 
-            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter);
+            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter, saveStore);
 
             consoleGame.StartConsoleGame();
         }

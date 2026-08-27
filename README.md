@@ -31,8 +31,8 @@ transitions. Frontends own presentation, input and framework integration.
 
 ```text
 Monopoly.Console ──> Monopoly.Core
-Monopoly.Tests   ──> Monopoly.Core
-Monopoly.Tests   ──> Monopoly.Console
+Monopoly.Console ──> Infrastructure ──> Monopoly.Core
+Monopoly.Tests   ──> Monopoly.Core / Monopoly.Console / Infrastructure
 ```
 
 A frontend decides how a choice is presented and collected. Core decides which
@@ -47,14 +47,14 @@ responsibility model.
   and rules.
 - [Monopoly.Console](Monopoly.Console/) – playable reference frontend using
   terminal input and rendering.
+- [Infrastructure](Infrastructure/) – temporary neutral project for JSON and
+  atomic file persistence; its final identity is owned by issue #56.
 - [Monopoly.Tests](Monopoly.Tests/) – Core integration, unit and Console
-  component tests.
+  and Infrastructure component tests.
 - [docs](docs/) – architecture, rules, persistence, frontend, testing and
   workflow documentation.
 
-Future projects are added only when their implementation begins; planned web or
-Infrastructure boundaries are documented without being presented as existing
-projects.
+Future frontend projects are added only when their implementation begins.
 
 ## Prerequisites
 
