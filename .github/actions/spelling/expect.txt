@@ -4,7 +4,7 @@ IFile
 IFortune
 IList
 LASTEXITCODE
-dtos
+dto
 notin
 pdb
 pscustomobject
