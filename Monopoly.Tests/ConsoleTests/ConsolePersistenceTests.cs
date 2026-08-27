@@ -79,14 +79,17 @@ public sealed class ConsolePersistenceTests
         ConsoleLogPrinter logPrinter = new(console.Object);
         ConsoleCardPrinter cardPrinter = new(console.Object, game.Board.Squares, game.Rules);
         Mock<IGameSaveStore> saveStore = new();
+        Input input = new(console.Object, new Mock<IMenuOptionSelector>().Object);
+        ConsolePlayerDecisionProvider decisions = new(printer, input, game, saveStore.Object);
         ConsoleGame consoleGame = new(
             game,
             printer,
             new List<TablePiece>(),
-            null!,
+            input,
             logPrinter,
             cardPrinter,
-            saveStore.Object);
+            saveStore.Object,
+            decisions);
 
         PlayerActionMenu menu = consoleGame.CreatePlayerActionMenu(game.CurrentPlayer);
 

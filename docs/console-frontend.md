@@ -222,19 +222,17 @@ hints, while Core repeats authoritative validation before mutation. New and
 loaded sessions attach `ConsolePlayerDecisionProvider` with
 `Game.SetDecisionProvider()`.
 
-When Core introduces explicit pending phases, the session loop should render
-the pending choice and submit the matching response command. Console may answer
-synchronously, while the same Core state remains usable by asynchronous
-frontends.
+When `GameActionResult` requires a decision, the session loop renders the
+Core-defined snapshot, submits `DecisionResponse` and continues through any
+following decision until the cycle completes. Console answers synchronously,
+while the same Core state remains usable by asynchronous frontends.
 
 ## Player decisions
 
-The current synchronous adapter is `ConsolePlayerDecisionProvider`. It
-implements `IPlayerDecisionProvider` and currently handles:
-
-- Confirming a property purchase.
-- Confirming whether to leave Jail.
-- Allowing asset management when funds are insufficient.
+The current Console adapter maps `PropertyPurchaseDecision` and
+`JailReleaseDecision` to `DecisionResponse` after Core returns control. Its
+`IPlayerDecisionProvider` implementation contains only the transitional
+`ResolveInsufficientFunds()` callback for synchronous asset management.
 
 The complete rules require richer decisions, including:
 
@@ -447,11 +445,14 @@ choices are collected again after load.
 3. Renders the initial board.
 4. Opens a `PlayerActionMenu` for `Game.CurrentPlayer`.
 5. Calls `Game.PlayTurn()` when Roll is selected.
-6. Refreshes the board, player information and landed-square card. Newest logs
+6. While Core reports `DecisionRequired`, renders the supplied purchase or Jail
+   options and calls `Game.SubmitDecision()`; typed rejections are displayed
+   and the current pending choice remains available.
+7. Refreshes the board, player information and landed-square card. Newest logs
    refresh only when Core publishes `LogAddedEvent`.
-7. Continues until Core reports game over.
-8. Displays `Game.Winner`.
-9. Unsubscribes in a `finally` block.
+8. Continues until Core reports game over.
+9. Displays `Game.Winner`.
+10. Unsubscribes in a `finally` block.
 
 There is one active Console game loop, but several menus currently navigate by
 constructing another menu and calling its display method. Returning to main
@@ -460,9 +461,10 @@ explicit application loop.
 
 ### Current decisions and asset menus
 
-`ConsolePlayerDecisionProvider` currently returns Boolean answers. Its Jail
-prompt contains a literal fine of 50 instead of always displaying the configured
-Core value.
+`ConsolePlayerDecisionProvider` maps Boolean terminal confirmations to the
+allowed Core enum response. Purchase prompts use the pending price and square;
+Jail prompts use the pending configured fine or card context rather than a
+literal amount.
 
 When funds are insufficient, it opens the real-estate menu and reports progress
 only when the player's cash increases.

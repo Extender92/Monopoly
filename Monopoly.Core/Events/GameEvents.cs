@@ -14,8 +14,6 @@ namespace Monopoly.Core.Events
 {
     internal static class GameEvents
     {
-        public static event PlayerEventHandler? AskPlayerToBuyOutOfJailEvent;
-        public static event SquareEventHandler? AskPlayerToBuyPurchasableSquareEvent;
         public static event EventHandler<PlayerEventArgs>? PlayerInsufficientFundsEvent;
         public static event EventHandler<EventArgs>? LogAddedEvent;
         public static event EventHandler<DrawChanceCardArgs>? ChanceCardDrawnEvent;
@@ -24,16 +22,6 @@ namespace Monopoly.Core.Events
         public static event EventHandler<SquareEventArgs>? LandOnSquareEvent;
         public static event EventHandler<EventArgs>? UpdateGameBoard;
         public static event EventHandler<EventArgs>? UpdatePlayerInformation;
-
-        public static bool InvokeAskPlayerToBuyPurchasableSquare(object sender, Square square)
-        {
-            return AskPlayerToBuyPurchasableSquareEvent?.Invoke(sender, new SquareEventArgs(square)) ?? false;
-        }
-
-        public static bool InvokeAskPlayerToBuyOutOfJail(object sender, Player player)
-        {
-            return AskPlayerToBuyOutOfJailEvent?.Invoke(sender, new PlayerEventArgs(player)) ?? false;
-        }
 
         public static void InvokePlayerInsufficientFunds(object sender, Player player, int targetSum)
         {

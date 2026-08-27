@@ -24,12 +24,15 @@ namespace Monopoly.Core.Interface
         int ConsecutiveDoubles { get; }
         Player? Winner { get; }
         bool IsGameOver { get; }
+        GamePhase Phase { get; }
+        PendingDecision? PendingDecision { get; }
 
         void SetDecisionProvider(IPlayerDecisionProvider decisions);
         bool TryBuyHouse(Player player, PropertySquare property);
         bool TrySellHouse(Player player, PropertySquare property);
         bool TryMortgageProperty(Player player, Square square);
         bool TryRepayMortgage(Player player, Square square);
-        TurnResult PlayTurn();
+        GameActionResult PlayTurn();
+        GameActionResult SubmitDecision(DecisionResponse? response);
     }
 }

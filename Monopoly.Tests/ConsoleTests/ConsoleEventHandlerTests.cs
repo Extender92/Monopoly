@@ -154,6 +154,9 @@ public class ConsoleEventHandlerTests
         ConsolePrinter printer = new(console.Object, game.Board.Squares, rules);
         ConsoleLogPrinter logPrinter = new(console.Object);
         ConsoleCardPrinter cardPrinter = new(console.Object, game.Board.Squares, rules);
+        Mock<IGameSaveStore> saveStore = new();
+        Input input = new(console.Object, new Mock<IMenuOptionSelector>().Object);
+        ConsolePlayerDecisionProvider decisions = new(printer, input, game, saveStore.Object);
         List<TablePiece> tablePieces = game.Players
             .Select(player => new TablePiece
             {
@@ -166,10 +169,11 @@ public class ConsoleEventHandlerTests
             game,
             printer,
             tablePieces,
-            null!,
+            input,
             logPrinter,
             cardPrinter,
-            new Mock<IGameSaveStore>().Object);
+            saveStore.Object,
+            decisions);
 
         return new ConsoleSession(game, consoleGame, console);
     }

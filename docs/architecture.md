@@ -81,6 +81,7 @@ The main aggregate is `Game`. It owns:
 - Fortune card decks
 - Fines
 - Turn and doubles state
+- Current phase, a pending decision and primitive continuation data
 - Bankruptcy and winner state
 
 As the rules engine is completed, the match state must also own any active
@@ -99,7 +100,11 @@ game logs directly.
 
 ## Turn flow
 
-`Game.PlayTurn()` is the central entry point for one dice-roll and action cycle. A player may retain the turn after rolling doubles, so one call does not always represent the player's entire turn.
+`Game.PlayTurn()` is the central entry point that starts one dice-roll and
+action cycle. The call runs until the cycle completes, the game ends or Core
+needs a frontend answer. `Game.SubmitDecision()` resumes the same cycle from
+that stored boundary. A player may retain the turn after rolling doubles, so a
+completed cycle does not always represent the player's entire turn.
 
 The Core is responsible for:
 
@@ -114,7 +119,9 @@ The Core is responsible for:
 9. Handling purchases, rent, taxes and cards.
 10. Handling bankruptcy.
 11. Selecting the next active player.
-12. Returning a `TurnResult` that tells the frontend what happened and whether the player receives another roll.
+12. Returning a `GameActionResult` that either contains the completed
+    `TurnResult`, exposes the immutable pending decision or describes a typed
+    rejection.
 
 No frontend should implement a second version of these rules. All frontends must use `Monopoly.Core` as the single source of truth for the game.
 
@@ -124,38 +131,46 @@ this:
 ```text
 Create or load Game
         |
-Provide IPlayerDecisionProvider
+Attach the insufficient-funds runtime provider
         |
 Call Game.PlayTurn()
         |
-Read TurnResult and current Game state
+If DecisionRequired, render PendingDecision
+        |
+Call Game.SubmitDecision(DecisionResponse)
+        |
+Read the completed TurnResult and current Game state
         |
 Render the result and request the next user action
 ```
 
 Frontends may read exposed game state for presentation. State changes go through
-`Game.PlayTurn()` or validated `Game` commands. The current explicit asset
+`Game.PlayTurn()`, `Game.SubmitDecision()` or validated `Game` commands. The current explicit asset
 commands are `TryBuyHouse()`, `TrySellHouse()`, `TryMortgageProperty()` and
 `TryRepayMortgage()`. An expected rule rejection returns `false` before any
 mutation; null or foreign aggregate objects cause an argument exception.
 
-`SetDecisionProvider()` reconnects the frontend's runtime decision service. The
-provider is intentionally not persisted and is not an authoritative state
-setter.
+`SetDecisionProvider()` reconnects the temporary insufficient-funds runtime
+service. The provider is intentionally not persisted and is not an
+authoritative state setter. Property-purchase and Jail choices are immutable
+Core state and never invoke frontend input while a Core call is active.
 
-A web frontend cannot be assumed to answer a decision during the same method
-call. Core must be able to represent a pending decision in match state, return
-control to the caller and continue through a later command. The decision
-boundary describes game choices, not Console input or a particular transport
-such as HTTP.
+A web frontend is not assumed to answer a decision during the same method call.
+`Game.Phase` distinguishes `ReadyForTurn`, `AwaitingDecision` and `GameOver`;
+`Game.PendingDecision` carries a stable `Guid`, participant ID and read-only
+allowed responses. Core validates a later `DecisionResponse` before mutation
+and retains primitive continuation data so dice, movement and rotation are not
+repeated. The boundary describes game choices, not Console input or a
+particular transport such as HTTP.
 
 ## Core responsibilities
 
 ### Game
 
-`Game` orchestrates the game and exposes the main public API: `PlayTurn()`, the
-validated asset commands and read-only state queries. Movement, player rotation,
-bankruptcy removal and payment primitives are internal Core operations.
+`Game` orchestrates the game and exposes the main public API: `PlayTurn()`,
+`SubmitDecision()`, the validated asset commands and read-only state queries.
+Movement, player rotation, bankruptcy removal and payment primitives are
+internal Core operations.
 
 ### GameHandler
 
@@ -229,11 +244,15 @@ belongs in [game-rules.md](game-rules.md) and the documents under
 
 The public Core API provides explicit integration points for frontends and tests:
 
-- `IPlayerDecisionProvider` supplies decisions that require user interaction.
+- `IPlayerDecisionProvider` supplies only the transitional synchronous
+  insufficient-funds callback.
 - `IDie` allows dice behavior to be provided and controlled in tests.
 - `IGameLog` exposes read-only game log entries without coupling Core to a UI;
   log creation remains internal to the aggregate.
-- `TurnResult` describes the result of a call to `Game.PlayTurn()`.
+- `GameActionResult` describes completion, a required decision, game over or a
+  typed rejection. A completed result contains its `TurnResult`.
+- `PendingDecision` and `DecisionResponse` form the frontend-neutral resumable
+  choice boundary.
 
 These abstractions are the current integration boundary. A frontend should not
 depend on Core internals. Tests that need a prepared live aggregate use the
@@ -244,15 +263,17 @@ independent of any particular UI technology.
 
 ## Frontend decisions
 
-Some actions require a player decision. These decisions are supplied through `IPlayerDecisionProvider`.
+Some actions require a player decision. The current Core exposes property
+purchase and Jail release as authoritative pending state:
 
-The current Core requests decisions for:
+- `PropertyPurchaseDecision` offers `Purchase` or `Decline`.
+- `JailReleaseDecision` offers `LeaveJail` or `RollForDoubles` and carries the
+  configured fine and current card/Jail context.
 
-- Buying a property
-- Paying to leave jail
-- Resolving insufficient funds
-
-The Console implements this interface with `ConsolePlayerDecisionProvider`.
+The Console renders these snapshots and submits `DecisionResponse`. The
+remaining `IPlayerDecisionProvider.ResolveInsufficientFunds()` callback is
+temporary transition technology for synchronous asset management while a
+mandatory payment or an accepted purchase lacks cash.
 
 A future web or game frontend can provide its own implementation without changing the Core rules.
 
@@ -261,9 +282,9 @@ claims, jail actions, trades, mortgage handling after ownership transfer and
 building-shortage auctions. These are Core-defined choices: the frontend
 collects an answer, while Core validates and applies it.
 
-Decision APIs may be immediate for local frontends or represented as pending
-match state for asynchronous frontends. A frontend response must never bypass
-Core validation.
+Local frontends may answer immediately after Core returns, while asynchronous
+frontends may retain the same match in `AwaitingDecision`. A frontend response
+must never bypass Core validation.
 
 ## Events
 
@@ -314,6 +335,12 @@ Version 1 state mapping, validation and reconstruction. Infrastructure's
 `JsonFileGameSaveStore` owns JSON, paths, technical error translation and
 atomic file replacement.
 
+Version 1 cannot represent `AwaitingDecision`. Mapping such a game is rejected
+before serialization or storage access, so an existing destination is not
+replaced. Core also exposes detached primitive-only progress, decision and
+continuation DTO projections for future Version 2 work; those DTOs are not
+part of the Version 1 envelope.
+
 Save files store IDs instead of duplicated object references. During load:
 
 1. Rules are reconstructed.
@@ -323,10 +350,10 @@ Save files store IDs instead of duplicated object references. During load:
 5. Jail, fines, turn state and deck order are restored.
 6. The resulting game is validated.
 
-When rule profiles and interruptible interactions are implemented, a save must
-also preserve the resolved rule profile and any valid pending match state, such
-as an auction, rent claim, trade or debt settlement. A loaded game must continue
-under the exact same effective rules.
+Version 2 must preserve the resolved rule profile, the current purchase/Jail
+decision progress and future pending match state such as an auction, rent claim,
+trade or debt settlement. A loaded game must continue under the exact same
+effective rules.
 
 Presentation-specific values should not be stored in save files.
 
@@ -343,7 +370,9 @@ Detailed format and compatibility rules belong in [save-format.md](save-format.m
 - Providing Console-specific player decisions
 - Mapping Core values to Console values
 
-`ConsoleGame` owns the Console game loop, but it delegates all game rules to `Game.PlayTurn()`.
+`ConsoleGame` owns the Console game loop, but it delegates all game rules to
+`Game.PlayTurn()` and `Game.SubmitDecision()`. It synchronously renders and
+answers pending decisions until the current Core action completes.
 
 Console-only models include `TablePiece`, `SquareCard` and the different printer and menu classes.
 
