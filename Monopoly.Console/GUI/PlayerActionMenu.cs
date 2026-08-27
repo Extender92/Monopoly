@@ -1,26 +1,40 @@
 ﻿using Monopoly.Core.Models;
 using Monopoly.Console.Utilities;
 using Monopoly.Core;
-using Monopoly.Core.Interface;
+using Monopoly.Core.Persistence;
 using System;
 using System.Numerics;
-using Monopoly.Core.SaveAndLoad;
 
 
 namespace Monopoly.Console.GUI
 {
     internal class PlayerActionMenu
     {
-        private readonly IGame CurrentGame;
+        private readonly Game CurrentGame;
         private readonly IMenuOptionSelector MenuOptionSelector;
         private readonly Player Player;
+        private readonly IGameSaveStore SaveStore;
+        private readonly IConsoleWrapper ConsoleWrapper;
         internal TurnResult? LastTurnResult { get; private set; }
+        internal IGameSaveStore CurrentSaveStore => SaveStore;
 
-        public PlayerActionMenu(IGame game, Player player)
+        public PlayerActionMenu(Game game, Player player, IGameSaveStore saveStore)
+            : this(game, player, saveStore, new ConsoleWrapper())
         {
-            MenuOptionSelector = new MenuOptionSelector(new ConsoleWrapper());
+        }
+
+        internal PlayerActionMenu(Game game, Player player, IGameSaveStore saveStore, IConsoleWrapper consoleWrapper)
+        {
+            ArgumentNullException.ThrowIfNull(game);
+            ArgumentNullException.ThrowIfNull(player);
+            ArgumentNullException.ThrowIfNull(saveStore);
+            ArgumentNullException.ThrowIfNull(consoleWrapper);
+
+            MenuOptionSelector = new MenuOptionSelector(consoleWrapper);
             CurrentGame = game;
             Player = player;
+            SaveStore = saveStore;
+            ConsoleWrapper = consoleWrapper;
         }
 
         public enum PlayerActionMainMenu
@@ -114,7 +128,7 @@ namespace Monopoly.Console.GUI
                     SaveGame();
                     break;
                 case PlayerActionMainMenu.ExitToMainMenu:
-                    new MainMenu(MenuOptionSelector).DisplayMainMenu();
+                    new MainMenu(MenuOptionSelector, SaveStore).DisplayMainMenu();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");
@@ -126,10 +140,10 @@ namespace Monopoly.Console.GUI
             switch (action)
             {
                 case PlayerActionRealEstateMenu.ManageHouses:
-                    new HouseMenu(MenuOptionSelector, CurrentGame, Player).DisplayHouseMenu();
+                    new HouseMenu(MenuOptionSelector, CurrentGame, Player, SaveStore).DisplayHouseMenu();
                     break;
                 case PlayerActionRealEstateMenu.MortgageProperties:
-                    new MortgageMenu(MenuOptionSelector, CurrentGame, Player).DisplayMortgageMenu();
+                    new MortgageMenu(MenuOptionSelector, CurrentGame, Player, SaveStore).DisplayMortgageMenu();
                     break;
                 case PlayerActionRealEstateMenu.BackToActionMenu:
                     DisplayPlayerActionMainMenu();
@@ -153,10 +167,21 @@ namespace Monopoly.Console.GUI
 
         private void SaveGame()
         {
-            // Logic to save the game
-            SaveCoreData.SaveData(CurrentGame);
+            SaveCurrentGame();
             DisplayPlayerActionMainMenu();
+        }
 
+        internal void SaveCurrentGame()
+        {
+            try
+            {
+                SaveStore.Save(CurrentGame);
+            }
+            catch (SaveStoreException exception)
+            {
+                ConsoleWrapper.WriteLine($"The game could not be saved: {exception.Message}");
+                ConsoleWrapper.ReadLine();
+            }
         }
     }
 }

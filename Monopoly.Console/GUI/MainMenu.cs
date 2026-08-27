@@ -1,7 +1,7 @@
 ﻿using Monopoly.Console.Utilities;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
-using Monopoly.Core.SaveAndLoad;
+using Monopoly.Core.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +14,12 @@ namespace Monopoly.Console.GUI
     internal class MainMenu
     {
         private readonly IMenuOptionSelector MenuOptionSelector;
+        private readonly IGameSaveStore SaveStore;
 
-        public MainMenu(IMenuOptionSelector menuOptionSelector)
+        public MainMenu(IMenuOptionSelector menuOptionSelector, IGameSaveStore saveStore)
         {
             MenuOptionSelector = menuOptionSelector;
+            SaveStore = saveStore;
         }
 
         public enum MainMenuOptions
@@ -114,7 +116,7 @@ namespace Monopoly.Console.GUI
             switch (action)
             {
                 case StartNewGameMenu.StartGame:
-                    Program.StartNewGame();
+                    Program.StartNewGame(SaveStore);
                     break;
                 case StartNewGameMenu.SetupRules:
                     SetupRules();
@@ -136,7 +138,7 @@ namespace Monopoly.Console.GUI
         private void LoadGame()
         {
             // Logic to Load the game
-            Program.LoadGame();
+            Program.LoadGame(SaveStore);
             DisplayMainMenu();
         }
     }

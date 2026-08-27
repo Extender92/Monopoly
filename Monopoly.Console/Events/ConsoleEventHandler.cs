@@ -68,7 +68,8 @@ namespace Monopoly.Console.Events
         private static void OpenPlayerActionMenu(object? sender, EventArgs e)
         {
             if (!IsCurrentGame(sender)) return;
-            PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(CurrentConsoleGame!.CurrentGame, CurrentConsoleGame.CurrentGame.CurrentPlayer);
+            PlayerActionMenu PlayerActionMenu = CurrentConsoleGame!.CreatePlayerActionMenu(
+                CurrentConsoleGame.CurrentGame.CurrentPlayer);
             PlayerActionMenu.DisplayPlayerActionMainMenu();
         }
 

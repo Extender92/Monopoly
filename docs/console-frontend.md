@@ -424,9 +424,11 @@ complete UK Classic, US Classic and Custom profile selection.
 The current player-count menu offers two through eight players. This is current
 UI behavior, not the documented Classic profile limit.
 
-Loading uses the fixed default file `game_data.json`. It catches a missing file,
-invalid state and malformed JSON, then constructs a new set of Console services.
-Presentation token choices are collected again after load.
+The composition root creates one `JsonFileGameSaveStore` for the fixed default
+file `game_data.json` and passes it through the current menu/session chain.
+Loading handles missing, invalid, incompatible-version and storage failures,
+then constructs a new set of Console services after success. Presentation token
+choices are collected again after load.
 
 ### Current game loop
 
@@ -484,9 +486,14 @@ again, so one notified log change produces one log-view refresh.
 
 ### Current save behavior
 
-`PlayerActionMenu` calls the compatibility `SaveCoreData` facade and then
-opens the player action menu again. Save naming, save selection, safe
-replacement and Infrastructure injection are not yet implemented.
+`PlayerActionMenu` uses the injected `IGameSaveStore`. The file implementation
+writes a same-directory temporary file and atomically promotes it, preserving
+an existing save when writing or promotion fails. A typed save failure is shown
+without terminating the process.
+
+The menu still opens the player action menu again after saving. Save naming,
+save selection and the recursive session/menu cleanup remain assigned to their
+focused Console issues.
 
 The exact current schema and limitations are documented in
 [save-format.md](save-format.md).

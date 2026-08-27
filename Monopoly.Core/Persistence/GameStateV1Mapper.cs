@@ -1,28 +1,20 @@
-using System.Text.Json;
 using Monopoly.Core.Data;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 
-namespace Monopoly.Core.SaveAndLoad;
+namespace Monopoly.Core.Persistence;
 
-public static class GameStateSerializer
+public static class GameStateV1Mapper
 {
     public const int CurrentVersion = 1;
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNameCaseInsensitive = true
-    };
-
-    public static void Save(Game game, string filePath)
+    public static GameStateV1 ToState(Game game)
     {
         ArgumentNullException.ThrowIfNull(game);
-        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
-        GameStateV1 state = new()
+        return new GameStateV1
         {
             Version = CurrentVersion,
             Rules = GameRulesState.From(game.Rules),
@@ -41,20 +33,11 @@ public static class GameStateSerializer
             ChanceDeck = game.FortuneCard.GetChanceDeckOrder().ToList(),
             CommunityChestDeck = game.FortuneCard.GetCommunityChestDeckOrder().ToList()
         };
-
-        File.WriteAllText(filePath, JsonSerializer.Serialize(state, JsonOptions));
     }
 
-    public static Game Load(string filePath, IPlayerDecisionProvider? decisions = null)
+    public static Game FromState(GameStateV1 state, IPlayerDecisionProvider? decisions = null)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException($"Save file '{filePath}' was not found.", filePath);
-
-        GameStateV1? state = JsonSerializer.Deserialize<GameStateV1>(File.ReadAllText(filePath), JsonOptions);
-        if (state is null || state.Version != CurrentVersion)
-            throw new InvalidDataException($"Unsupported or missing save version. Expected version {CurrentVersion}.");
-
+        ArgumentNullException.ThrowIfNull(state);
         Validate(state);
 
         GameRules rules = state.Rules.ToGameRules();
@@ -94,32 +77,42 @@ public static class GameStateSerializer
 
     private static void Validate(GameStateV1 state)
     {
-        if (state.Rules is null || state.Players is null || state.Squares is null || state.Jail is null)
-            throw new InvalidDataException("Save data is missing required sections.");
+        if (state.Rules is null || state.Players is null || state.Squares is null || state.Jail is null ||
+            state.ChanceDeck is null || state.CommunityChestDeck is null)
+            throw new GameStateValidationException("Save data is missing required sections.");
+        if (state.Players.Any(player => player is null) ||
+            state.Squares.Any(square => square is null) ||
+            state.Jail.Any(jail => jail is null) ||
+            state.ChanceDeck.Any(card => card is null) ||
+            state.CommunityChestDeck.Any(card => card is null))
+            throw new GameStateValidationException("Save data contains null collection items.");
         if (state.Players.Count == 0)
-            throw new InvalidDataException("A save must contain at least one player.");
+            throw new GameStateValidationException("A save must contain at least one player.");
         if (state.Players.Select(player => player.Id).Distinct().Count() != state.Players.Count)
-            throw new InvalidDataException("Player IDs must be unique.");
+            throw new GameStateValidationException("Player IDs must be unique.");
         if (!state.Players.Any(player => player.Id == state.CurrentPlayerId))
-            throw new InvalidDataException("CurrentPlayerId does not refer to a saved player.");
+            throw new GameStateValidationException("CurrentPlayerId does not refer to a saved player.");
         if (state.Rules.NumberOfPlayers != state.Players.Count || state.Rules.NumberOfDice <= 0 || state.Rules.DieSides <= 0)
-            throw new InvalidDataException("Saved game rules are invalid.");
+            throw new GameStateValidationException("Saved game rules are invalid.");
+        if (!Enum.IsDefined(state.Rules.GameLanguage) || !Enum.IsDefined(state.Rules.FreeParking))
+            throw new GameStateValidationException("Saved game-rule enum values are invalid.");
         if (state.CurrentTurn < 1 || state.ConsecutiveDoubles is < 0 or > 2 || state.Fines < 0)
-            throw new InvalidDataException("Saved turn state is invalid.");
+            throw new GameStateValidationException("Saved turn state is invalid.");
         if (state.Players.Any(player => player.Position < 0 || player.Position >= 40 || player.Money < 0 || player.NumberOfGetOutOfJailCards < 0))
-            throw new InvalidDataException("A saved player state is invalid.");
+            throw new GameStateValidationException("A saved player state is invalid.");
         if (state.Squares.Any(square => square.Position < 0 || square.Position >= 40))
-            throw new InvalidDataException("A saved square position is outside the board.");
+            throw new GameStateValidationException("A saved square position is outside the board.");
         if (state.Squares.Select(square => square.Position).Distinct().Count() != state.Squares.Count)
-            throw new InvalidDataException("Saved square states must contain unique positions.");
+            throw new GameStateValidationException("Saved square states must contain unique positions.");
+
         HashSet<int> playerIds = state.Players.Select(player => player.Id).ToHashSet();
         if (state.Squares.Any(square => square.OwnerId is int ownerId && !playerIds.Contains(ownerId)))
-            throw new InvalidDataException("A saved square refers to an unknown owner.");
+            throw new GameStateValidationException("A saved square refers to an unknown owner.");
         if (state.Jail.Any(jail => !playerIds.Contains(jail.PlayerId)))
-            throw new InvalidDataException("A saved jail entry refers to an unknown player.");
+            throw new GameStateValidationException("A saved jail entry refers to an unknown player.");
         if (state.Jail.Any(jail => jail.TurnsInJail < 0) ||
             state.Jail.Select(jail => jail.PlayerId).Distinct().Count() != state.Jail.Count)
-            throw new InvalidDataException("Saved jail states are invalid.");
+            throw new GameStateValidationException("Saved jail states are invalid.");
 
         GameRules rules = state.Rules.ToGameRules();
         int expectedChanceCards = FortuneCardBuilder.GetChanceCards(rules).Count;
@@ -132,7 +125,7 @@ public static class GameStateSerializer
             state.CommunityChestDeck.Distinct().Count() != state.CommunityChestDeck.Count ||
             state.ChanceDeck.Any(card => !validChanceCards.Contains(card)) ||
             state.CommunityChestDeck.Any(card => !validCommunityChestCards.Contains(card)))
-            throw new InvalidDataException("Saved card deck state has an invalid length or order.");
+            throw new GameStateValidationException("Saved card deck state has an invalid length or order.");
     }
 }
 

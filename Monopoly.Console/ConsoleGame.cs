@@ -4,6 +4,7 @@ using Monopoly.Console.Models;
 using Monopoly.Core;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Persistence;
 
 namespace Monopoly.Console;
 
@@ -15,10 +16,18 @@ internal class ConsoleGame
     internal readonly ConsoleCardPrinter CardPrinter;
     internal readonly List<TablePiece> TablePieces;
     internal readonly Input PlayerInput;
+    internal readonly IGameSaveStore SaveStore;
 
     internal bool StartedGame { get; private set; }
 
-    public ConsoleGame(Game game, ConsolePrinter consolePrinter, List<TablePiece> tablePieces, Input input, ConsoleLogPrinter logPrinter, ConsoleCardPrinter cardPrinter)
+    public ConsoleGame(
+        Game game,
+        ConsolePrinter consolePrinter,
+        List<TablePiece> tablePieces,
+        Input input,
+        ConsoleLogPrinter logPrinter,
+        ConsoleCardPrinter cardPrinter,
+        IGameSaveStore saveStore)
     {
         CurrentGame = game;
         Printer = consolePrinter;
@@ -26,6 +35,7 @@ internal class ConsoleGame
         PlayerInput = input;
         LogPrinter = logPrinter;
         CardPrinter = cardPrinter;
+        SaveStore = saveStore;
     }
 
     internal void StartConsoleGame()
@@ -44,7 +54,7 @@ internal class ConsoleGame
                 Player player = CurrentGame.CurrentPlayer;
                 Printer.StartPlayerTurnInfo(player, CurrentGame.Players);
 
-                PlayerActionMenu playerActionMenu = new(CurrentGame, player);
+                PlayerActionMenu playerActionMenu = CreatePlayerActionMenu(player);
                 playerActionMenu.DisplayPlayerActionMainMenu();
 
                 if (playerActionMenu.LastTurnResult is TurnResult result)
@@ -75,4 +85,7 @@ internal class ConsoleGame
         Printer.DisplayPlayersInformation(player, CurrentGame.Players);
         CardPrinter.PrepareAndPrintSquareCard(landedSquare.Position);
     }
+
+    internal PlayerActionMenu CreatePlayerActionMenu(Player player) =>
+        new(CurrentGame, player, SaveStore);
 }

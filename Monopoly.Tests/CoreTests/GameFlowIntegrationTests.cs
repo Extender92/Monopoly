@@ -2,7 +2,6 @@ using Monopoly.Core.Interface;
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
-using Monopoly.Core.SaveAndLoad;
 
 namespace Monopoly.Tests.CoreTests;
 
@@ -340,83 +339,6 @@ public sealed class GameFlowIntegrationTests
         Assert.Same(survivor, gameOverResult.Winner);
         Assert.Equal(1, firstDie.RollCount);
         Assert.Equal(1, secondDie.RollCount);
-    }
-
-    [Theory]
-    [InlineData(GameRules.Language.UK, "£")]
-    [InlineData(GameRules.Language.US, "$" )]
-    public void SaveLoadRoundTripRestoresRulesStateOwnershipJailFinesAndDecks(GameRules.Language language, string currency)
-    {
-        GameRules rules = new(2, 2, 6);
-        rules.SetLanguage(language);
-        (Game game, Player first, Player second, _) = CreateGame(null, rules);
-        game.Rules.Salary = 250;
-        game.Rules.FreeParking = GameRules.Parking.Fines;
-        game.CurrentPlayer = second;
-        game.CurrentTurn = 7;
-        game.RestoreConsecutiveDoubles(1);
-        game.Fines = 35;
-
-        PropertySquare property = game.Board.GetAllPropertySquares().First();
-        property.Owner = first;
-        property.Houses = 4;
-        property.IsMortgage = true;
-        game.TheJail.PlayerGoToJail(second);
-        game.TheJail.IncrementTurnsInJail(second);
-        string[] chanceOrder = game.FortuneCard.ChanceQueue.Select(card => card.Info).ToArray();
-        string[] chestOrder = game.FortuneCard.CommunityChestQueue.Select(card => card.Info).ToArray();
-        string filePath = Path.Combine(Path.GetTempPath(), $"monopoly-{Guid.NewGuid():N}.json");
-
-        try
-        {
-            GameStateSerializer.Save(game, filePath);
-            Game loaded = GameStateSerializer.Load(filePath, new TestDecisionProvider());
-
-            Assert.Equal(language, loaded.Rules.GameLanguage);
-            Assert.Equal(currency, loaded.Rules.CurrencySymbol);
-            Assert.Equal(250, loaded.Rules.Salary);
-            Assert.Equal(35, loaded.Fines);
-            Assert.Equal(7, loaded.CurrentTurn);
-            Assert.Equal(1, loaded.ConsecutiveDoubles);
-            Assert.Equal(second.Id, loaded.CurrentPlayer.Id);
-
-            Player loadedFirst = loaded.Players.Single(player => player.Id == first.Id);
-            Player loadedSecond = loaded.Players.Single(player => player.Id == second.Id);
-            PropertySquare loadedProperty = loaded.Board.GetAllPropertySquares().First(square => square.Position == property.Position);
-            Assert.Same(loadedFirst, loadedProperty.Owner);
-            Assert.Equal(4, loadedProperty.Houses);
-            Assert.True(loadedProperty.IsMortgage);
-            Assert.True(loaded.TheJail.IsPlayerInJail(loadedSecond));
-            Assert.True(loaded.TheJail.TryGetJailInfo(loadedSecond, out Jail.JailStatus? jailStatus));
-            Assert.NotNull(jailStatus);
-            Assert.Equal(1, jailStatus.TurnsInJail);
-            Assert.False(loaded.TheJail.TryGetJailInfo(second, out _));
-            Assert.Equal(chanceOrder, loaded.FortuneCard.ChanceQueue.Select(card => card.Info));
-            Assert.Equal(chestOrder, loaded.FortuneCard.CommunityChestQueue.Select(card => card.Info));
-        }
-        finally
-        {
-            if (File.Exists(filePath)) File.Delete(filePath);
-        }
-    }
-
-    [Fact]
-    public void LoadRejectsMissingOrUnsupportedVersion()
-    {
-        string filePath = Path.Combine(Path.GetTempPath(), $"monopoly-invalid-{Guid.NewGuid():N}.json");
-
-        try
-        {
-            File.WriteAllText(filePath, "{\"Version\":99}");
-
-            InvalidDataException exception = Assert.Throws<InvalidDataException>(() => GameStateSerializer.Load(filePath));
-
-            Assert.Contains("Expected version 1", exception.Message);
-        }
-        finally
-        {
-            if (File.Exists(filePath)) File.Delete(filePath);
-        }
     }
 
     private static (Game Game, Player First, Player Second, TestDecisionProvider Decisions) CreateGame(

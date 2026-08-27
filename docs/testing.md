@@ -286,7 +286,7 @@ full persistence contract is documented in
 
 ## Infrastructure tests
 
-Infrastructure tests begin when an Infrastructure implementation exists.
+Infrastructure tests cover the current `JsonFileGameSaveStore` implementation.
 
 They should cover:
 
@@ -562,7 +562,7 @@ defect must receive an automated regression test.
 ## Current implementation
 
 The current solution has one `Monopoly.Tests` project targeting .NET 10. It
-references both `Monopoly.Core` and `Monopoly.Console`.
+references `Monopoly.Core`, `Monopoly.Console` and `Infrastructure`.
 
 The project currently uses:
 
@@ -572,8 +572,8 @@ The project currently uses:
 - xUnit Visual Studio runner.
 - Coverlet collector.
 
-The suite currently contains 174 passing tests split mainly between
-`CoreTests` and `ConsoleTests`.
+The suite currently contains 215 passing tests split between `CoreTests`,
+`InfrastructureTests` and `ConsoleTests`.
 
 Current Core coverage includes:
 
@@ -587,7 +587,7 @@ Current Core coverage includes:
 - GO wrapping.
 - Doubles and Jail release.
 - Bankruptcy and winner state.
-- Version 1 save/load round trips.
+- Version 1 state mapping without physical storage.
 - Static event-subscription replacement.
 
 Current Console coverage includes:
@@ -598,6 +598,14 @@ Current Console coverage includes:
 - Board, card, player and log printing.
 - String formatting.
 - Calls recorded through mocked Console abstractions.
+- Injected save-store use and typed save/load error presentation.
+
+Current Infrastructure coverage includes:
+
+- Existing Version 1 JSON compatibility and stable wire representation.
+- Missing, invalid, incompatible and inaccessible storage classification.
+- Atomic file creation and replacement.
+- Preservation of an existing save after write, flush or promotion failures.
 
 The current GitHub build workflow:
 
@@ -615,13 +623,11 @@ currently collected or published by CI.
 The current suite does not yet fully provide:
 
 - Systematic UK Classic, US Classic and Custom profile contracts.
-- Infrastructure serialization and storage tests.
 - Stable card-identity and held-card round trips.
 - Complete auction, rent-claim, trade, building and mortgage flow coverage.
 - Complete multi-player debt and bankruptcy settlement scenarios.
 - Pending-decision persistence tests.
 - A deterministic automated match from setup to winner.
-- Explicit isolation of tests that use static events.
 - Published code-coverage diagnostics.
 
 Some older tests are coupled to current constructors or internals. Several

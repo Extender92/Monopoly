@@ -5,6 +5,7 @@ using Monopoly.Console.Models;
 using Monopoly.Core;
 using Monopoly.Core.Events;
 using Monopoly.Core.Models;
+using Monopoly.Core.Persistence;
 using Moq;
 using System.Reflection;
 
@@ -161,7 +162,14 @@ public class ConsoleEventHandlerTests
                 Color = ConsoleColor.White
             })
             .ToList();
-        ConsoleGame consoleGame = new(game, printer, tablePieces, null!, logPrinter, cardPrinter);
+        ConsoleGame consoleGame = new(
+            game,
+            printer,
+            tablePieces,
+            null!,
+            logPrinter,
+            cardPrinter,
+            new Mock<IGameSaveStore>().Object);
 
         return new ConsoleSession(game, consoleGame, console);
     }
