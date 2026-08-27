@@ -12,119 +12,152 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core
 {
-    public class Transaction
+    internal sealed class Transaction
     {
-        // Add a private field to hold the reference to the Game instance
-        private IGame CurrentGame;
+        private readonly Game CurrentGame;
 
-        // Constructor to initialize the Game reference
-        public Transaction(IGame game)
+        internal Transaction(Game game)
         {
-            CurrentGame = game;
+            CurrentGame = game ?? throw new ArgumentNullException(nameof(game));
         }
 
-        public void PlayerGetSalary(Player player)
+        internal void PlayerGetSalary(Player player)
         {
-            player.Money += CurrentGame.Rules.Salary;
-            CurrentGame.Logs.CreateLog($"{player.Name} collected salary {CurrentGame.Rules.Salary}{CurrentGame.Rules.CurrencySymbol}.");
+            ValidatePlayer(player);
+            player.Credit(CurrentGame.Rules.Salary);
+            CurrentGame.LogWriter.CreateLog($"{player.Name} collected salary {CurrentGame.Rules.Salary}{CurrentGame.Rules.CurrencySymbol}.");
             GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
         }
 
-        public bool BuyPurchasableSquare(Player player, Square square)
+        internal bool BuyPurchasableSquare(Player player, Square square)
         {
-            if (player.Money >= square.Price)
+            ValidatePlayer(player);
+            ValidateSquare(square);
+            if (!player.IsBankrupt && square.Owner is null && square.Price >= 0 && player.Money >= square.Price)
             {
-                player.Money -= square.Price;
-                square.Owner = player;
-                CurrentGame.Logs.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{CurrentGame.Rules.CurrencySymbol}.");
+                player.TryDebit(square.Price);
+                square.AssignOwner(player);
+                CurrentGame.LogWriter.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{CurrentGame.Rules.CurrencySymbol}.");
                 GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
         }
 
-        public bool PayRentFromPlayerToPlayer(Player fromPlayer, int rent, Player toPlayer)
+        internal bool PayRentFromPlayerToPlayer(Player fromPlayer, int rent, Player toPlayer)
         {
-            if (fromPlayer.Money >= rent)
+            ValidatePayment(fromPlayer, toPlayer, rent);
+            if (fromPlayer.Money >= rent && toPlayer.Money <= int.MaxValue - rent)
             {
-                fromPlayer.Money -= rent;
-                toPlayer.Money += rent;
-                CurrentGame.Logs.CreateLog($"{fromPlayer.Name} payed rent {rent}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
+                fromPlayer.TryDebit(rent);
+                toPlayer.Credit(rent);
+                CurrentGame.LogWriter.CreateLog($"{fromPlayer.Name} payed rent {rent}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
                 GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
         }
 
-        public bool PayPlayerFromPlayer(Player fromPlayer, int sumToPay, Player toPlayer)
+        internal bool PayPlayerFromPlayer(Player fromPlayer, int sumToPay, Player toPlayer)
         {
-            if (fromPlayer.Money >= sumToPay)
+            ValidatePayment(fromPlayer, toPlayer, sumToPay);
+            if (fromPlayer.Money >= sumToPay && toPlayer.Money <= int.MaxValue - sumToPay)
             {
-                fromPlayer.Money -= sumToPay;
-                toPlayer.Money += sumToPay;
-                CurrentGame.Logs.CreateLog($"{fromPlayer.Name} payed {sumToPay}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
+                fromPlayer.TryDebit(sumToPay);
+                toPlayer.Credit(sumToPay);
+                CurrentGame.LogWriter.CreateLog($"{fromPlayer.Name} payed {sumToPay}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
                 GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
         }
 
-        public void MortgageProperty(Player player, Square square)
+        internal bool TryMortgageProperty(Player player, Square square)
         {
-            GetMoneyFromBank(player, square.MortgageValue);
-            square.IsMortgage = true;
-            CurrentGame.Logs.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{CurrentGame.Rules.CurrencySymbol}.");
+            ValidatePlayer(player);
+            ValidateSquare(square);
+            if (player.IsBankrupt || square.Owner != player || square.IsMortgage || square.MortgageValue < 0)
+                return false;
+            if (!CurrentGame.Board.GetPlayerUnmortgagedSquares(player).Contains(square))
+                return false;
+            if (player.Money > int.MaxValue - square.MortgageValue)
+                return false;
+
+            player.Credit(square.MortgageValue);
+            square.PlaceMortgage();
+            CurrentGame.LogWriter.CreateLog($"{player.Name} collected money from bank {square.MortgageValue}{CurrentGame.Rules.CurrencySymbol}.");
             GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
-        }
-
-        public bool RepayMortgageProperty(Player player, Square square)
-        {
-            int interestRate = CurrentGame.Rules.MortgageInterestRate;
-            int sumToPay = (int)(square.MortgageValue * (1 + interestRate / 100.0));
-            if (sumToPay <= player.Money)
-            {
-                player.Money -= sumToPay;
-                square.IsMortgage = false;
-                CurrentGame.Logs.CreateLog($"{player.Name} repayed mortgage {sumToPay}{CurrentGame.Rules.CurrencySymbol} for {square.Name}.");
-                GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
-                return true;
-            }
-            return false;
-        }
-
-        public bool BuyPropertyHouse(Player player, PropertySquare property)
-        {
-            int sumToPay = (property.Houses == 4 ? property.BuildHotelCost : property.BuildHouseCost);
-            if (property.Houses > 4 || sumToPay > player.Money) return false;
-
-            player.Money -= sumToPay;
-            property.Houses++;
-
-            string purchasedItem = property.Houses == 5 ? "Hotel" : "House";
-            string houseCountStr = property.GetHouseCountAsString();
-            CurrentGame.Logs.CreateLog($"{player.Name} bought a {purchasedItem} for {sumToPay}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
+            CurrentGame.LogWriter.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{CurrentGame.Rules.CurrencySymbol}.");
             GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
             return true;
         }
 
-        public void SellPropertyHouse(Player player, PropertySquare property)
+        internal bool TryRepayMortgageProperty(Player player, Square square)
         {
-            if (property.Houses <= 0)
-                throw new InvalidOperationException("Cannot sell a house when there are no houses on the property.");
+            ValidatePlayer(player);
+            ValidateSquare(square);
+            if (player.IsBankrupt || square.Owner != player || !square.IsMortgage)
+                return false;
 
-            int sumToGet = (property.Houses == 5 ? property.BuildHotelCost : property.BuildHouseCost) / 2;
-            player.Money += sumToGet;
-
-            string soldItem = property.Houses == 5 ? "Hotel" : "House";
-            property.Houses--;
-
-            string houseCountStr = property.GetHouseCountAsString();
-            CurrentGame.Logs.CreateLog($"{player.Name} sold a {soldItem} for {sumToGet}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
-            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
+            int interestRate = CurrentGame.Rules.MortgageInterestRate;
+            int sumToPay = (int)(square.MortgageValue * (1 + interestRate / 100.0));
+            if (sumToPay <= player.Money)
+            {
+                player.TryDebit(sumToPay);
+                square.RepayMortgage();
+                CurrentGame.LogWriter.CreateLog($"{player.Name} repayed mortgage {sumToPay}{CurrentGame.Rules.CurrencySymbol} for {square.Name}.");
+                GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
+                return true;
+            }
+            return false;
         }
 
-        public void HandleCanBuySquare(Player player, Square square)
+        internal bool TryBuyPropertyHouse(Player player, PropertySquare property)
         {
+            ValidatePlayer(player);
+            ValidateSquare(property);
+            if (player.IsBankrupt || property.Owner != player || property.IsMortgage ||
+                !CurrentGame.Board.GetAllPropertySquaresPlayerCanBuyHousesIn(player).Contains(property))
+                return false;
+
+            int sumToPay = (property.Houses == 4 ? property.BuildHotelCost : property.BuildHouseCost);
+            if (property.Houses > 4 || sumToPay > player.Money) return false;
+
+            player.TryDebit(sumToPay);
+            property.AddBuilding();
+
+            string purchasedItem = property.Houses == 5 ? "Hotel" : "House";
+            string houseCountStr = property.GetHouseCountAsString();
+            CurrentGame.LogWriter.CreateLog($"{player.Name} bought a {purchasedItem} for {sumToPay}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
+            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
+            return true;
+        }
+
+        internal bool TrySellPropertyHouse(Player player, PropertySquare property)
+        {
+            ValidatePlayer(player);
+            ValidateSquare(property);
+            if (player.IsBankrupt || property.Owner != player || property.Houses <= 0)
+                return false;
+
+            int sumToGet = (property.Houses == 5 ? property.BuildHotelCost : property.BuildHouseCost) / 2;
+            if (player.Money > int.MaxValue - sumToGet)
+                return false;
+            player.Credit(sumToGet);
+
+            string soldItem = property.Houses == 5 ? "Hotel" : "House";
+            property.RemoveBuilding();
+
+            string houseCountStr = property.GetHouseCountAsString();
+            CurrentGame.LogWriter.CreateLog($"{player.Name} sold a {soldItem} for {sumToGet}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
+            GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
+            return true;
+        }
+
+        internal void HandleCanBuySquare(Player player, Square square)
+        {
+            ValidatePlayer(player);
+            ValidateSquare(square);
             if (square.Owner is not null) return;
 
             if (square.Price > player.Money && AskToManagePropertiesForBuyingSquare(player, square))
@@ -150,48 +183,75 @@ namespace Monopoly.Core
             return true;
         }
 
-        public void GetMoneyFromBank(Player player, int sum)
+        internal void GetMoneyFromBank(Player player, int sum)
         {
+            ValidatePlayer(player);
             if (sum < 0) throw new ArgumentOutOfRangeException(nameof(sum));
-            player.Money += sum;
-            CurrentGame.Logs.CreateLog($"{player.Name} collected money from bank {sum}{CurrentGame.Rules.CurrencySymbol}.");
+            player.Credit(sum);
+            CurrentGame.LogWriter.CreateLog($"{player.Name} collected money from bank {sum}{CurrentGame.Rules.CurrencySymbol}.");
             GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
         }
 
-        public void PayMoneyToBank(Player player, int sum)
+        internal void PayMoneyToBank(Player player, int sum)
         {
+            ValidatePlayer(player);
             if (sum < 0) throw new ArgumentOutOfRangeException(nameof(sum));
-            if (player.Money < sum) return;
-            player.Money -= sum;
-            CurrentGame.Logs.CreateLog($"{player.Name} payed {sum}{CurrentGame.Rules.CurrencySymbol} to the Bank.");
+            if (!player.TryDebit(sum)) return;
+            CurrentGame.LogWriter.CreateLog($"{player.Name} payed {sum}{CurrentGame.Rules.CurrencySymbol} to the Bank.");
             GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
         }
 
-        public bool PayTax(Player player, int sum)
+        internal bool PayTax(Player player, int sum)
         {
-            if (sum <= player.Money)
+            ValidatePlayer(player);
+            if (sum < 0) throw new ArgumentOutOfRangeException(nameof(sum));
+            if (player.TryDebit(sum))
             {
-                player.Money -= sum;
             GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
         }
 
-        public bool PayFines(Player player, int fines)
+        internal bool PayFines(Player player, int fines)
         {
+            ValidatePlayer(player);
+            if (fines < 0) throw new ArgumentOutOfRangeException(nameof(fines));
             if (fines <= player.Money)
             {
                 if (CurrentGame.Rules.FreeParking == GameRules.Parking.Fines)
                 {
-                    CurrentGame.Fines += fines;
+                    CurrentGame.AddFines(fines);
                 }
-                player.Money -= fines;
-                CurrentGame.Logs.CreateLog($"{player.Name} payed fines of {fines}{CurrentGame.Rules.CurrencySymbol}.");
+                player.TryDebit(fines);
+                CurrentGame.LogWriter.CreateLog($"{player.Name} payed fines of {fines}{CurrentGame.Rules.CurrencySymbol}.");
                 GameEvents.InvokeUpdatePlayerInformation(CurrentGame);
                 return true;
             }
             return false;
+        }
+
+        private void ValidatePlayer(Player player)
+        {
+            ArgumentNullException.ThrowIfNull(player);
+            if (!CurrentGame.ContainsPlayer(player))
+                throw new ArgumentException("The player does not belong to this game.", nameof(player));
+        }
+
+        private void ValidateSquare(Square square)
+        {
+            ArgumentNullException.ThrowIfNull(square);
+            if (!CurrentGame.ContainsSquare(square))
+                throw new ArgumentException("The square does not belong to this game.", nameof(square));
+        }
+
+        private void ValidatePayment(Player fromPlayer, Player toPlayer, int amount)
+        {
+            ValidatePlayer(fromPlayer);
+            ValidatePlayer(toPlayer);
+            if (ReferenceEquals(fromPlayer, toPlayer))
+                throw new ArgumentException("A player cannot pay itself.", nameof(toPlayer));
+            if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
         }
     }
 }

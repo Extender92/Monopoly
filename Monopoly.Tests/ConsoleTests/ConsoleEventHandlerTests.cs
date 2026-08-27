@@ -58,8 +58,8 @@ public class ConsoleEventHandlerTests
             ConsoleEventHandler.SubscribeToEvents(second.ConsoleGame);
             Assert.Equal(1, GetSubscriberCount("UpdateGameBoard"));
 
-            first.Game.Logs.CreateLog("First game log");
-            second.Game.Logs.CreateLog("Second game log");
+            first.Game.LogWriter.CreateLog("First game log");
+            second.Game.LogWriter.CreateLog("Second game log");
 
             Assert.Equal(0, CountLogRefreshes(first.Console));
             Assert.Equal(1, CountLogRefreshes(second.Console));
@@ -84,12 +84,12 @@ public class ConsoleEventHandlerTests
         try
         {
             ConsoleEventHandler.UnsubscribeFromEvents(first.ConsoleGame);
-            second.Game.Logs.CreateLog("Current session log");
+            second.Game.LogWriter.CreateLog("Current session log");
 
             Assert.Equal(1, CountLogRefreshes(second.Console));
 
             ConsoleEventHandler.UnsubscribeFromEvents(second.ConsoleGame);
-            second.Game.Logs.CreateLog("Log after session cleanup");
+            second.Game.LogWriter.CreateLog("Log after session cleanup");
 
             Assert.Equal(1, CountLogRefreshes(second.Console));
         }
@@ -111,7 +111,7 @@ public class ConsoleEventHandlerTests
             ConsoleEventHandler.SubscribeToEvents(session.ConsoleGame);
             try
             {
-                session.Game.Logs.CreateLog($"Cycle {cycle}");
+                session.Game.LogWriter.CreateLog($"Cycle {cycle}");
                 Assert.Equal(1, CountLogRefreshes(session.Console));
             }
             finally
@@ -119,7 +119,7 @@ public class ConsoleEventHandlerTests
                 ConsoleEventHandler.UnsubscribeFromEvents(session.ConsoleGame);
             }
 
-            session.Game.Logs.CreateLog($"After cycle {cycle}");
+            session.Game.LogWriter.CreateLog($"After cycle {cycle}");
             Assert.Equal(1, CountLogRefreshes(session.Console));
             Assert.Equal(0, GetSubscriberCount("LogAddedEvent"));
         }
@@ -135,7 +135,7 @@ public class ConsoleEventHandlerTests
         try
         {
             foreach (string entry in entries)
-                session.Game.Logs.CreateLog(entry);
+                session.Game.LogWriter.CreateLog(entry);
 
             Assert.Equal(entries.Length, CountLogRefreshes(session.Console));
             Assert.Equal(entries.Reverse(), GetLastRenderedEntries(session.Console, entries));

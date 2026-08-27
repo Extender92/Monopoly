@@ -10,10 +10,17 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void ExactMoneyPaysRentWithoutBankruptcy()
     {
-        (Game game, Player owner, Player debtor, TestDecisionProvider decisions) = CreateGame();
-        PropertySquare property = game.Board.GetAllPropertySquares().First();
-        property.Owner = owner;
-        debtor.Money = property.Rent;
+        GameRules rules = new(2, 2, 6);
+        int rent = ((PropertySquare)new GameBoard(rules).GetSquareAtPosition(1)).Rent;
+        TestDecisionProvider decisions = new();
+        Game game = new GameTestBuilder(rules)
+            .WithSquare(1, ownerId: 0)
+            .WithPlayer(1, money: rent)
+            .WithDecisions(decisions)
+            .Build();
+        Player owner = game.Players[0];
+        Player debtor = game.Players[1];
+        PropertySquare property = (PropertySquare)game.Board.GetSquareAtPosition(1);
 
         property.LandOn(debtor, game);
 
@@ -27,12 +34,15 @@ public sealed class GameFlowIntegrationTests
     public void RentResolutionReceivesActualRentInsteadOfPropertyPrice()
     {
         TestDecisionProvider decisions = new() { ResolveFunds = true };
-        (Game game, Player owner, Player debtor, _) = CreateGame(decisions);
-        PropertySquare property = game.Board.GetAllPropertySquares().First();
-        PropertySquare asset = game.Board.GetAllPropertySquares().Skip(1).First();
-        property.Owner = owner;
-        asset.Owner = debtor;
-        debtor.Money = 0;
+        Game game = new GameTestBuilder()
+            .WithSquare(1, ownerId: 0)
+            .WithSquare(3, ownerId: 1)
+            .WithPlayer(1, money: 0)
+            .WithDecisions(decisions)
+            .Build();
+        Player owner = game.Players[0];
+        Player debtor = game.Players[1];
+        PropertySquare property = (PropertySquare)game.Board.GetSquareAtPosition(1);
 
         property.LandOn(debtor, game);
 
@@ -45,9 +55,11 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void ExactMoneyPaysTax()
     {
-        (Game game, _, Player debtor, _) = CreateGame();
-        TaxSquare tax = game.Board.GetAllSquaresOfType<TaxSquare>().First();
-        debtor.Money = tax.Price;
+        GameRules rules = new(2, 2, 6);
+        int taxAmount = ((TaxSquare)new GameBoard(rules).GetSquareAtPosition(4)).Price;
+        Game game = new GameTestBuilder(rules).WithPlayer(1, money: taxAmount).Build();
+        Player debtor = game.Players[1];
+        TaxSquare tax = (TaxSquare)game.Board.GetSquareAtPosition(4);
 
         tax.LandOn(debtor, game);
 
@@ -58,11 +70,16 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void InsufficientFundsWithoutProgressCausesBankruptcyAndWinner()
     {
-        (Game game, Player owner, Player debtor, TestDecisionProvider decisions) = CreateGame();
-        game.CurrentPlayer = debtor;
-        PropertySquare property = game.Board.GetAllPropertySquares().First();
-        property.Owner = owner;
-        debtor.Money = 0;
+        TestDecisionProvider decisions = new();
+        Game game = new GameTestBuilder()
+            .WithCurrentPlayer(1)
+            .WithSquare(1, ownerId: 0)
+            .WithPlayer(1, money: 0)
+            .WithDecisions(decisions)
+            .Build();
+        Player owner = game.Players[0];
+        Player debtor = game.Players[1];
+        PropertySquare property = (PropertySquare)game.Board.GetSquareAtPosition(1);
 
         property.LandOn(debtor, game);
 
@@ -76,10 +93,11 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void PlayTurnWrapsAroundGoAndPaysSalary()
     {
-        (Game game, Player player, _, _) = CreateGame();
-        game.Dice = new List<IDie> { new FixedDie(2), new FixedDie(2) };
-        player.Position = 39;
-        player.Money = 1000;
+        Game game = new GameTestBuilder()
+            .WithPlayer(0, money: 1000, position: 39)
+            .WithDice(new FixedDie(2), new FixedDie(2))
+            .Build();
+        Player player = game.Players[0];
 
         TurnResult result = game.PlayTurn();
 
@@ -91,10 +109,12 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void JailDoublesReleasePlayerMoveWithWrapAndLandWithoutExtraTurn()
     {
-        (Game game, Player player, Player next, _) = CreateGame(null, new GameRules(2, 2, 30));
-        game.CurrentPlayer = player;
-        game.TheJail.PlayerGoToJail(player);
-        game.Dice = new List<IDie> { new FixedDie(21), new FixedDie(21) };
+        Game game = new GameTestBuilder(new GameRules(2, 2, 30))
+            .WithPlayerInJail(0)
+            .WithDice(new FixedDie(30, [21]), new FixedDie(30, [21]))
+            .Build();
+        Player player = game.Players[0];
+        Player next = game.Players[1];
 
         TurnResult result = game.PlayTurn();
 
@@ -110,11 +130,14 @@ public sealed class GameFlowIntegrationTests
     public void PaidJailReleaseFollowedByNonDoubleCompletesWithoutStaleStateLookup()
     {
         TestDecisionProvider decisions = new() { ConfirmJailBuyoutResult = true };
-        (Game game, Player player, Player next, _) = CreateGame(decisions);
-        game.CurrentPlayer = player;
-        player.Money = 100;
-        game.TheJail.PlayerGoToJail(player);
-        game.Dice = new List<IDie> { new FixedDie(1), new FixedDie(4) };
+        Game game = new GameTestBuilder()
+            .WithPlayer(0, money: 100)
+            .WithPlayerInJail(0)
+            .WithDice(new FixedDie(1), new FixedDie(4))
+            .WithDecisions(decisions)
+            .Build();
+        Player player = game.Players[0];
+        Player next = game.Players[1];
 
         TurnResult? result = null;
         Exception? exception = Record.Exception(() => result = game.PlayTurn());
@@ -132,11 +155,14 @@ public sealed class GameFlowIntegrationTests
     public void PaidJailReleaseFollowedByDoubleDoesNotReleasePlayerTwice()
     {
         TestDecisionProvider decisions = new() { ConfirmJailBuyoutResult = true };
-        (Game game, Player player, Player next, _) = CreateGame(decisions);
-        game.CurrentPlayer = player;
-        player.Money = 100;
-        game.TheJail.PlayerGoToJail(player);
-        game.Dice = new List<IDie> { new FixedDie(2), new FixedDie(2) };
+        Game game = new GameTestBuilder()
+            .WithPlayer(0, money: 100)
+            .WithPlayerInJail(0)
+            .WithDice(new FixedDie(2), new FixedDie(2))
+            .WithDecisions(decisions)
+            .Build();
+        Player player = game.Players[0];
+        Player next = game.Players[1];
 
         TurnResult? result = null;
         Exception? exception = Record.Exception(() => result = game.PlayTurn());
@@ -154,9 +180,12 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void ThirdConsecutiveDoublesSendPlayerDirectlyToJail()
     {
-        (Game game, Player player, Player next, _) = CreateGame();
-        player.Position = 1;
-        game.Dice = new List<IDie> { new FixedDie(1, 1, 1), new FixedDie(1, 1, 1) };
+        Game game = new GameTestBuilder()
+            .WithPlayer(0, position: 1)
+            .WithDice(new FixedDie(1, 1, 1), new FixedDie(1, 1, 1))
+            .Build();
+        Player player = game.Players[0];
+        Player next = game.Players[1];
 
         game.PlayTurn();
         game.PlayTurn();
@@ -172,20 +201,23 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void BankruptcyToPlayerTransfersAssetsMortgageAndJailCards()
     {
-        (Game game, Player creditor, Player debtor, _) = CreateGame();
-        game.CurrentPlayer = debtor;
-        PropertySquare property = game.Board.GetAllPropertySquares().First();
-        property.Owner = debtor;
-        property.Houses = 3;
-        property.IsMortgage = true;
-        debtor.Money = 125;
-        debtor.NumberOfGetOutOFJailCards = 1;
+        Game game = new GameTestBuilder()
+            .WithCurrentPlayer(1)
+            .WithPlayer(1, money: 125, jailCards: 1)
+            .WithSquare(1, ownerId: 1, houses: 3)
+            .WithSquare(5, ownerId: 1, isMortgage: true)
+            .Build();
+        Player creditor = game.Players[0];
+        Player debtor = game.Players[1];
+        PropertySquare property = (PropertySquare)game.Board.GetSquareAtPosition(1);
+        Square mortgagedSquare = game.Board.GetSquareAtPosition(5);
         int houseValue = game.Handler.CalculateHouseAndHotelValue(property);
 
         game.Handler.DeclareBankruptcy(debtor, creditor, "Could not pay rent");
 
         Assert.Same(creditor, property.Owner);
-        Assert.True(property.IsMortgage);
+        Assert.Same(creditor, mortgagedSquare.Owner);
+        Assert.True(mortgagedSquare.IsMortgage);
         Assert.Equal(0, property.Houses);
         Assert.Equal(3000 + 125 + houseValue, creditor.Money);
         Assert.Equal(1, creditor.NumberOfGetOutOFJailCards);
@@ -197,16 +229,19 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void BankruptcyToBankClearsAssetsAndMortgageState()
     {
-        (Game game, _, Player debtor, _) = CreateGame();
-        PropertySquare property = game.Board.GetAllPropertySquares().First();
-        property.Owner = debtor;
-        property.Houses = 2;
-        property.IsMortgage = true;
+        Game game = new GameTestBuilder()
+            .WithSquare(1, ownerId: 1, houses: 2)
+            .WithSquare(5, ownerId: 1, isMortgage: true)
+            .Build();
+        Player debtor = game.Players[1];
+        PropertySquare property = (PropertySquare)game.Board.GetSquareAtPosition(1);
+        Square mortgagedSquare = game.Board.GetSquareAtPosition(5);
 
         game.Handler.DeclareBankruptcy(debtor, null, "Could not pay tax");
 
         Assert.Null(property.Owner);
-        Assert.False(property.IsMortgage);
+        Assert.Null(mortgagedSquare.Owner);
+        Assert.False(mortgagedSquare.IsMortgage);
         Assert.Equal(0, property.Houses);
         Assert.True(debtor.IsBankrupt);
     }
@@ -214,16 +249,15 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void PlayerCreditorBankruptcyDuringPlayTurnAdvancesToImmediateNextPlayer()
     {
-        Game game = CreateGame(3);
+        Game game = new GameTestBuilder(3)
+            .WithSquare(3, ownerId: 2)
+            .WithPlayer(0, money: 0)
+            .WithTurn(4, consecutiveDoubles: 1)
+            .WithDice(new FixedDie(1), new FixedDie(2))
+            .Build();
         Player debtor = game.Players[0];
         Player expectedNext = game.Players[1];
         Player creditor = game.Players[2];
-        PropertySquare property = game.Board.GetAllPropertySquares().Single(square => square.Position == 3);
-        property.Owner = creditor;
-        debtor.Money = 0;
-        game.CurrentTurn = 4;
-        game.RestoreConsecutiveDoubles(1);
-        game.Dice = new List<IDie> { new FixedDie(1), new FixedDie(2) };
 
         TurnResult result = game.PlayTurn();
 
@@ -240,13 +274,13 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void BankCreditorBankruptcyDuringPlayTurnAdvancesToImmediateNextPlayer()
     {
-        Game game = CreateGame(3);
+        Game game = new GameTestBuilder(3)
+            .WithPlayer(0, money: 0)
+            .WithTurn(3, consecutiveDoubles: 2)
+            .WithDice(new FixedDie(1), new FixedDie(3))
+            .Build();
         Player debtor = game.Players[0];
         Player expectedNext = game.Players[1];
-        debtor.Money = 0;
-        game.CurrentTurn = 3;
-        game.RestoreConsecutiveDoubles(2);
-        game.Dice = new List<IDie> { new FixedDie(1), new FixedDie(3) };
 
         TurnResult result = game.PlayTurn();
 
@@ -266,12 +300,12 @@ public sealed class GameFlowIntegrationTests
     [InlineData(3, 0)]
     public void BankruptcyOutsidePlayTurnAdvancesFromOriginalPosition(int currentIndex, int expectedNextIndex)
     {
-        Game game = CreateGame(4);
+        Game game = new GameTestBuilder(4)
+            .WithCurrentPlayer(currentIndex)
+            .WithTurn(5, consecutiveDoubles: 2)
+            .Build();
         Player debtor = game.Players[currentIndex];
         Player expectedNext = game.Players[expectedNextIndex];
-        game.CurrentPlayer = debtor;
-        game.CurrentTurn = 5;
-        game.RestoreConsecutiveDoubles(2);
 
         game.Handler.DeclareBankruptcy(debtor, null, "Could not pay bank debt");
 
@@ -285,13 +319,12 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void NonCurrentPlayerBankruptcyDoesNotRotateOrResetTurnState()
     {
-        Game game = CreateGame(4);
+        Game game = new GameTestBuilder(4)
+            .WithTurn(6, consecutiveDoubles: 2)
+            .Build();
         Player current = game.Players[0];
         Player creditor = game.Players[1];
         Player debtor = game.Players[2];
-        game.CurrentPlayer = current;
-        game.CurrentTurn = 6;
-        game.RestoreConsecutiveDoubles(2);
 
         game.Handler.DeclareBankruptcy(debtor, creditor, "Could not pay player debt");
 
@@ -305,7 +338,7 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void RemovingAlreadyRemovedPlayerDoesNotAdvanceAgain()
     {
-        Game game = CreateGame(4);
+        Game game = new GameTestBuilder(4).Build();
         Player removed = game.Players[0];
         Player expectedCurrent = game.Players[1];
 
@@ -319,13 +352,15 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void FinalBankruptcySetsSurvivorAsCurrentWinnerAndStopsFurtherTurns()
     {
-        (Game game, Player debtor, Player survivor, _) = CreateGame();
-        PropertySquare property = game.Board.GetAllPropertySquares().Single(square => square.Position == 3);
-        property.Owner = survivor;
-        debtor.Money = 0;
         FixedDie firstDie = new(1);
         FixedDie secondDie = new(2);
-        game.Dice = new List<IDie> { firstDie, secondDie };
+        Game game = new GameTestBuilder()
+            .WithSquare(3, ownerId: 1)
+            .WithPlayer(0, money: 0)
+            .WithDice(firstDie, secondDie)
+            .Build();
+        Player debtor = game.Players[0];
+        Player survivor = game.Players[1];
 
         TurnResult bankruptcyResult = game.PlayTurn();
         TurnResult gameOverResult = game.PlayTurn();
@@ -341,26 +376,6 @@ public sealed class GameFlowIntegrationTests
         Assert.Equal(1, secondDie.RollCount);
     }
 
-    private static (Game Game, Player First, Player Second, TestDecisionProvider Decisions) CreateGame(
-        TestDecisionProvider? decisions = null)
-    {
-        return CreateGame(decisions, new GameRules(2, 2, 6));
-    }
-
-    private static Game CreateGame(int playerCount)
-    {
-        return CoreGameSetup.Setup(new GameRules(playerCount, 2, 6), new TestDecisionProvider());
-    }
-
-    private static (Game Game, Player First, Player Second, TestDecisionProvider Decisions) CreateGame(
-        TestDecisionProvider? decisions,
-        GameRules rules)
-    {
-        decisions ??= new TestDecisionProvider();
-        Game game = CoreGameSetup.Setup(rules, decisions);
-        return (game, game.Players[0], game.Players[1], decisions);
-    }
-
     private sealed class FixedDie : IDie
     {
         private readonly Queue<int> values;
@@ -368,14 +383,22 @@ public sealed class GameFlowIntegrationTests
 
         public int RollCount { get; private set; }
 
+        private readonly int dieSides;
+
         public FixedDie(params int[] values)
+            : this(6, values)
         {
+        }
+
+        public FixedDie(int dieSides, IEnumerable<int> values)
+        {
+            this.dieSides = dieSides;
             this.values = new Queue<int>(values);
-            result = values.Length > 0 ? values[0] : 1;
+            result = this.values.Count > 0 ? this.values.Peek() : 1;
         }
 
         public int GetDieResult() => result;
-        public int GetDieType() => 20;
+        public int GetDieType() => dieSides;
         public void Roll()
         {
             RollCount++;
@@ -397,7 +420,7 @@ public sealed class GameFlowIntegrationTests
         {
             PaymentRequests.Add(amount);
             if (!ResolveFunds) return false;
-            player.Money += amount;
+            game.Transactions.GetMoneyFromBank(player, amount);
             return true;
         }
     }

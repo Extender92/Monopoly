@@ -2,6 +2,7 @@ using System.Text.Json;
 using Infrastructure.Persistence;
 using Monopoly.Core;
 using Monopoly.Core.Persistence;
+using Monopoly.Tests.CoreTests;
 
 namespace Monopoly.Tests.InfrastructureTests;
 
@@ -87,7 +88,7 @@ public sealed class JsonFileGameSaveStoreTests
         Game game = CreateGame();
 
         store.Save(game);
-        game.Fines = 75;
+        game = new GameTestBuilder().WithTurn(1, fines: 75).Build();
         store.Save(game);
 
         Assert.Equal(75, store.Load().Fines);
@@ -177,7 +178,7 @@ public sealed class JsonFileGameSaveStoreTests
         Game game = CreateGame();
         workingStore.Save(game);
         byte[] originalBytes = File.ReadAllBytes(savePath);
-        game.Fines = 99;
+        game = new GameTestBuilder().WithTurn(1, fines: 99).Build();
         JsonFileGameSaveStore failingStore = new(savePath, new FailingFileOperations(failureStage));
 
         SaveStoreException exception = Assert.Throws<SaveStoreException>(() => failingStore.Save(game));

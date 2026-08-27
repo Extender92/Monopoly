@@ -17,7 +17,7 @@ namespace Monopoly.Console.Builder
         public static GameRules Rules { get; set; } = null!;
         public static string Currency { get; set; } = string.Empty;
 
-        internal static List<SquareCard> BuildAllSquareCards(List<Square> squares, GameRules gameRules)
+        internal static List<SquareCard> BuildAllSquareCards(IReadOnlyList<Square> squares, GameRules gameRules)
         {
             Rules = gameRules;
             Currency = gameRules.CurrencySymbol;

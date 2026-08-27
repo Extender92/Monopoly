@@ -68,14 +68,7 @@ namespace Monopoly.Tests.ConsoleTests
 
         private GameRules GenerateMockGameRules()
         {
-            var rules = new GameRules(2, 2, 6)
-            {
-                GameLanguage = GameRules.Language.UK,
-                Salary = 100,
-                DoubleOnGo = false,
-                FreeParking = GameRules.Parking.Classic,
-                MortgageInterestRate = 10
-            };
+            var rules = new GameRules(2, 2, 6, salary: 100);
             return rules;
         }
 

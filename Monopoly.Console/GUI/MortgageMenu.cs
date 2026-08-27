@@ -19,8 +19,8 @@ namespace Monopoly.Console.GUI
         private readonly ListOptionSelector ListOptionSelector;
         private readonly Player Player;
         private readonly IGameSaveStore SaveStore;
-        private List<Square> AvailableMortgageList = new();
-        private List<Square> AvailableLiftMortgageList = new();
+        private IReadOnlyList<Square> AvailableMortgageList = Array.Empty<Square>();
+        private IReadOnlyList<Square> AvailableLiftMortgageList = Array.Empty<Square>();
 
         int SelectedOption = 0;
 
@@ -36,8 +36,8 @@ namespace Monopoly.Console.GUI
 
         public void UpdateLists()
         {
-            AvailableMortgageList = CurrentGame.Board.GetPlayerUnmortgagedSquares(Player) ?? new List<Square>();
-            AvailableLiftMortgageList = CurrentGame.Board.GetPlayerMortgagedSquares(Player) ?? new List<Square>();
+            AvailableMortgageList = CurrentGame.Board.GetPlayerUnmortgagedSquares(Player);
+            AvailableLiftMortgageList = CurrentGame.Board.GetPlayerMortgagedSquares(Player);
         }
 
         public enum MortgageMenuOptions
@@ -127,7 +127,7 @@ namespace Monopoly.Console.GUI
                 else errorMessage = $"Cannot mortgage property on {selectedSquare.Name}. It is already mortgage.";
 
             } while (!canMortgage);
-            CurrentGame.Transactions.MortgageProperty(Player, AvailableMortgageList[index]);
+            CurrentGame.TryMortgageProperty(Player, AvailableMortgageList[index]);
             UpdateLists();
             StayOnCurrentMenu();
         }
@@ -152,7 +152,7 @@ namespace Monopoly.Console.GUI
                 else errorMessage = $"Cannot lift mortgage on {selectedSquare.Name}. It is not mortgage.";
 
             } while (!canLift);
-            CurrentGame.Transactions.RepayMortgageProperty(Player, AvailableLiftMortgageList[index]);
+            CurrentGame.TryRepayMortgage(Player, AvailableLiftMortgageList[index]);
             UpdateLists();
             StayOnCurrentMenu();
         }

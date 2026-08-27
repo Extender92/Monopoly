@@ -8,7 +8,7 @@ namespace Monopoly.Core.Logs
 {
     public class Log
     {
-        public int Id { get; set; }
-        public string Info { get; set; } = string.Empty;
+        public int Id { get; internal init; }
+        public string Info { get; internal init; } = string.Empty;
     }
 }

@@ -1,6 +1,10 @@
+IDictionary
 IDisposable
 IFile
+IFortune
+IList
 LASTEXITCODE
+dtos
 notin
 pdb
 pscustomobject

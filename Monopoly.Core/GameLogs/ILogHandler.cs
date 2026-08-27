@@ -1,9 +1,13 @@
 ﻿
 namespace Monopoly.Core.Logs
 {
-    public interface ILogHandler
+    public interface IGameLog
     {
-        List<Log> LogList { get; }
+        IReadOnlyList<Log> LogList { get; }
+    }
+
+    internal interface ILogHandler : IGameLog
+    {
         void CreateLog(string s);
     }
 }

@@ -5,13 +5,13 @@ using Monopoly.Core.Models.Board;
 
 namespace Monopoly.Core;
 
-public class GameHandler
+internal sealed class GameHandler
 {
-    private readonly IGame CurrentGame;
+    private readonly Game CurrentGame;
 
-    public GameHandler(IGame currentGame)
+    internal GameHandler(Game currentGame)
     {
-        CurrentGame = currentGame;
+        CurrentGame = currentGame ?? throw new ArgumentNullException(nameof(currentGame));
     }
 
     public void RoleDiceAndMovePlayer(Player player)
@@ -21,28 +21,29 @@ public class GameHandler
         MovePlayerAndInvokeEvent(player, player.Position + diceSum);
     }
 
-    public void CheckIfPlayerGoPastGo(Player player)
+    private void MovePlayerToBoardPosition(Player player, int targetPosition)
     {
         int boardSize = CurrentGame.Board.Squares.Count;
         if (boardSize == 0) throw new InvalidOperationException("The game board cannot be empty.");
 
-        if (player.Position >= boardSize)
+        if (targetPosition >= boardSize)
         {
-            int laps = player.Position / boardSize;
-            player.Position %= boardSize;
+            int laps = targetPosition / boardSize;
+            player.MoveTo(targetPosition % boardSize);
             for (int i = 0; i < laps; i++)
                 CurrentGame.Transactions.PlayerGetSalary(player);
         }
-        else if (player.Position < 0)
+        else if (targetPosition < 0)
         {
-            player.Position = ((player.Position % boardSize) + boardSize) % boardSize;
+            player.MoveTo(((targetPosition % boardSize) + boardSize) % boardSize);
         }
+        else
+            player.MoveTo(targetPosition);
     }
 
     public void MovePlayerAndInvokeEvent(Player player, int newPosition)
     {
-        player.Position = newPosition;
-        CheckIfPlayerGoPastGo(player);
+        MovePlayerToBoardPosition(player, newPosition);
         GameEvents.InvokeUpdateGameBoard(CurrentGame);
     }
 
@@ -54,14 +55,14 @@ public class GameHandler
     public void RollDice(Player player)
     {
         string diceRoll = $"{player.Name} rolled:";
-        foreach (IDie die in CurrentGame.Dice)
+        foreach (IDie die in CurrentGame.DiceControllers)
         {
             die.Roll();
             diceRoll += $" {die.GetDieResult()}";
         }
 
         diceRoll += $" Total: {CalculateDiceSum()}";
-        CurrentGame.Logs.CreateLog(diceRoll);
+        CurrentGame.LogWriter.CreateLog(diceRoll);
     }
 
     public bool IsDiceDouble()
@@ -76,9 +77,10 @@ public class GameHandler
     public int GetMoneyFromBankruptPlayerAndBankruptPlayer(Player player)
     {
         int remainingPlayerMoney = CalculatePlayerAssets(player);
-        player.Money = 0;
+        player.TakeAllMoney();
+        player.TakeAllJailCards();
         ClearOwnershipForPlayer(player);
-        player.IsBankrupt = true;
+        player.MarkBankrupt();
         RemoveBankruptPlayerFromGame(player);
         return remainingPlayerMoney;
     }
@@ -88,7 +90,7 @@ public class GameHandler
         if (player.IsBankrupt)
         {
             string existingBankruptcyReason = FormatBankruptcyReason(player, reason);
-            CurrentGame.Logs.CreateLog(existingBankruptcyReason);
+            CurrentGame.LogWriter.CreateLog(existingBankruptcyReason);
             return;
         }
 
@@ -102,38 +104,43 @@ public class GameHandler
 
     public void DeclareBankruptcy(Player player, Player? creditor, string reason = "")
     {
-        int houseSaleValue = 0;
-        foreach (Square square in CurrentGame.Board.Squares.Where(square => square.Owner == player))
+        List<Square> ownedSquares = CurrentGame.Board.Squares.Where(square => square.Owner == player).ToList();
+        int houseSaleValue = ownedSquares
+            .OfType<PropertySquare>()
+            .Sum(CalculateHouseAndHotelValue);
+        int transferredMoney = checked(player.Money + houseSaleValue);
+        if (creditor is not null &&
+            (creditor.Money > int.MaxValue - transferredMoney ||
+             creditor.NumberOfGetOutOFJailCards > int.MaxValue - player.NumberOfGetOutOFJailCards))
+            throw new InvalidOperationException("The creditor cannot receive the bankrupt player's assets.");
+
+        foreach (Square square in ownedSquares)
         {
             if (square is PropertySquare property)
-            {
-                houseSaleValue += CalculateHouseAndHotelValue(property);
-                property.Houses = 0;
-            }
+                property.ClearBuildings();
 
             if (creditor is null)
-            {
-                square.Owner = null;
-                square.IsMortgage = false;
-            }
+                square.ReturnToBank();
             else
-            {
-                square.Owner = creditor;
-            }
+                square.TransferOwnership(creditor);
         }
 
         if (creditor is not null)
         {
-            creditor.Money += player.Money + houseSaleValue;
-            creditor.NumberOfGetOutOFJailCards += player.NumberOfGetOutOFJailCards;
+            player.TakeAllMoney();
+            creditor.Credit(transferredMoney);
+            creditor.AddJailCards(player.TakeAllJailCards());
+        }
+        else
+        {
+            player.TakeAllMoney();
+            player.TakeAllJailCards();
         }
 
-        player.Money = 0;
-        player.NumberOfGetOutOFJailCards = 0;
-        player.IsBankrupt = true;
+        player.MarkBankrupt();
         RemoveBankruptPlayerFromGame(player);
 
-        CurrentGame.Logs.CreateLog(FormatBankruptcyReason(player, reason));
+        CurrentGame.LogWriter.CreateLog(FormatBankruptcyReason(player, reason));
     }
 
     public void ClearOwnershipForPlayer(Player player)
@@ -142,10 +149,9 @@ public class GameHandler
         {
             if (square.Owner != player) continue;
 
-            square.Owner = null;
-            square.IsMortgage = false;
+            square.ReturnToBank();
             if (square is PropertySquare property)
-                property.Houses = 0;
+                property.ClearBuildings();
         }
     }
 
@@ -211,7 +217,7 @@ public class GameHandler
             }
 
             int moneyBefore = player.Money;
-            bool madeProgress = CurrentGame.Decisions.ResolveInsufficientFunds((Game)CurrentGame, player, amount);
+            bool madeProgress = CurrentGame.Decisions.ResolveInsufficientFunds(CurrentGame, player, amount);
             if (!madeProgress || player.Money <= moneyBefore)
             {
                 DeclareBankruptcy(player, creditor, bankruptcyReason);

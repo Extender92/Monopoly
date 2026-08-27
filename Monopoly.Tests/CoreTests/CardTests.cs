@@ -90,7 +90,7 @@ namespace Monopoly.Tests.CoreTests
         {
             //Arrange
             var expectedNumberOfStreet = 22;
-            var streetCards = Data.GetPropertySquareData(new Core.GameRules(0, 0, 0));
+            var streetCards = Data.GetPropertySquareData(new Core.GameRules(2, 2, 6));
 
             //Act
             var numberOfCards = streetCards.Count;
@@ -102,7 +102,7 @@ namespace Monopoly.Tests.CoreTests
         public void GetStreetCardsReturnsValidStreet()
         {
             //Arrange
-            var streetCards = Data.GetPropertySquareData(new Core.GameRules(0, 0, 0));
+            var streetCards = Data.GetPropertySquareData(new Core.GameRules(2, 2, 6));
 
             //Act and Assert
             foreach (var card in streetCards)
@@ -132,8 +132,8 @@ namespace Monopoly.Tests.CoreTests
         public void GetChanceCardsReturnsValidChance()
         {
             // Arrange
-            var gameRulesUK = new Core.GameRules(0, 0, 0) { GameLanguage = Core.GameRules.Language.UK };
-            var gameRulesUS = new Core.GameRules(0, 0, 0) { GameLanguage = Core.GameRules.Language.US };
+            var gameRulesUK = new Core.GameRules(2, 2, 6, Core.GameRules.Language.UK);
+            var gameRulesUS = new Core.GameRules(2, 2, 6, Core.GameRules.Language.US);
 
             // Act
             var chanceCardsUK = Data.GetChanceCardData(gameRulesUK);
@@ -173,8 +173,8 @@ namespace Monopoly.Tests.CoreTests
         public void GetCommunityChestCardsReturnsValidCommunityChest()
         {
             // Arrange
-            var gameRulesUK = new Core.GameRules(0, 0, 0) { GameLanguage = Core.GameRules.Language.UK };
-            var gameRulesUS = new Core.GameRules(0, 0, 0) { GameLanguage = Core.GameRules.Language.US };
+            var gameRulesUK = new Core.GameRules(2, 2, 6, Core.GameRules.Language.UK);
+            var gameRulesUS = new Core.GameRules(2, 2, 6, Core.GameRules.Language.US);
 
             // Act
             var communityChestCardsUK = Data.GetCommunityChestCardData(gameRulesUK);

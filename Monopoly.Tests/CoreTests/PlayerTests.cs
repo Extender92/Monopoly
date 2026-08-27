@@ -61,14 +61,16 @@ namespace Monopoly.Tests.CoreTests
         }
 
         [Fact]
-        public void CanUpdatePlayerPosition()
+        public void PreparedPlayerPositionIsRestoredThroughValidatedBuilder()
         {
             //Arrange
-            var player = new Player("Mohammad", 0);
             var expectedPosition = 5;
+            Game game = new GameTestBuilder()
+                .WithPlayer(0, name: "Mohammad", position: expectedPosition)
+                .Build();
 
             //Act
-            player.Position = expectedPosition;
+            Player player = game.Players[0];
 
             //Assert
             Assert.True(player.Position >= 0, "Position should not be negative.");

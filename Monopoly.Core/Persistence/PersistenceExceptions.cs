@@ -21,8 +21,8 @@ public sealed class SaveStoreException : Exception
 
 public sealed class GameStateValidationException : Exception
 {
-    public GameStateValidationException(string message)
-        : base(message)
+    public GameStateValidationException(string message, Exception? innerException = null)
+        : base(message, innerException)
     {
     }
 }

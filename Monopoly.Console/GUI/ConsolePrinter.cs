@@ -26,10 +26,10 @@ namespace Monopoly.Console.GUI
         private const int HorizontalBuffer = 3;
 
         internal IConsoleWrapper Console {  get; set; }
-        private List<Square> _squares;
+        private IReadOnlyList<Square> _squares;
         private GameRules _rules;
 
-        public ConsolePrinter(IConsoleWrapper consoleWrapper, List<Square> squares, GameRules rules)
+        public ConsolePrinter(IConsoleWrapper consoleWrapper, IReadOnlyList<Square> squares, GameRules rules)
         {
             Console = consoleWrapper;
             _squares = squares;
@@ -69,7 +69,7 @@ namespace Monopoly.Console.GUI
             PlayerInformationY = ConsolePositions.PlayerInformationY;
         }
 
-        internal void PrintGameBoard(List<TablePiece> tablePieces, List<Player> players)
+        internal void PrintGameBoard(List<TablePiece> tablePieces, IReadOnlyList<Player> players)
         {
             int playerBuffer = players.Count / 2;
             int startPosition = 0;
@@ -81,7 +81,7 @@ namespace Monopoly.Console.GUI
             }
         }
 
-        internal void PrintSingleSide(int playerBuffer, int side, int startSidePosition, List<Player> players, List<TablePiece> tablePieces)
+        internal void PrintSingleSide(int playerBuffer, int side, int startSidePosition, IReadOnlyList<Player> players, List<TablePiece> tablePieces)
         {
             int x, y;
 
@@ -146,7 +146,7 @@ namespace Monopoly.Console.GUI
             PrintColoredText("]", ownerColor);
         }
 
-        internal void PrintPlayers(List<Player> players, List<TablePiece> tablePieces)
+        internal void PrintPlayers(IReadOnlyList<Player> players, List<TablePiece> tablePieces)
         {
             foreach (Player player in players)
             {
@@ -175,19 +175,19 @@ namespace Monopoly.Console.GUI
             Console.ReadLine();
         }
 
-        internal void EndPlayerTurnInfo(Player player, List<Player> players)
+        internal void EndPlayerTurnInfo(Player player, IReadOnlyList<Player> players)
         {
             DisplayPlayersInformation(player, players);
             PrintTextWaitForInput($"{player.Name}'s Turn.\n Press Enter To End Turn");
         }
 
-        internal void StartPlayerTurnInfo(Player player, List<Player> players)
+        internal void StartPlayerTurnInfo(Player player, IReadOnlyList<Player> players)
         {
             DisplayPlayersInformation(player, players);
             PrintTextWaitForInput($"{player.Name}'s Turn.\n Press Enter To Continue");
         }
 
-        internal void DisplayPlayersInformation(Player player, List<Player> players)
+        internal void DisplayPlayersInformation(Player player, IReadOnlyList<Player> players)
         {
             for (int i = 0; i < players.Count; i++)
             {

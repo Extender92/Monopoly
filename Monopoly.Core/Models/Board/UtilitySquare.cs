@@ -10,8 +10,8 @@ namespace Monopoly.Core.Models.Board
 {
     public class UtilitySquare : Square
     {
-        public int RentOneUtility { get; set; }
-        public int RentTwoUtility { get; set; }
+        public int RentOneUtility { get; }
+        public int RentTwoUtility { get; }
 
 
         public UtilitySquare(int position, string name, int price, int rentOneUtility, int rentTwoUtility, int mortgageValue)
@@ -24,12 +24,12 @@ namespace Monopoly.Core.Models.Board
             MortgageValue = mortgageValue;
         }
 
-        public override void LandOn(Player player, Game game)
+        internal override void LandOn(Player player, Game game)
         {
             LandOn(player, game, false);
         }
 
-        public void LandOn(Player player, Game game, bool maxPay = false)
+        internal void LandOn(Player player, Game game, bool maxPay = false)
         {
             if (Owner == null)
             {

@@ -8,7 +8,7 @@ namespace Monopoly.Core.Models.Board
 {
     public class JailSquare : Square
     {
-        public string InJailInfo {  get; set; }
+        public string InJailInfo { get; }
         public JailSquare(int position, string name, string info, string inJailInfo)
         {
             Position = position;
@@ -17,7 +17,7 @@ namespace Monopoly.Core.Models.Board
             InJailInfo = inJailInfo;
         }
 
-        public override void LandOn(Player player, Game game)
+        internal override void LandOn(Player player, Game game)
         {
             
         }

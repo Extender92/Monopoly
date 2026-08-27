@@ -9,7 +9,7 @@ namespace Monopoly.Core.Models
     public class Die : IDie
     {
         private int DieSides { get; set; }
-        public int Result { get; set; }
+        public int Result { get; private set; }
 
         public Die(int dieSides)
         {
