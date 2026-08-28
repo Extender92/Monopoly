@@ -1,4 +1,3 @@
-﻿using Monopoly.Core.Events;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using System.Collections.ObjectModel;
@@ -133,8 +132,11 @@ namespace Monopoly.Core
                 while (!CurrentGame.Transactions.PayFines(player, CurrentGame.Rules.JailFine))
                 {
                     int moneyBefore = player.Money;
-                    GameEvents.InvokePlayerInsufficientFunds(CurrentGame, player, CurrentGame.Rules.JailFine);
-                    if (player.Money <= moneyBefore)
+                    bool madeProgress = CurrentGame.Decisions.ResolveInsufficientFunds(
+                        CurrentGame,
+                        player,
+                        CurrentGame.Rules.JailFine);
+                    if (!madeProgress || player.Money <= moneyBefore)
                     {
                         CurrentGame.Handler.HandlePlayerBankruptcy(player, $", {player.Name} Could not afford to pay Jail Fine of {CurrentGame.Rules.JailFine}{CurrentGame.Rules.CurrencySymbol}");
                         break;

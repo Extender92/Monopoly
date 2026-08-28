@@ -1,4 +1,5 @@
 ﻿using Monopoly.Core.Logs;
+using Monopoly.Core.Notifications;
 using Monopoly.Core.Models.Board;
 using Monopoly.Core.Models;
 using System;
@@ -12,6 +13,7 @@ namespace Monopoly.Core.Interface
     public interface IGame
     {
         IGameLog Logs { get; }
+        IGameNotificationSource Notifications { get; }
         GameBoard Board { get; }
         IReadOnlyList<Player> Players { get; }
         Player CurrentPlayer { get; }

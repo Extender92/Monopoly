@@ -38,7 +38,8 @@ public enum GameActionRejectionReason
     MalformedResponse,
     StaleDecision,
     DuplicateDecision,
-    ResponseNotAllowed
+    ResponseNotAllowed,
+    OperationInProgress
 }
 
 public sealed record DecisionResponse(Guid DecisionId, DecisionOption Response);

@@ -1,5 +1,5 @@
-﻿using Monopoly.Core.Events;
 using Monopoly.Core.Models.FortuneCard;
+using Monopoly.Core.Notifications;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +19,7 @@ namespace Monopoly.Core.Models.Board
         internal override void LandOn(Player player, Game game)
         {
             ICommunityChestCard communityChestCard = game.FortuneCard.DrawNextCommunityChestCard();
-            GameEvents.InvokeDrawCommunityChestCard(game, communityChestCard);
+            game.PublishNotification(new CardDrawnNotification(communityChestCard, "event.secondary"));
             communityChestCard.ExecuteEffect(player, game);
         }
     }

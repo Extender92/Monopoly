@@ -396,7 +396,8 @@ arrangements.
 Each test owns its match, test doubles, subscriptions and temporary resources.
 One test must not affect another.
 
-- Unsubscribe every event handler in `finally` or through a disposable fixture.
+- Dispose every match notification subscription in `finally`, with a `using`
+  declaration or through a disposable fixture.
 - Remove only test-owned temporary files and directories.
 - Restore modified process-wide Console state.
 - Avoid mutable static test fixtures.
@@ -404,12 +405,13 @@ One test must not affect another.
 - Use unique IDs and paths when tests can run concurrently.
 
 Tests that temporarily interact with unavoidable process-global state must be
-placed in an explicit non-parallel collection until that production state is
-made instance-scoped. Disabling parallel execution for the entire suite should
-not be the permanent solution.
+placed in an explicit non-parallel collection. Match notification tests do not
+need that exception: every `Game` has an isolated source and no process-global
+subscriber list. Disabling parallel execution for the entire suite should not
+be the permanent solution.
 
-Match-scoped Core events and frontend sessions should eventually allow
-independent game tests to run safely in parallel.
+Match-scoped Core notifications and frontend sessions allow independent game
+tests to run safely in parallel.
 
 ## Regression tests
 

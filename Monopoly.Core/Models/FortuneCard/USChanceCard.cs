@@ -1,4 +1,3 @@
-﻿using Monopoly.Core.Events;
 using Monopoly.Core.Models.Board;
 using System;
 

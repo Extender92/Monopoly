@@ -1,7 +1,7 @@
-using Monopoly.Core.Events;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Notifications;
 
 namespace Monopoly.Core;
 
@@ -44,7 +44,7 @@ internal sealed class GameHandler
     public void MovePlayerAndInvokeEvent(Player player, int newPosition)
     {
         MovePlayerToBoardPosition(player, newPosition);
-        GameEvents.InvokeUpdateGameBoard(CurrentGame);
+        CurrentGame.PublishNotification(new BoardChangedNotification());
     }
 
     public int GetPlayerGoPastGoNewPosition(int targetPosition)
@@ -240,8 +240,8 @@ internal sealed class GameHandler
             }
 
             int moneyBefore = player.Money;
-            GameEvents.InvokePlayerInsufficientFunds(CurrentGame, player, sum);
-            if (player.Money <= moneyBefore)
+            bool madeProgress = CurrentGame.Decisions.ResolveInsufficientFunds(CurrentGame, player, sum);
+            if (!madeProgress || player.Money <= moneyBefore)
             {
                 HandlePlayerBankruptcy(player);
                 return true;

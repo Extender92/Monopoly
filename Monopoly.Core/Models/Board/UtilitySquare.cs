@@ -1,4 +1,3 @@
-﻿using Monopoly.Core.Events;
 using Monopoly.Core.Interface;
 using System;
 using System.Collections.Generic;

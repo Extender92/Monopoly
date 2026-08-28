@@ -342,9 +342,11 @@ The Console must:
 - Derive displayed values from current state rather than treating an event as
   authoritative history.
 
-The target Core notification boundary is match-scoped rather than static.
-Console should be able to create more than one session over time without shared
-mutable event state.
+The Core notification boundary is match-scoped. `ConsoleEventHandler.Subscribe`
+attaches to one `Game.Notifications` source and returns an `IDisposable` handle
+owned by the running `ConsoleGame` session. Disposal is idempotent, and two
+simultaneous Console sessions can receive their own notifications without
+shared mutable event state.
 
 A single action may produce several Core changes. Console may coalesce them into
 one final refresh while still presenting important intermediate cards or
@@ -441,7 +443,7 @@ choices are collected again after load.
 `ConsoleGame.StartConsoleGame()`:
 
 1. Sets fixed terminal positions.
-2. Subscribes `ConsoleEventHandler`.
+2. Creates one disposable `ConsoleEventHandler` subscription for the match.
 3. Renders the initial board.
 4. Opens a `PlayerActionMenu` for `Game.CurrentPlayer`.
 5. Calls `Game.PlayTurn()` when Roll is selected.
@@ -449,10 +451,10 @@ choices are collected again after load.
    options and calls `Game.SubmitDecision()`; typed rejections are displayed
    and the current pending choice remains available.
 7. Refreshes the board, player information and landed-square card. Newest logs
-   refresh only when Core publishes `LogAddedEvent`.
+   refresh only when Core publishes `LogAddedNotification`.
 8. Continues until Core reports game over.
 9. Displays `Game.Winner`.
-10. Unsubscribes in a `finally` block.
+10. Disposes the subscription on every method-exit path.
 
 There is one active Console game loop, but several menus currently navigate by
 constructing another menu and calling its display method. Returning to main
@@ -484,13 +486,13 @@ all legality.
 currently stores rules and currency in static mutable properties and reads the
 legacy `PropertySquare.Color` value from Core.
 
-`ConsoleEventHandler` keeps one static current Console session and subscribes
-to static Core events. It filters notifications by the sending `Game` and
-unsubscribes the previous session before attaching another one. Repeated
-subscription of the current session is idempotent, and cleanup from an already
-replaced session does not detach the active session.
+`ConsoleEventHandler` is an instance-scoped adapter over one match notification
+source. It contains no static current session. The session owns the returned
+subscription in `StartConsoleGame()` and disposes it on normal exit and every
+exception path. Replacing one session therefore cannot detach or receive
+notifications from another session.
 
-`LogAddedEvent` is the single rendering path for the newest-log view. The
+`LogAddedNotification` is the single rendering path for the newest-log view. The
 post-turn refresh reads the other current match state but does not render logs
 again, so one notified log change produces one log-view refresh.
 

@@ -1,98 +1,54 @@
-﻿using Monopoly.Console.GUI;
-using Monopoly.Core;
-using Monopoly.Core.Events;
-using Monopoly.Core.Models;
-using Monopoly.Core.Models.Board;
-using Monopoly.Core.Models.FortuneCard;
+using Monopoly.Core.Notifications;
 
-namespace Monopoly.Console.Events
+namespace Monopoly.Console.Events;
+
+internal sealed class ConsoleEventHandler : IDisposable
 {
-    internal static class ConsoleEventHandler
+    private readonly ConsoleGame _consoleGame;
+    private IDisposable? _subscription;
+
+    private ConsoleEventHandler(ConsoleGame consoleGame)
     {
-        private static ConsoleGame? CurrentConsoleGame;
+        _consoleGame = consoleGame ?? throw new ArgumentNullException(nameof(consoleGame));
+        _subscription = consoleGame.CurrentGame.Notifications.Subscribe(HandleNotification);
+    }
 
-        public static void SubscribeToEvents(ConsoleGame consoleGame)
+    internal static IDisposable Subscribe(ConsoleGame consoleGame) =>
+        new ConsoleEventHandler(consoleGame);
+
+    public void Dispose() =>
+        Interlocked.Exchange(ref _subscription, null)?.Dispose();
+
+    private void HandleNotification(GameNotification notification)
+    {
+        switch (notification)
         {
-            if (ReferenceEquals(CurrentConsoleGame, consoleGame))
-                return;
+            case LogAddedNotification:
+                _consoleGame.LogPrinter.PrintNewestLogs(10, _consoleGame.CurrentGame.Logs.LogList);
+                break;
 
-            if (CurrentConsoleGame is not null)
-                UnsubscribeFromEvents(CurrentConsoleGame);
+            case CardDrawnNotification cardDrawn:
+                _consoleGame.CardPrinter.PrepareAndPrintSquareCard(
+                    _consoleGame.CurrentGame.CurrentPlayer.Position,
+                    cardDrawn.Card,
+                    cardDrawn.PresentationToken);
+                break;
 
-            CurrentConsoleGame = consoleGame;
-            GameEvents.LogAddedEvent += LogAdded;
-            GameEvents.ChanceCardDrawnEvent += DrawChanceCard;
-            GameEvents.CommunityChestCardDrawnEvent += DrawCommunityChestCard;
-            GameEvents.OpenPlayerActionMenuEvent += OpenPlayerActionMenu;
-            GameEvents.LandOnSquareEvent += LandOnSquare;
-            GameEvents.UpdateGameBoard += UpdateGameBoard;
-            GameEvents.UpdatePlayerInformation += UpdatePlayerInformation;
+            case SpaceReachedNotification spaceReached:
+                _consoleGame.CardPrinter.PrepareAndPrintSquareCard(spaceReached.Space.Position);
+                break;
+
+            case BoardChangedNotification:
+                _consoleGame.Printer.PrintGameBoard(
+                    _consoleGame.TablePieces,
+                    _consoleGame.CurrentGame.Players);
+                break;
+
+            case PlayerInformationChangedNotification:
+                _consoleGame.Printer.DisplayPlayersInformation(
+                    _consoleGame.CurrentGame.CurrentPlayer,
+                    _consoleGame.CurrentGame.Players);
+                break;
         }
-
-        public static void UnsubscribeFromEvents(ConsoleGame consoleGame)
-        {
-            if (!ReferenceEquals(CurrentConsoleGame, consoleGame))
-                return;
-
-            GameEvents.LogAddedEvent -= LogAdded;
-            GameEvents.ChanceCardDrawnEvent -= DrawChanceCard;
-            GameEvents.CommunityChestCardDrawnEvent -= DrawCommunityChestCard;
-            GameEvents.OpenPlayerActionMenuEvent -= OpenPlayerActionMenu;
-            GameEvents.LandOnSquareEvent -= LandOnSquare;
-            GameEvents.UpdateGameBoard -= UpdateGameBoard;
-            GameEvents.UpdatePlayerInformation -= UpdatePlayerInformation;
-            CurrentConsoleGame = null;
-        }
-
-        private static void LogAdded(object? sender, EventArgs e)
-        {
-            if (!IsCurrentGame(sender)) return;
-            // Print the newest logs when a new log is added
-            CurrentConsoleGame!.LogPrinter.PrintNewestLogs(10, CurrentConsoleGame.CurrentGame.Logs.LogList);
-        }
-
-        private static void DrawChanceCard(object? sender, DrawChanceCardArgs e)
-        {
-            if (!IsCurrentGame(sender)) return;
-            int position = CurrentConsoleGame!.CurrentGame.CurrentPlayer.Position;
-            CurrentConsoleGame.CardPrinter.PrepareAndPrintSquareCard(position, e.ChanceCard);
-        }
-
-        private static void DrawCommunityChestCard(object? sender, DrawCommunityChestCardArgs e)
-        {
-            if (!IsCurrentGame(sender)) return;
-            int position = CurrentConsoleGame!.CurrentGame.CurrentPlayer.Position;
-            CurrentConsoleGame!.CardPrinter.PrepareAndPrintSquareCard(position, null, e.CommunityChestCard);
-        }
-
-        private static void OpenPlayerActionMenu(object? sender, EventArgs e)
-        {
-            if (!IsCurrentGame(sender)) return;
-            PlayerActionMenu PlayerActionMenu = CurrentConsoleGame!.CreatePlayerActionMenu(
-                CurrentConsoleGame.CurrentGame.CurrentPlayer);
-            PlayerActionMenu.DisplayPlayerActionMainMenu();
-        }
-
-        private static void LandOnSquare(object? sender, SquareEventArgs e)
-        {
-            if (!IsCurrentGame(sender)) return;
-            Square square = e.Square;
-            CurrentConsoleGame!.CardPrinter.PrepareAndPrintSquareCard(square.Position);
-        }
-
-        private static void UpdateGameBoard(object? sender, EventArgs e)
-        {
-            if (!IsCurrentGame(sender)) return;
-            CurrentConsoleGame!.Printer.PrintGameBoard(CurrentConsoleGame.TablePieces, CurrentConsoleGame.CurrentGame.Players);
-        }
-
-        private static void UpdatePlayerInformation(object? sender, EventArgs e)
-        {
-            if (!IsCurrentGame(sender)) return;
-            CurrentConsoleGame!.Printer.DisplayPlayersInformation(CurrentConsoleGame.CurrentGame.CurrentPlayer, CurrentConsoleGame.CurrentGame.Players);
-        }
-
-        private static bool IsCurrentGame(object? sender) =>
-            sender is Game game && CurrentConsoleGame is not null && ReferenceEquals(game, CurrentConsoleGame.CurrentGame);
     }
 }

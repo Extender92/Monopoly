@@ -45,7 +45,7 @@ internal class ConsoleGame
     {
         StartedGame = true;
         ConsolePositions.SetGameBoardMenuPositions();
-        ConsoleEventHandler.SubscribeToEvents(this);
+        using IDisposable notificationSubscription = ConsoleEventHandler.Subscribe(this);
 
         try
         {
@@ -82,7 +82,6 @@ internal class ConsoleGame
         }
         finally
         {
-            ConsoleEventHandler.UnsubscribeFromEvents(this);
             StartedGame = false;
         }
     }
