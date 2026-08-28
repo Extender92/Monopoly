@@ -6,19 +6,21 @@
 [![Build and tests](https://github.com/Extender92/Monopoly/actions/workflows/Build-And-Tests.yml/badge.svg?branch=main)](https://github.com/Extender92/Monopoly/actions/workflows/Build-And-Tests.yml)
 [![Spelling](https://github.com/Extender92/Monopoly/actions/workflows/SpellChecker.yml/badge.svg?branch=main)](https://github.com/Extender92/Monopoly/actions/workflows/SpellChecker.yml)
 
-A .NET 10 and C# 14 Monopoly implementation built around a reusable game Core.
-The repository contains the authoritative game engine, a playable Console
-frontend and automated tests.
+A .NET 10 and C# 14 legacy implementation being transformed into a
+frontend-neutral property-trading engine. The current repository contains the
+authoritative game Core, a playable Console frontend and automated tests.
 
-The long-term goal is one frontend-neutral Core that can power Console, web,
-desktop, mobile or game-engine frontends without duplicating Monopoly rules.
+The clean publication target is defined by the
+[public engine scope](docs/public-engine-scope.md). Current product-shaped code
+and data are transition inputs, not part of that target.
 
 ## Project status
 
-The Console application is playable and demonstrates the current Core game
-flow. The project remains under active development: some Classic rules,
-UK/US/Custom rule profiles and frontend-neutral infrastructure are designed and
-documented but are not yet completely implemented.
+The Console application is playable and demonstrates the current legacy Core
+flow. The project remains under active neutralization. Regional profiles and
+product-shaped rules found in current code or older documentation describe the
+implementation being replaced; the clean project will contain only generic
+contracts, original Demo data and small synthetic fixtures.
 
 The documentation distinguishes normative target behavior from sections marked
 as the current implementation. Current defects and planned work are tracked in
@@ -99,9 +101,14 @@ smoke testing and the boundary between UI and game logic.
 
 ## Documentation
 
+- [Public engine scope](docs/public-engine-scope.md) – positive publication
+  boundary and non-goals.
+- [Original Demo design](docs/demo-profile-design.md) – independently designed
+  reference-profile constraints.
 - [Architecture](docs/architecture.md) – project boundaries and target design.
 - [Game flow](docs/game-flow.md) – setup, turns, decisions and match completion.
-- [Game rules](docs/game-rules.md) – shared rules and UK, US and Custom profiles.
+- [Game rules](docs/game-rules.md) – legacy rule specification being replaced
+  by the public capability baseline.
 - [Save and load](docs/save-format.md) – persistence contract, Version 1 and
   future requirements.
 - [Console frontend](docs/console-frontend.md) – input, rendering and Core
@@ -109,6 +116,10 @@ smoke testing and the boundary between UI and game logic.
 - [Testing](docs/testing.md) – automated strategy, CI and manual verification.
 - [Development workflow](docs/development-workflow.md) – issues, branches,
   pull requests, squash merges and releases.
+
+The legacy neutralization plan and clean-publication audit are internal
+publication evidence and are deliberately excluded from the future clean
+snapshot.
 
 ## Contributing
 

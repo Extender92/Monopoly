@@ -2,6 +2,12 @@
 
 ## Purpose
 
+> **Target-boundary notice:** The positive publication target is now defined in
+> [Public engine scope](public-engine-scope.md). Product-shaped types, profiles
+> and rule lists below describe the current legacy implementation or migration
+> context unless they are compatible with that scope. Issues #32, #37 and
+> #71–#77 own the corresponding neutral contracts and documentation updates.
+
 Monopoly is split into a reusable game Core, a console frontend, a persistence
 infrastructure implementation and automated tests.
 

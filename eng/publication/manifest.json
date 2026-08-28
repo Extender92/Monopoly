@@ -10,6 +10,7 @@
   },
   "auditMaterial": [
     "docs/clean-publication-audit.md",
+    "docs/legacy-neutralization-plan.md",
     "eng/publication/**",
     "publication-audit*.json",
     "publication-audit*.txt"
@@ -97,6 +98,12 @@
         "saves/**",
         "**/saves",
         "**/saves/**",
+        "local-profiles",
+        "local-profiles/**",
+        "**/local-profiles",
+        "**/local-profiles/**",
+        "*.private.profile.json",
+        "**/*.private.profile.json",
         "publication-audit*.json",
         "publication-audit*.txt",
         "**/*.tmp",
@@ -146,14 +153,25 @@
       "ownerIssues": [55]
     },
     {
+      "id": "public-engine-boundary-documents",
+      "patterns": [
+        "docs/public-engine-scope.md",
+        "docs/demo-profile-design.md"
+      ],
+      "ownership": "project-owned",
+      "classification": "allow",
+      "ownerIssues": [71]
+    },
+    {
       "id": "raw-publication-audit",
       "patterns": [
         "docs/clean-publication-audit.md",
+        "docs/legacy-neutralization-plan.md",
         "eng/publication/**"
       ],
       "ownership": "project-owned",
       "classification": "remove",
-      "ownerIssues": [58]
+      "ownerIssues": [71, 58]
     },
     {
       "id": "regional-board-and-card-data",

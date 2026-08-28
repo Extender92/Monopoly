@@ -379,6 +379,11 @@ saves/
 publication-audit*.json
 publication-audit*.txt
 
+# Optional local game profiles. Public Demo and test fixtures use reviewed,
+# explicitly tracked paths and do not match these defensive exclusions.
+/local-profiles/
+*.private.profile.json
+
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
