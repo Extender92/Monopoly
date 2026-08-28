@@ -1,5 +1,5 @@
-﻿using Monopoly.Core.Events;
 using Monopoly.Core.Interface;
+using Monopoly.Core.Notifications;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace Monopoly.Core.Logs
         private readonly List<Log> _logs = new();
         private readonly ReadOnlyCollection<Log> _logsView;
         public IReadOnlyList<Log> LogList => _logsView;
-        internal IGame? OwnerGame { get; set; }
+        internal Game? OwnerGame { get; set; }
 
         public LogHandler()
         {
@@ -29,7 +29,7 @@ namespace Monopoly.Core.Logs
                 Info = text
             };
             _logs.Add(log);
-            GameEvents.InvokeLogAdded((object?)OwnerGame ?? this);
+            OwnerGame?.PublishNotification(new LogAddedNotification(log));
         }
     }
 }

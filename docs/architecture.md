@@ -255,6 +255,9 @@ The public Core API provides explicit integration points for frontends and tests
 - `IDie` allows dice behavior to be provided and controlled in tests.
 - `IGameLog` exposes read-only game log entries without coupling Core to a UI;
   log creation remains internal to the aggregate.
+- `IGameNotificationSource` exposes one match-scoped stream of
+  non-authoritative presentation hints. `Subscribe()` returns an idempotent
+  `IDisposable` lifetime handle; callers cannot publish through the interface.
 - `GameActionResult` describes completion, a required decision, game over or a
   typed rejection. A completed result contains its `TurnResult`.
 - `PendingDecision` and `DecisionResponse` form the frontend-neutral resumable
@@ -292,9 +295,9 @@ Local frontends may answer immediately after Core returns, while asynchronous
 frontends may retain the same match in `AwaitingDecision`. A frontend response
 must never bypass Core validation.
 
-## Events
+## Notifications
 
-Core events are notifications for presentation and integration.
+Each `Game` owns one notification source for presentation and integration.
 
 They may notify a frontend when:
 
@@ -304,15 +307,22 @@ They may notify a frontend when:
 - The board changes
 - Player information changes
 
-Events must not be the source of truth for game state or turn progression.
+Notifications are never the source of truth for state, decisions or turn
+progression. Only Core can publish them. A subscriber failure is isolated from
+rule execution and from other subscribers, and presentation code reads current
+state after receiving a hint. Public authoritative operations reject reentrant
+calls made while a notification callback is running.
 
-The Console subscribes to events through `ConsoleEventHandler` and removes its subscriptions when a console game ends.
+`Game.Notifications.Subscribe()` returns an idempotent disposal handle. The
+Console owns that handle for exactly one running session and disposes it on
+every exit path. A completed match releases its subscriber references as a
+final safety boundary. Two simultaneous matches own different publishers and
+cannot deliver notifications to one another's subscribers.
 
-The current Core events are static. This requires careful subscription cleanup
-and is not a suitable long-term boundary for multiple concurrent matches, such
-as games hosted by a web server. The target is notification state isolated per
-`Game` instance. An application or infrastructure implementation may forward
-those notifications, but matches must not share event state.
+An application or Infrastructure adapter may forward a match's notifications,
+but there is no process-global Core event bus and notification callbacks are
+not rule callbacks. The temporary insufficient-funds rule callback remains the
+explicit `IPlayerDecisionProvider` contract rather than a presentation event.
 
 The current Console project also has access to selected Core internals through `InternalsVisibleTo`. This is a compatibility detail of the current implementation, not an API model for future frontends.
 

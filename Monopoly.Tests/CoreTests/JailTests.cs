@@ -1,6 +1,6 @@
-using Monopoly.Core.Events;
+using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
-using static Monopoly.Core.Events.PlayerEventArgs;
+using Moq;
 using static Monopoly.Core.Jail;
 
 namespace Monopoly.Tests.CoreTests;
@@ -230,31 +230,28 @@ public class JailTests
     }
 
     [Fact]
-    public void BuyOutPlayerFromJail_InsufficientFunds_ShouldRaiseEventAndPayFine()
+    public void BuyOutPlayerFromJail_InsufficientFunds_UsesDecisionProviderAndPaysFine()
     {
-        Game game = CreateGameInJail(money: 0);
+        Mock<IPlayerDecisionProvider> decisions = new();
+        decisions
+            .Setup(provider => provider.ResolveInsufficientFunds(
+                It.IsAny<Game>(),
+                It.IsAny<Player>(),
+                It.IsAny<int>()))
+            .Returns((Game game, Player player, int amount) =>
+            {
+                game.Transactions.GetMoneyFromBank(player, amount);
+                return true;
+            });
+        Game game = CreateGameInJail(money: 0, decisions: decisions.Object);
         Player player = PlayerZero(game);
-        bool eventRaised = false;
-        EventHandler<PlayerEventArgs> handler = (_, args) =>
-        {
-            if (!ReferenceEquals(args.Player, player)) return;
-            eventRaised = true;
-            game.Transactions.GetMoneyFromBank(player, game.Rules.JailFine);
-        };
-        GameEvents.PlayerInsufficientFundsEvent += handler;
 
-        try
-        {
-            string reason = game.TheJail.BuyOutPlayerFromJail(player);
+        string reason = game.TheJail.BuyOutPlayerFromJail(player);
 
-            Assert.Equal($", {player.Name} paid the fine to get out of jail", reason);
-        }
-        finally
-        {
-            GameEvents.PlayerInsufficientFundsEvent -= handler;
-        }
-
-        Assert.True(eventRaised);
+        Assert.Equal($", {player.Name} paid the fine to get out of jail", reason);
+        decisions.Verify(
+            provider => provider.ResolveInsufficientFunds(game, player, game.Rules.JailFine),
+            Times.Once);
         Assert.Equal(0, player.Money);
         Assert.Contains(game.Logs.LogList, log => log.Info == $"{player.Name} payed fines of 50£.");
     }
@@ -289,11 +286,15 @@ public class JailTests
     private static Game CreateGameInJail(
         int money = 3_000,
         int jailCards = 0,
-        int turnsInJail = 0)
+        int turnsInJail = 0,
+        IPlayerDecisionProvider? decisions = null)
     {
         GameTestBuilder builder = new GameTestBuilder()
             .WithPlayer(0, money: money, jailCards: jailCards)
             .WithPlayerInJail(0, turnsInJail);
+
+        if (decisions is not null)
+            builder.WithDecisions(decisions);
 
         return builder.Build();
     }

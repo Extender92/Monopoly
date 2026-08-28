@@ -1,8 +1,8 @@
-using Monopoly.Core.Events;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Notifications;
 using System.Collections.ObjectModel;
 
 namespace Monopoly.Core;
@@ -14,12 +14,15 @@ public sealed class Game : IGame
     private readonly List<IDie> _dice;
     private readonly ReadOnlyCollection<IDieView> _diceView;
     private readonly HashSet<Guid> _consumedDecisionIds = new();
+    private readonly GameNotificationHub _notifications = new();
     private TurnContinuation? _turnContinuation;
     private Guid? _lastConsumedDecisionId;
+    private int _notificationDispatchDepth;
 
     internal GameHandler Handler { get; }
     private readonly ILogHandler _logs;
     public IGameLog Logs => _logs;
+    public IGameNotificationSource Notifications => _notifications;
     internal ILogHandler LogWriter => _logs;
     public GameBoard Board { get; }
     public IReadOnlyList<Player> Players => _playersView;
@@ -41,6 +44,7 @@ public sealed class Game : IGame
     internal TurnContinuation? TurnContinuationSnapshot => _turnContinuation;
     internal Guid? LastConsumedDecisionId => _lastConsumedDecisionId;
     internal IReadOnlyCollection<Guid> ConsumedDecisionIds => _consumedDecisionIds;
+    internal int NotificationSubscriberCount => _notifications.SubscriberCount;
 
     public Game(
         IEnumerable<Player> players,
@@ -118,24 +122,28 @@ public sealed class Game : IGame
 
     public void SetDecisionProvider(IPlayerDecisionProvider decisions)
     {
+        EnsureNotificationIsNotBeingPublished();
         Decisions = decisions ?? throw new ArgumentNullException(nameof(decisions));
     }
 
     public bool TryBuyHouse(Player player, PropertySquare property) =>
-        Transactions.TryBuyPropertyHouse(player, property);
+        _notificationDispatchDepth == 0 && Transactions.TryBuyPropertyHouse(player, property);
 
     public bool TrySellHouse(Player player, PropertySquare property) =>
-        Transactions.TrySellPropertyHouse(player, property);
+        _notificationDispatchDepth == 0 && Transactions.TrySellPropertyHouse(player, property);
 
     public bool TryMortgageProperty(Player player, Square square) =>
-        Transactions.TryMortgageProperty(player, square);
+        _notificationDispatchDepth == 0 && Transactions.TryMortgageProperty(player, square);
 
     public bool TryRepayMortgage(Player player, Square square) =>
-        Transactions.TryRepayMortgageProperty(player, square);
+        _notificationDispatchDepth == 0 && Transactions.TryRepayMortgageProperty(player, square);
 
     /// <summary>Starts a turn and runs until it completes or requires a frontend decision.</summary>
     public GameActionResult PlayTurn()
     {
+        if (_notificationDispatchDepth > 0)
+            return GameActionResult.Rejected(GameActionRejectionReason.OperationInProgress, PendingDecision);
+
         if (Phase == GamePhase.AwaitingDecision)
             return GameActionResult.Rejected(GameActionRejectionReason.PendingDecisionRequired, PendingDecision);
 
@@ -143,6 +151,7 @@ public sealed class Game : IGame
         {
             Winner ??= Players.FirstOrDefault(p => !p.IsBankrupt);
             Phase = GamePhase.GameOver;
+            _notifications.Complete();
             return GameActionResult.Over(new TurnResult { Player = CurrentPlayer, GameOver = true, Winner = Winner });
         }
 
@@ -178,7 +187,7 @@ public sealed class Game : IGame
             landedSquare.Position,
             isDouble,
             false);
-        GameEvents.InvokeLandOnSquare(this, landedSquare);
+        PublishNotification(new SpaceReachedNotification(landedSquare));
         landedSquare.LandOn(player, this);
 
         if (PendingDecision is not null)
@@ -189,6 +198,9 @@ public sealed class Game : IGame
 
     public GameActionResult SubmitDecision(DecisionResponse? response)
     {
+        if (_notificationDispatchDepth > 0)
+            return GameActionResult.Rejected(GameActionRejectionReason.OperationInProgress, PendingDecision);
+
         if (response is null || response.DecisionId == Guid.Empty || !Enum.IsDefined(response.Response))
             return GameActionResult.Rejected(GameActionRejectionReason.MalformedResponse, PendingDecision);
 
@@ -345,7 +357,7 @@ public sealed class Game : IGame
                 landedSquare.Position,
                 true,
                 true);
-            GameEvents.InvokeLandOnSquare(this, landedSquare);
+            PublishNotification(new SpaceReachedNotification(landedSquare));
             landedSquare.LandOn(player, this);
             if (PendingDecision is not null)
                 return GameActionResult.DecisionRequired(PendingDecision);
@@ -429,6 +441,7 @@ public sealed class Game : IGame
         if (result.GameOver)
         {
             Phase = GamePhase.GameOver;
+            _notifications.Complete();
             return GameActionResult.Over(result);
         }
 
@@ -469,7 +482,26 @@ public sealed class Game : IGame
         return Board.GetSquareAtPosition(player.Position);
     }
 
+    internal void PublishNotification(GameNotification notification)
+    {
+        _notificationDispatchDepth++;
+        try
+        {
+            _notifications.Publish(notification);
+        }
+        finally
+        {
+            _notificationDispatchDepth--;
+        }
+    }
+
     internal void NextPlayer() => AdvanceToNextActivePlayer();
+
+    private void EnsureNotificationIsNotBeingPublished()
+    {
+        if (_notificationDispatchDepth > 0)
+            throw new InvalidOperationException("Authoritative operations cannot start while a presentation notification is being delivered.");
+    }
 
     private void AdvanceToNextActivePlayer()
     {

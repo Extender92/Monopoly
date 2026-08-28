@@ -89,7 +89,10 @@ namespace Monopoly.Console.GUI
         }
 
         // Needs refactoring and Testing
-        internal void PrepareAndPrintSquareCard(int boardPosition, IChanceCard? chanceCard = null, ICommunityChestCard? communityChestCard = null)
+        internal void PrepareAndPrintSquareCard(
+            int boardPosition,
+            IFortuneCardView? drawnCard = null,
+            string? presentationToken = null)
         {
             SquareCard squareCard = SquareCards.First(s => s.BoardPosition == boardPosition);
 
@@ -133,15 +136,15 @@ namespace Monopoly.Console.GUI
             string infoText = squareCard.Info;
             int length = cardHorizontalLength - 1;
 
-            if (chanceCard is not null)
+            if (drawnCard is not null)
             {
-                borderColor = ConsoleColor.Red;
-                infoText += (". " + chanceCard.Info);
-            }
-            else if (communityChestCard is not null)
-            {
-                borderColor = ConsoleColor.Blue;
-                infoText += (". " + communityChestCard.Info);
+                borderColor = presentationToken switch
+                {
+                    "event.primary" => ConsoleColor.Red,
+                    "event.secondary" => ConsoleColor.Blue,
+                    _ => ConsoleColor.White
+                };
+                infoText += (". " + drawnCard.Info);
             }
 
             List<string> stringList = Utilities.StringHelper.CenterStringInList(Utilities.StringHelper.GetListOfStringsFromString(infoText, length), length);

@@ -3,21 +3,12 @@ using Monopoly.Console.Events;
 using Monopoly.Console.GUI;
 using Monopoly.Console.Models;
 using Monopoly.Core;
-using Monopoly.Core.Events;
 using Monopoly.Core.Models;
 using Monopoly.Core.Persistence;
 using Moq;
-using System.Reflection;
 
 namespace Monopoly.Tests.ConsoleTests;
 
-[CollectionDefinition(Name, DisableParallelization = true)]
-public sealed class ConsoleEventCollection
-{
-    public const string Name = "Console events";
-}
-
-[Collection(ConsoleEventCollection.Name)]
 public class ConsoleEventHandlerTests
 {
     [Fact]
@@ -25,103 +16,73 @@ public class ConsoleEventHandlerTests
     {
         ConsoleSession session = CreateSession();
         Player player = session.Game.CurrentPlayer;
+        using IDisposable subscription = ConsoleEventHandler.Subscribe(session.ConsoleGame);
 
-        ConsoleEventHandler.SubscribeToEvents(session.ConsoleGame);
-        try
-        {
-            session.Game.TheJail.PlayerGoToJail(player);
-            session.ConsoleGame.UpdateGameInformation(
-                session.Game.Board.GetSquareAtPosition(player.Position),
-                player);
+        session.Game.TheJail.PlayerGoToJail(player);
+        session.ConsoleGame.UpdateGameInformation(
+            session.Game.Board.GetSquareAtPosition(player.Position),
+            player);
 
-            Assert.Single(session.Game.Logs.LogList);
-            Assert.Contains("sent to jail", session.Game.Logs.LogList[0].Info);
-            Assert.Equal(1, CountLogRefreshes(session.Console));
-        }
-        finally
-        {
-            ConsoleEventHandler.UnsubscribeFromEvents(session.ConsoleGame);
-        }
+        Assert.Single(session.Game.Logs.LogList);
+        Assert.Contains("sent to jail", session.Game.Logs.LogList[0].Info);
+        Assert.Equal(1, CountLogRefreshes(session.Console));
     }
 
     [Fact]
-    public void StartingAnotherConsoleGameDoesNotDuplicateOrMisrouteSubscribers()
+    public void SimultaneousConsoleGamesReceiveOnlyTheirMatchNotifications()
     {
         ConsoleSession first = CreateSession();
         ConsoleSession second = CreateSession();
+        using IDisposable firstSubscription = ConsoleEventHandler.Subscribe(first.ConsoleGame);
+        using IDisposable secondSubscription = ConsoleEventHandler.Subscribe(second.ConsoleGame);
 
-        ConsoleEventHandler.SubscribeToEvents(first.ConsoleGame);
-        try
-        {
-            Assert.Equal(1, GetSubscriberCount("UpdateGameBoard"));
+        first.Game.LogWriter.CreateLog("First game log");
 
-            ConsoleEventHandler.SubscribeToEvents(second.ConsoleGame);
-            Assert.Equal(1, GetSubscriberCount("UpdateGameBoard"));
+        Assert.Equal(1, CountLogRefreshes(first.Console));
+        Assert.Equal(0, CountLogRefreshes(second.Console));
 
-            first.Game.LogWriter.CreateLog("First game log");
-            second.Game.LogWriter.CreateLog("Second game log");
+        second.Game.LogWriter.CreateLog("Second game log");
 
-            Assert.Equal(0, CountLogRefreshes(first.Console));
-            Assert.Equal(1, CountLogRefreshes(second.Console));
-        }
-        finally
-        {
-            ConsoleEventHandler.UnsubscribeFromEvents(second.ConsoleGame);
-            ConsoleEventHandler.UnsubscribeFromEvents(first.ConsoleGame);
-        }
-
-        Assert.Equal(0, GetSubscriberCount("UpdateGameBoard"));
+        Assert.Equal(1, CountLogRefreshes(first.Console));
+        Assert.Equal(1, CountLogRefreshes(second.Console));
     }
 
     [Fact]
-    public void UnsubscribingReplacedSessionKeepsCurrentSessionSubscribed()
+    public void DisposingReplacedSessionKeepsCurrentSessionSubscribed()
     {
         ConsoleSession first = CreateSession();
         ConsoleSession second = CreateSession();
+        IDisposable firstSubscription = ConsoleEventHandler.Subscribe(first.ConsoleGame);
+        using IDisposable secondSubscription = ConsoleEventHandler.Subscribe(second.ConsoleGame);
 
-        ConsoleEventHandler.SubscribeToEvents(first.ConsoleGame);
-        ConsoleEventHandler.SubscribeToEvents(second.ConsoleGame);
-        try
-        {
-            ConsoleEventHandler.UnsubscribeFromEvents(first.ConsoleGame);
-            second.Game.LogWriter.CreateLog("Current session log");
+        firstSubscription.Dispose();
+        firstSubscription.Dispose();
+        first.Game.LogWriter.CreateLog("Replaced session log");
+        second.Game.LogWriter.CreateLog("Current session log");
 
-            Assert.Equal(1, CountLogRefreshes(second.Console));
-
-            ConsoleEventHandler.UnsubscribeFromEvents(second.ConsoleGame);
-            second.Game.LogWriter.CreateLog("Log after session cleanup");
-
-            Assert.Equal(1, CountLogRefreshes(second.Console));
-        }
-        finally
-        {
-            ConsoleEventHandler.UnsubscribeFromEvents(second.ConsoleGame);
-            ConsoleEventHandler.UnsubscribeFromEvents(first.ConsoleGame);
-        }
+        Assert.Equal(0, CountLogRefreshes(first.Console));
+        Assert.Equal(1, CountLogRefreshes(second.Console));
+        Assert.Equal(0, first.Game.NotificationSubscriberCount);
+        Assert.Equal(1, second.Game.NotificationSubscriberCount);
     }
 
     [Fact]
-    public void RepeatedSubscribeAndUnsubscribeDoesNotAccumulateLogDelivery()
+    public void RepeatedSessionSubscriptionsDoNotAccumulateDelivery()
     {
         for (int cycle = 0; cycle < 3; cycle++)
         {
             ConsoleSession session = CreateSession();
+            IDisposable subscription = ConsoleEventHandler.Subscribe(session.ConsoleGame);
 
-            ConsoleEventHandler.SubscribeToEvents(session.ConsoleGame);
-            ConsoleEventHandler.SubscribeToEvents(session.ConsoleGame);
-            try
-            {
-                session.Game.LogWriter.CreateLog($"Cycle {cycle}");
-                Assert.Equal(1, CountLogRefreshes(session.Console));
-            }
-            finally
-            {
-                ConsoleEventHandler.UnsubscribeFromEvents(session.ConsoleGame);
-            }
-
-            session.Game.LogWriter.CreateLog($"After cycle {cycle}");
+            session.Game.LogWriter.CreateLog($"Cycle {cycle}");
             Assert.Equal(1, CountLogRefreshes(session.Console));
-            Assert.Equal(0, GetSubscriberCount("LogAddedEvent"));
+
+            subscription.Dispose();
+            subscription.Dispose();
+            session.Game.LogWriter.CreateLog($"After cycle {cycle}");
+
+            Assert.Equal(1, CountLogRefreshes(session.Console));
+            Assert.Equal(0, session.Game.NotificationSubscriberCount);
         }
     }
 
@@ -129,21 +90,14 @@ public class ConsoleEventHandlerTests
     public void MultipleLogNotificationsKeepNewestEntriesVisibleInOrder()
     {
         ConsoleSession session = CreateSession();
-        string[] entries = ["Payment", "Jail", "Card", "Landing"];
+        string[] entries = ["Payment", "Detention", "Event", "Landing"];
+        using IDisposable subscription = ConsoleEventHandler.Subscribe(session.ConsoleGame);
 
-        ConsoleEventHandler.SubscribeToEvents(session.ConsoleGame);
-        try
-        {
-            foreach (string entry in entries)
-                session.Game.LogWriter.CreateLog(entry);
+        foreach (string entry in entries)
+            session.Game.LogWriter.CreateLog(entry);
 
-            Assert.Equal(entries.Length, CountLogRefreshes(session.Console));
-            Assert.Equal(entries.Reverse(), GetLastRenderedEntries(session.Console, entries));
-        }
-        finally
-        {
-            ConsoleEventHandler.UnsubscribeFromEvents(session.ConsoleGame);
-        }
+        Assert.Equal(entries.Length, CountLogRefreshes(session.Console));
+        Assert.Equal(entries.Reverse(), GetLastRenderedEntries(session.Console, entries));
     }
 
     private static ConsoleSession CreateSession()
@@ -201,13 +155,6 @@ public class ConsoleEventHandlerTests
             .Where(invocation => invocation.Method.Name == nameof(IConsoleWrapper.Write))
             .Select(invocation => Assert.IsType<string>(invocation.Arguments[0]))
             .ToList();
-
-    private static int GetSubscriberCount(string eventName)
-    {
-        FieldInfo? field = typeof(GameEvents)
-            .GetField(eventName, BindingFlags.Static | BindingFlags.NonPublic);
-        return ((Delegate?)field?.GetValue(null))?.GetInvocationList().Length ?? 0;
-    }
 
     private sealed record ConsoleSession(
         Game Game,
