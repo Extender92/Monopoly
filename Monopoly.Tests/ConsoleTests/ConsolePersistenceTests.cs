@@ -21,14 +21,18 @@ public sealed class ConsolePersistenceTests
     {
         Mock<IGameSaveStore> saveStore = new();
         saveStore
-            .Setup(store => store.Load(It.IsAny<IPlayerDecisionProvider?>()))
+            .Setup(store => store.Load(
+                It.IsAny<IPlayerDecisionProvider?>(),
+                It.Is<IMatchRandomSource?>(source => source is SystemMatchRandomSource)))
             .Throws(new SaveStoreException(kind, "failure"));
         Mock<IConsoleWrapper> console = new();
         console.Setup(wrapper => wrapper.ReadLine()).Returns(string.Empty);
 
         Program.LoadGame(saveStore.Object, console.Object);
 
-        saveStore.Verify(store => store.Load(It.IsAny<IPlayerDecisionProvider?>()), Times.Once);
+        saveStore.Verify(store => store.Load(
+            It.IsAny<IPlayerDecisionProvider?>(),
+            It.Is<IMatchRandomSource?>(source => source is SystemMatchRandomSource)), Times.Once);
         console.Verify(
             wrapper => wrapper.WriteLine(It.Is<string>(message => message.StartsWith(expectedMessage, StringComparison.Ordinal))),
             Times.Once);

@@ -4,6 +4,7 @@ using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 using Monopoly.Core.Notifications;
 using Monopoly.Core.Presentation;
+using Monopoly.Core.Randomness;
 using System.Collections.ObjectModel;
 
 namespace Monopoly.Core;
@@ -12,8 +13,6 @@ public sealed class Game : IGame
 {
     private readonly List<Player> _players;
     private readonly ReadOnlyCollection<Player> _playersView;
-    private readonly List<IDie> _dice;
-    private readonly ReadOnlyCollection<IDieView> _diceView;
     private readonly HashSet<Guid> _consumedDecisionIds = new();
     private readonly GameNotificationHub _notifications = new();
     private TurnContinuation? _turnContinuation;
@@ -28,8 +27,8 @@ public sealed class Game : IGame
     public GameBoard Board { get; }
     public IReadOnlyList<Player> Players => _playersView;
     public Player CurrentPlayer { get; private set; }
-    public IReadOnlyList<IDieView> Dice => _diceView;
-    internal IReadOnlyList<IDie> DiceControllers => _dice;
+    public DiceRoll? LastDiceRoll { get; private set; }
+    internal MatchRandomizer Randomizer { get; }
     public GameRules Rules { get; }
     public ProfilePresentation Presentation { get; }
     internal Transaction Transactions { get; }
@@ -53,34 +52,36 @@ public sealed class Game : IGame
         Player currentPlayer,
         GameRules rules,
         IPlayerDecisionProvider? decisions = null,
-        ProfilePresentation? presentation = null)
-        : this(players, currentPlayer, CreateDice(rules), rules, new LogHandler(), decisions, presentation)
+        ProfilePresentation? presentation = null,
+        IMatchRandomSource? randomSource = null)
+        : this(players, currentPlayer, rules, new LogHandler(), decisions, presentation, randomSource, true)
     {
     }
 
     internal Game(
         IEnumerable<Player> players,
         Player currentPlayer,
-        IEnumerable<IDie> dice,
         GameRules rules,
-        IPlayerDecisionProvider? decisions = null,
-        ProfilePresentation? presentation = null)
-        : this(players, currentPlayer, dice, rules, new LogHandler(), decisions, presentation)
+        IPlayerDecisionProvider? decisions,
+        ProfilePresentation? presentation,
+        IMatchRandomSource? randomSource,
+        bool shuffleDecks)
+        : this(players, currentPlayer, rules, new LogHandler(), decisions, presentation, randomSource, shuffleDecks)
     {
     }
 
     internal Game(
         IEnumerable<Player> players,
         Player currentPlayer,
-        IEnumerable<IDie> dice,
         GameRules rules,
         ILogHandler logs,
         IPlayerDecisionProvider? decisions = null,
-        ProfilePresentation? presentation = null)
+        ProfilePresentation? presentation = null,
+        IMatchRandomSource? randomSource = null,
+        bool shuffleDecks = true)
     {
         ArgumentNullException.ThrowIfNull(players);
         ArgumentNullException.ThrowIfNull(currentPlayer);
-        ArgumentNullException.ThrowIfNull(dice);
         ArgumentNullException.ThrowIfNull(rules);
         ArgumentNullException.ThrowIfNull(logs);
 
@@ -96,27 +97,18 @@ public sealed class Game : IGame
         if (_players.Count > rules.NumberOfPlayers)
             throw new ArgumentException("The supplied players cannot exceed the configured player count.", nameof(players));
 
-        _dice = dice.ToList();
-        if (_dice.Any(die => die is null) || _dice.Count != rules.NumberOfDice)
-            throw new ArgumentException("The supplied dice must match the game rules.", nameof(dice));
-        if (_dice.Any(die => die.GetDieType() != rules.DieSides))
-            throw new ArgumentException("Every die must match the configured number of sides.", nameof(dice));
-
         _playersView = _players.AsReadOnly();
-        _diceView = _dice
-            .Select(die => (IDieView)new ReadOnlyDieView(die))
-            .ToList()
-            .AsReadOnly();
         CurrentPlayer = currentPlayer;
         Rules = rules;
         _logs = logs;
         Decisions = decisions ?? new DefaultPlayerDecisionProvider();
+        Randomizer = new MatchRandomizer(randomSource ?? new SystemMatchRandomSource());
 
         Fines = 0;
         CurrentTurn = 1;
         Phase = GamePhase.ReadyForTurn;
         Board = new GameBoard(rules);
-        FortuneCard = new FortuneCardHandler(rules);
+        FortuneCard = new FortuneCardHandler(rules, Randomizer, shuffleDecks);
         ProfilePresentation defaultPresentation = LegacyPresentationFactory.Create(rules, Board, FortuneCard);
         Presentation = presentation ?? defaultPresentation;
         Presentation.EnsureReferences(LegacyPresentationFactory.RequiredReferences(Board, FortuneCard));
@@ -181,27 +173,22 @@ public sealed class Game : IGame
         if (TheJail.IsPlayerInJail(player))
             return RequestJailDecision(player);
 
-        Handler.RollDice(player);
-        IReadOnlyList<int> results = Dice.Select(die => die.GetDieResult()).ToList().AsReadOnly();
-        int diceSum = Handler.CalculateDiceSum();
-        bool isDouble = Handler.IsDiceDouble();
+        DiceRoll roll = Handler.RollDice(player, RandomPurpose.TurnDice);
 
-        if (isDouble && ConsecutiveDoubles == 2)
+        if (roll.IsDouble && ConsecutiveDoubles == 2)
         {
             ConsecutiveDoubles = 0;
             TheJail.PlayerGoToJail(player, "Rolled doubles three times in a row");
             AdvanceToNextActivePlayer();
-            return CompleteAction(BuildResult(player, results, diceSum, null, true, true, false, false));
+            return CompleteAction(BuildResult(player, roll, null, true, false, false));
         }
 
-        Square landedSquare = MovePlayerBySteps(player, diceSum);
+        Square landedSquare = MovePlayerBySteps(player, roll.Sum);
         _turnContinuation = new TurnContinuation(
             TurnContinuationKind.StandardLanding,
             player.Id,
-            results,
-            diceSum,
+            roll,
             landedSquare.Position,
-            isDouble,
             false);
         PublishNotification(new SpaceReachedNotification(landedSquare));
         landedSquare.LandOn(player, this);
@@ -242,12 +229,15 @@ public sealed class Game : IGame
             return GameActionResult.Rejected(GameActionRejectionReason.ResponseNotAllowed, PendingDecision);
 
         PendingDecision acceptedDecision = PendingDecision;
+        DiceRoll? preparedDetentionRoll = acceptedDecision is JailReleaseDecision
+            ? Handler.PrepareDiceRoll(RandomPurpose.DetentionDice)
+            : null;
         ConsumePendingDecision(acceptedDecision.DecisionId);
 
         return acceptedDecision switch
         {
             PropertyPurchaseDecision purchase => ResumePropertyPurchase(purchase, response.Response),
-            JailReleaseDecision => ResumeJailTurn(response.Response),
+            JailReleaseDecision => ResumeJailTurn(response.Response, preparedDetentionRoll!),
             _ => throw new InvalidOperationException("The pending decision type is not supported.")
         };
     }
@@ -328,7 +318,7 @@ public sealed class Game : IGame
         return CompleteTurnContinuation(player);
     }
 
-    private GameActionResult ResumeJailTurn(DecisionOption response)
+    private GameActionResult ResumeJailTurn(DecisionOption response, DiceRoll roll)
     {
         Player player = CurrentPlayer;
         if (response == DecisionOption.LeaveJail)
@@ -346,32 +336,27 @@ public sealed class Game : IGame
             if (player.IsBankrupt)
             {
                 AdvanceToNextActivePlayer();
-                return CompleteAction(BuildResult(player, Array.Empty<int>(), 0, null, false, false, false, false, true));
+                return CompleteAction(BuildResult(player, null, null, false, false, false, true));
             }
         }
 
-        Handler.RollDice(player);
-        IReadOnlyList<int> results = Dice.Select(die => die.GetDieResult()).ToList().AsReadOnly();
-        int diceSum = Handler.CalculateDiceSum();
-        bool isDouble = Handler.IsDiceDouble();
+        Handler.CommitDiceRoll(player, roll);
 
         if (!TheJail.TryGetJailInfo(player, out _))
         {
             AdvanceToNextActivePlayer();
-            return CompleteAction(BuildResult(player, results, diceSum, null, isDouble, false, false, false));
+            return CompleteAction(BuildResult(player, roll, null, false, false, false));
         }
 
-        if (isDouble)
+        if (roll.IsDouble)
         {
             TheJail.ReleasePlayerFromJail(player, ", rolled doubles");
-            Square landedSquare = MovePlayerBySteps(player, diceSum);
+            Square landedSquare = MovePlayerBySteps(player, roll.Sum);
             _turnContinuation = new TurnContinuation(
                 TurnContinuationKind.JailDoubleLanding,
                 player.Id,
-                results,
-                diceSum,
+                roll,
                 landedSquare.Position,
-                true,
                 true);
             PublishNotification(new SpaceReachedNotification(landedSquare));
             landedSquare.LandOn(player, this);
@@ -396,12 +381,12 @@ public sealed class Game : IGame
             else
             {
                 AdvanceToNextActivePlayer();
-                return CompleteAction(BuildResult(player, results, diceSum, null, false, false, false, false, true));
+                return CompleteAction(BuildResult(player, roll, null, false, false, false, true));
             }
         }
 
         AdvanceToNextActivePlayer();
-        return CompleteAction(BuildResult(player, results, diceSum, null, false, false, false, false));
+        return CompleteAction(BuildResult(player, roll, null, false, false, false));
     }
 
     private GameActionResult CompleteTurnContinuation(Player? knownPlayer = null)
@@ -419,10 +404,8 @@ public sealed class Game : IGame
             AdvanceToNextActivePlayer();
             return CompleteAction(BuildResult(
                 player,
-                continuation.DiceResults,
-                continuation.DiceSum,
+                continuation.Roll,
                 landedSquare,
-                true,
                 false,
                 continuation.WasReleasedFromJailByDouble,
                 false));
@@ -430,7 +413,7 @@ public sealed class Game : IGame
 
         bool bankrupt = player.IsBankrupt;
         bool sentToJail = !bankrupt && TheJail.IsPlayerInJail(player);
-        if (!bankrupt && (sentToJail || !continuation.WasDouble))
+        if (!bankrupt && (sentToJail || !continuation.Roll.IsDouble))
         {
             ConsecutiveDoubles = 0;
             AdvanceToNextActivePlayer();
@@ -443,13 +426,11 @@ public sealed class Game : IGame
 
         return CompleteAction(BuildResult(
             player,
-            continuation.DiceResults,
-            continuation.DiceSum,
+            continuation.Roll,
             landedSquare,
-            continuation.WasDouble,
             sentToJail,
             false,
-            continuation.WasDouble && !bankrupt && !sentToJail));
+            continuation.Roll.IsDouble && !bankrupt && !sentToJail));
     }
 
     private GameActionResult CompleteAction(TurnResult result)
@@ -467,10 +448,8 @@ public sealed class Game : IGame
 
     private TurnResult BuildResult(
         Player player,
-        IReadOnlyList<int> results,
-        int diceSum,
+        DiceRoll? roll,
         Square? landedSquare,
-        bool wasDouble,
         bool wasSentToJail,
         bool wasReleasedFromJailByDouble,
         bool extraTurn,
@@ -479,10 +458,8 @@ public sealed class Game : IGame
         return new TurnResult
         {
             Player = player,
-            DiceResults = results,
-            DiceSum = diceSum,
+            Roll = roll,
             LandedSquare = landedSquare,
-            WasDouble = wasDouble,
             WasSentToJail = wasSentToJail,
             WasReleasedFromJailByDouble = wasReleasedFromJailByDouble,
             ExtraTurn = extraTurn,
@@ -490,6 +467,11 @@ public sealed class Game : IGame
             GameOver = IsGameOver,
             Winner = Winner
         };
+    }
+
+    internal void CommitDiceRoll(DiceRoll roll)
+    {
+        LastDiceRoll = roll ?? throw new ArgumentNullException(nameof(roll));
     }
 
     internal Square MovePlayerBySteps(Player player, int steps)
@@ -676,19 +658,4 @@ public sealed class Game : IGame
             throw new InvalidOperationException("Winner state is inconsistent with the active players.");
     }
 
-    private static IReadOnlyList<IDie> CreateDice(GameRules rules)
-    {
-        ArgumentNullException.ThrowIfNull(rules);
-        return Enumerable.Range(0, rules.NumberOfDice)
-            .Select(_ => (IDie)new Die(rules.DieSides))
-            .ToList()
-            .AsReadOnly();
-    }
-
-    private sealed class ReadOnlyDieView(IDie die) : IDieView
-    {
-        public int GetDieResult() => die.GetDieResult();
-
-        public int GetDieType() => die.GetDieType();
-    }
 }

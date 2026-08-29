@@ -17,7 +17,7 @@ public sealed class GameStateEncapsulationTests
         AssertNoPublicSetter<Game>(
             nameof(Game.Players),
             nameof(Game.CurrentPlayer),
-            nameof(Game.Dice),
+            nameof(Game.LastDiceRoll),
             nameof(Game.Rules),
             nameof(Game.Presentation),
             nameof(Game.Fines),
@@ -75,10 +75,10 @@ public sealed class GameStateEncapsulationTests
             .WithPlayerInJail(1)
             .Build();
         game.LogWriter.CreateLog("immutable log view");
+        game.Handler.RollDice(game.CurrentPlayer);
 
         Assert.Throws<NotSupportedException>(() => ((IList<Player>)game.Players).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IList<IDieView>)game.Dice).Clear());
-        Assert.All(game.Dice, die => Assert.False(die is IDie));
+        Assert.Throws<NotSupportedException>(() => ((IList<int>)game.LastDiceRoll!.Results).Clear());
         Assert.Throws<NotSupportedException>(() => ((IList<Square>)game.Board.Squares).Clear());
         Assert.Throws<NotSupportedException>(() => ((IList<PropertySquare>)game.Board.GetAllPropertySquares()).Clear());
         Assert.Throws<NotSupportedException>(() => ((IList<Log>)game.Logs.LogList).Clear());
@@ -91,7 +91,7 @@ public sealed class GameStateEncapsulationTests
         Assert.Equal(2, game.Players.Count);
         Assert.Equal(40, game.Board.Squares.Count);
         Assert.Single(game.TheJail.PlayersInJail);
-        Assert.Single(game.Logs.LogList);
+        Assert.Equal(2, game.Logs.LogList.Count);
     }
 
     [Fact]
@@ -100,24 +100,23 @@ public sealed class GameStateEncapsulationTests
         Player first = new("First", 0);
         Player second = new("Second", 1);
         List<Player> players = [first, second];
-        List<IDie> dice = [new Die(6), new Die(6)];
-        Game game = new(players, first, dice, new GameRules(2, 2, 6));
+        Game game = new(players, first, new GameRules(2, 2, 6), randomSource: new MinimumMatchRandomSource());
 
         players.Clear();
-        dice.Clear();
 
         Assert.Equal(new[] { first, second }, game.Players);
-        Assert.Equal(2, game.Dice.Count);
+        Assert.Null(game.LastDiceRoll);
     }
 
     [Fact]
     public void PublicGameConstruction_DoesNotExposeMutableDiceInjection()
     {
+        Assert.Null(typeof(Game).Assembly.GetType("Monopoly.Core.Models.IDie"));
+        Assert.Null(typeof(Game).Assembly.GetType("Monopoly.Core.Models.Die"));
+        Assert.Equal(typeof(DiceRoll), typeof(Game).GetProperty(nameof(Game.LastDiceRoll))!.PropertyType);
         Assert.DoesNotContain(
-            typeof(Game).GetConstructors(),
-            constructor => constructor.GetParameters().Any(parameter =>
-                typeof(IEnumerable<IDie>).IsAssignableFrom(parameter.ParameterType)));
-        Assert.Equal(typeof(IReadOnlyList<IDieView>), typeof(Game).GetProperty(nameof(Game.Dice))!.PropertyType);
+            typeof(Game).GetProperties(BindingFlags.Instance | BindingFlags.Public),
+            property => typeof(IMatchRandomSource).IsAssignableFrom(property.PropertyType));
     }
 
     [Fact]
@@ -168,11 +167,9 @@ public sealed class GameStateEncapsulationTests
         GameRules rules = new(2, 2, 6);
 
         Assert.Throws<ArgumentException>(() =>
-            new Game([first, duplicateId], first, [new Die(6), new Die(6)], rules));
+            new Game([first, duplicateId], first, rules, randomSource: new MinimumMatchRandomSource()));
         Assert.Throws<ArgumentException>(() =>
-            new Game([first, new Player("Second", 1)], foreignCurrentPlayer, [new Die(6), new Die(6)], rules));
-        Assert.Throws<ArgumentException>(() =>
-            new Game([first, new Player("Second", 1)], first, [new Die(4), new Die(4)], rules));
+            new Game([first, new Player("Second", 1)], foreignCurrentPlayer, rules, randomSource: new MinimumMatchRandomSource()));
     }
 
     [Fact]

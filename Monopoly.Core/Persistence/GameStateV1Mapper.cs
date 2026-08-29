@@ -3,6 +3,7 @@ using Monopoly.Core.Interface;
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Randomness;
 
 namespace Monopoly.Core.Persistence;
 
@@ -37,13 +38,10 @@ public static class GameStateV1Mapper
         };
     }
 
-    public static Game FromState(GameStateV1 state, IPlayerDecisionProvider? decisions = null)
-        => FromState(state, decisions, null);
-
-    internal static Game FromState(
+    public static Game FromState(
         GameStateV1 state,
-        IPlayerDecisionProvider? decisions,
-        IReadOnlyList<IDie>? dice)
+        IPlayerDecisionProvider? decisions = null,
+        IMatchRandomSource? randomSource = null)
     {
         ArgumentNullException.ThrowIfNull(state);
         Validate(state);
@@ -54,11 +52,14 @@ public static class GameStateV1Mapper
             List<Player> players = state.Players.Select(player => player.ToPlayer()).ToList();
             Dictionary<int, Player> playersById = players.ToDictionary(player => player.Id);
             Player currentPlayer = playersById[state.CurrentPlayerId];
-            IReadOnlyList<IDie> runtimeDice = dice ?? Enumerable.Range(0, rules.NumberOfDice)
-                .Select(_ => (IDie)new Die(rules.DieSides))
-                .ToList();
-
-            Game game = new(players, currentPlayer, runtimeDice, rules, decisions);
+            Game game = new(
+                players,
+                currentPlayer,
+                rules,
+                decisions,
+                presentation: null,
+                randomSource: randomSource,
+                shuffleDecks: false);
             game.RestoreTurnState(state.Fines, state.CurrentTurn, state.ConsecutiveDoubles);
 
             foreach (SquareState squareState in state.Squares)

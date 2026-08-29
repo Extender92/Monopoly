@@ -190,12 +190,16 @@ The following values are not required as part of the domain save contract:
 - Frontend token colors, sprites, sounds or animations.
 - Cached rendering models.
 - Previous dice results after their effects are fully resolved.
-- Random-number-generator state unless deterministic replay becomes a separate
-  product requirement.
+- The runtime random-source instance, seed and consumption position.
 
 Runtime services are injected again when the loaded match is composed.
 Non-authoritative history or frontend preferences may be stored separately, but
 game correctness must not depend on them.
+
+Committed outcomes that still affect future behavior are authoritative. A
+resumable continuation therefore carries its immutable dice purpose and
+results. This is distinct from persisting or attempting to resume the runtime
+random source itself.
 
 ## Reconstruction order
 
@@ -315,7 +319,9 @@ that rejection before creating a temporary file or replacing an existing save.
 `GameProgressState`, `PendingDecisionState` and `TurnContinuationState` are
 detached primitive/enum DTO projections prepared for Version 2. They are not
 serialized into the Version 1 envelope and have no physical persistence path
-in this version.
+in this version. `TurnContinuationState` records the committed dice purpose,
+individual results and derived roll values, but never an RNG instance, seed or
+source position.
 
 The current top-level JSON structure is:
 
@@ -409,13 +415,19 @@ The current loader:
 
 1. Requires `Version = 1`.
 2. Validates the Version 1 DTO.
-3. Recreates `GameRules`, players and dice.
-4. Constructs a new `Game`, which rebuilds its board, Jail and card handler.
+3. Recreates `GameRules` and players and receives a new runtime random source.
+4. Constructs a new `Game`, which rebuilds its board, Jail and card handler
+   without shuffling or consuming that source.
 5. Restores fines, turn and doubles state.
 6. Reconnects square owners by player ID.
 7. Restores mortgage, buildings and Jail state.
 8. Restores both card queues.
 9. Derives a winner when exactly one active saved player remains.
+
+Version 1 keeps its exact existing wire representation: it stores neither a
+random source nor `LastDiceRoll`. Queue reconstruction uses the saved order and
+does not perform a throwaway shuffle first. The Console composes a fresh
+`SystemMatchRandomSource` for each loaded match.
 
 The Version 1 DTOs remain mutable serialization data and are deliberately
 separate from live match objects. Reconstruction creates new players, board

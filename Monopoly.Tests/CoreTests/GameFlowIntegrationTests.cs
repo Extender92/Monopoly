@@ -95,7 +95,7 @@ public sealed class GameFlowIntegrationTests
     {
         Game game = new GameTestBuilder()
             .WithPlayer(0, money: 1000, position: 39)
-            .WithDice(new FixedDie(2), new FixedDie(2))
+            .WithRandomValues(2, 2)
             .Build();
         Player player = game.Players[0];
 
@@ -111,7 +111,7 @@ public sealed class GameFlowIntegrationTests
     {
         Game game = new GameTestBuilder(new GameRules(2, 2, 30))
             .WithPlayerInJail(0)
-            .WithDice(new FixedDie(30, [21]), new FixedDie(30, [21]))
+            .WithRandomValues(21, 21)
             .Build();
         Player player = game.Players[0];
         Player next = game.Players[1];
@@ -133,7 +133,7 @@ public sealed class GameFlowIntegrationTests
         Game game = new GameTestBuilder()
             .WithPlayer(0, money: 100)
             .WithPlayerInJail(0)
-            .WithDice(new FixedDie(1), new FixedDie(4))
+            .WithRandomValues(1, 4)
             .WithDecisions(decisions)
             .Build();
         Player player = game.Players[0];
@@ -159,7 +159,7 @@ public sealed class GameFlowIntegrationTests
         Game game = new GameTestBuilder()
             .WithPlayer(0, money: 100)
             .WithPlayerInJail(0)
-            .WithDice(new FixedDie(2), new FixedDie(2))
+            .WithRandomValues(2, 2)
             .WithDecisions(decisions)
             .Build();
         Player player = game.Players[0];
@@ -184,7 +184,7 @@ public sealed class GameFlowIntegrationTests
     {
         Game game = new GameTestBuilder()
             .WithPlayer(0, position: 1)
-            .WithDice(new FixedDie(1, 1, 1), new FixedDie(1, 1, 1))
+            .WithRandomValues(1, 1, 1, 1, 1, 1)
             .Build();
         Player player = game.Players[0];
         Player next = game.Players[1];
@@ -255,7 +255,7 @@ public sealed class GameFlowIntegrationTests
             .WithSquare(3, ownerId: 2)
             .WithPlayer(0, money: 0)
             .WithTurn(4, consecutiveDoubles: 1)
-            .WithDice(new FixedDie(1), new FixedDie(2))
+            .WithRandomValues(1, 2)
             .Build();
         Player debtor = game.Players[0];
         Player expectedNext = game.Players[1];
@@ -279,7 +279,7 @@ public sealed class GameFlowIntegrationTests
         Game game = new GameTestBuilder(3)
             .WithPlayer(0, money: 0)
             .WithTurn(3, consecutiveDoubles: 2)
-            .WithDice(new FixedDie(1), new FixedDie(3))
+            .WithRandomValues(1, 3)
             .Build();
         Player debtor = game.Players[0];
         Player expectedNext = game.Players[1];
@@ -354,12 +354,11 @@ public sealed class GameFlowIntegrationTests
     [Fact]
     public void FinalBankruptcySetsSurvivorAsCurrentWinnerAndStopsFurtherTurns()
     {
-        FixedDie firstDie = new(1);
-        FixedDie secondDie = new(2);
+        ScriptedMatchRandomSource randomSource = new(1, 2);
         Game game = new GameTestBuilder()
             .WithSquare(3, ownerId: 1)
             .WithPlayer(0, money: 0)
-            .WithDice(firstDie, secondDie)
+            .WithRandomSource(randomSource)
             .Build();
         Player debtor = game.Players[0];
         Player survivor = game.Players[1];
@@ -374,39 +373,7 @@ public sealed class GameFlowIntegrationTests
         Assert.Same(survivor, game.Winner);
         Assert.True(gameOverResult.GameOver);
         Assert.Same(survivor, gameOverResult.Winner);
-        Assert.Equal(1, firstDie.RollCount);
-        Assert.Equal(1, secondDie.RollCount);
-    }
-
-    private sealed class FixedDie : IDie
-    {
-        private readonly Queue<int> values;
-        private int result;
-
-        public int RollCount { get; private set; }
-
-        private readonly int dieSides;
-
-        public FixedDie(params int[] values)
-            : this(6, values)
-        {
-        }
-
-        public FixedDie(int dieSides, IEnumerable<int> values)
-        {
-            this.dieSides = dieSides;
-            this.values = new Queue<int>(values);
-            result = this.values.Count > 0 ? this.values.Peek() : 1;
-        }
-
-        public int GetDieResult() => result;
-        public int GetDieType() => dieSides;
-        public void Roll()
-        {
-            RollCount++;
-            result = values.Count > 0 ? values.Dequeue() : result;
-        }
-        public void ScrambleDie() => result = -1;
+        Assert.Equal(2, randomSource.Requests.Count(request => request.Purpose == RandomPurpose.TurnDice));
     }
 
     private sealed class TestDecisionProvider : IPlayerDecisionProvider

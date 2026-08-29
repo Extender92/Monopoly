@@ -133,7 +133,7 @@ public sealed class PresentationContractTests
     [Fact]
     public void SpacesCardsDecksStatusesDecisionsAndNotificationsExposeResolvableTokens()
     {
-        Game purchaseGame = new GameTestBuilder().WithDice(new FixedDie(1), new FixedDie(2)).Build();
+        Game purchaseGame = new GameTestBuilder().WithRandomValues(1, 2).Build();
         PendingDecision decision = Assert.IsType<PropertyPurchaseDecision>(purchaseGame.PlayTurn().PendingDecision);
         Assert.NotNull(purchaseGame.Presentation.Resolve(decision.PresentationToken));
         Assert.All(purchaseGame.Board.Squares, square => Assert.NotNull(purchaseGame.Presentation.Resolve(square.PresentationToken)));
@@ -144,7 +144,7 @@ public sealed class PresentationContractTests
         Game detained = new GameTestBuilder().WithPlayerInJail(0).Build();
         Assert.NotNull(detained.Presentation.Resolve(detained.TheJail.GetJailInfo(detained.Players[0]).PresentationToken));
 
-        Game notificationGame = new GameTestBuilder().WithDice(new FixedDie(3), new FixedDie(4)).Build();
+        Game notificationGame = new GameTestBuilder().WithRandomValues(3, 4).Build();
         List<GameNotification> notifications = [];
         using IDisposable subscription = notificationGame.Notifications.Subscribe(notifications.Add);
         notificationGame.PlayTurn();
@@ -202,8 +202,10 @@ public sealed class PresentationContractTests
         Player first = new("First", 0);
         Player second = new("Second", 1);
         return new Game(
-            [first, second], first, [new FixedDie(1), new FixedDie(2)], rules,
-            decisions: null, presentation: presentation);
+            [first, second], first, rules,
+            decisions: null,
+            presentation: presentation,
+            randomSource: ScriptedMatchRandomSource.ForDice(1, 2, 1, 2));
     }
 
     private static ProfilePresentation CreateVariant(ProfilePresentation source)
@@ -253,16 +255,4 @@ public sealed class PresentationContractTests
         }
     }
 
-    private sealed class FixedDie(int result, int sides = 6) : IDie
-    {
-        public int GetDieResult() => result;
-        public int GetDieType() => sides;
-        public void Roll()
-        {
-        }
-
-        public void ScrambleDie()
-        {
-        }
-    }
 }

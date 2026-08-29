@@ -3,6 +3,7 @@ using System.Text.Json;
 using Monopoly.Core;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Persistence;
+using Monopoly.Core.Randomness;
 
 namespace Infrastructure.Persistence;
 
@@ -80,7 +81,9 @@ public sealed class JsonFileGameSaveStore : IGameSaveStore
         }
     }
 
-    public Game Load(IPlayerDecisionProvider? decisions = null)
+    public Game Load(
+        IPlayerDecisionProvider? decisions = null,
+        IMatchRandomSource? randomSource = null)
     {
         string serializedState;
         try
@@ -134,7 +137,7 @@ public sealed class JsonFileGameSaveStore : IGameSaveStore
 
         try
         {
-            return GameStateV1Mapper.FromState(state, decisions);
+            return GameStateV1Mapper.FromState(state, decisions, randomSource);
         }
         catch (GameStateValidationException exception)
         {

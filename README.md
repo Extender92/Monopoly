@@ -36,6 +36,11 @@ refers to that catalog through validated semantic `PresentationToken` values;
 terminal colors and other framework-specific values are mapped only by the
 frontend. Authoritative property grouping uses `GroupId`, never a color hint.
 
+Each match receives one `IMatchRandomSource`. Core uses it for deck shuffling
+and dice outcomes, while immutable `DiceRoll` snapshots record only committed
+results. The Console creates a fresh production source for every new or loaded
+match; deterministic tests inject scripted sources.
+
 ```text
 Monopoly.Console ──> Monopoly.Core
 Monopoly.Console ──> Infrastructure ──> Monopoly.Core

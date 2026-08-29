@@ -1,5 +1,7 @@
 namespace Monopoly.Core.Persistence;
 
+using Monopoly.Core.Randomness;
+
 /// <summary>
 /// Detached, storage-neutral projection of resumable match progress. Version 1 deliberately
 /// does not include this data; it is the primitive-only handoff for a future save format.
@@ -31,6 +33,7 @@ public sealed class TurnContinuationState
 {
     public TurnContinuationKindState Kind { get; set; }
     public int PlayerId { get; set; }
+    public RandomPurpose DicePurpose { get; set; }
     public List<int> DiceResults { get; set; } = new();
     public int DiceSum { get; set; }
     public int LandedSquarePosition { get; set; }
@@ -93,10 +96,11 @@ public static class GameProgressStateMapper
             ? TurnContinuationKindState.StandardLanding
             : TurnContinuationKindState.JailDoubleLanding,
         PlayerId = continuation.PlayerId,
-        DiceResults = continuation.DiceResults.ToList(),
-        DiceSum = continuation.DiceSum,
+        DicePurpose = continuation.Roll.Purpose,
+        DiceResults = continuation.Roll.Results.ToList(),
+        DiceSum = continuation.Roll.Sum,
         LandedSquarePosition = continuation.LandedSquarePosition,
-        WasDouble = continuation.WasDouble,
+        WasDouble = continuation.Roll.IsDouble,
         WasReleasedFromJailByDouble = continuation.WasReleasedFromJailByDouble
     };
 }

@@ -43,9 +43,8 @@ public sealed class ResumableGamePhaseTests
     [Fact]
     public void PurchaseDecisionPausesAfterMovementWithStableImmutableSnapshot()
     {
-        FixedDie firstDie = new(1);
-        FixedDie secondDie = new(2);
-        Game game = new GameTestBuilder().WithDice(firstDie, secondDie).Build();
+        ScriptedMatchRandomSource randomSource = new(1, 2);
+        Game game = new GameTestBuilder().WithRandomSource(randomSource).Build();
         Player player = game.CurrentPlayer;
 
         GameActionResult required = game.PlayTurn();
@@ -68,16 +67,14 @@ public sealed class ResumableGamePhaseTests
         Assert.Equal(GameActionRejectionReason.PendingDecisionRequired, rejected.RejectionReason);
         Assert.Same(decision, rejected.PendingDecision);
         Assert.Equal(decision.DecisionId, game.PendingDecision!.DecisionId);
-        Assert.Equal(1, firstDie.RollCount);
-        Assert.Equal(1, secondDie.RollCount);
+        Assert.Equal(2, randomSource.Requests.Count(request => request.Purpose == RandomPurpose.TurnDice));
     }
 
     [Fact]
     public void PurchasingResumesWithoutRepeatingMovementAndRotatesExactlyOnce()
     {
-        FixedDie firstDie = new(1);
-        FixedDie secondDie = new(2);
-        Game game = new GameTestBuilder().WithDice(firstDie, secondDie).Build();
+        ScriptedMatchRandomSource randomSource = new(1, 2);
+        Game game = new GameTestBuilder().WithRandomSource(randomSource).Build();
         Player buyer = game.CurrentPlayer;
         Player nextPlayer = game.Players[1];
         int originalMoney = buyer.Money;
@@ -93,14 +90,13 @@ public sealed class ResumableGamePhaseTests
         Assert.Same(buyer, game.Board.GetSquareAtPosition(decision.SquarePosition).Owner);
         Assert.Equal(originalMoney - decision.Price, buyer.Money);
         Assert.Same(nextPlayer, game.CurrentPlayer);
-        Assert.Equal(1, firstDie.RollCount);
-        Assert.Equal(1, secondDie.RollCount);
+        Assert.Equal(2, randomSource.Requests.Count(request => request.Purpose == RandomPurpose.TurnDice));
     }
 
     [Fact]
     public void DecliningPurchaseLeavesSquareAndMoneyUnchangedThenCompletesTurn()
     {
-        Game game = new GameTestBuilder().WithDice(new FixedDie(1), new FixedDie(2)).Build();
+        Game game = new GameTestBuilder().WithRandomValues(1, 2).Build();
         Player player = game.CurrentPlayer;
         int money = player.Money;
         PropertyPurchaseDecision decision = RequirePurchase(game);
@@ -120,7 +116,7 @@ public sealed class ResumableGamePhaseTests
         Game game = new GameTestBuilder()
             .WithPlayer(0, money: 0)
             .WithSquare(5, ownerId: 0)
-            .WithDice(new FixedDie(1), new FixedDie(2))
+            .WithRandomValues(1, 2)
             .WithDecisions(decisions)
             .Build();
         PropertyPurchaseDecision decision = RequirePurchase(game);
@@ -143,7 +139,7 @@ public sealed class ResumableGamePhaseTests
         Game game = new GameTestBuilder()
             .WithPlayer(0, money: 0)
             .WithSquare(5, ownerId: 0)
-            .WithDice(new FixedDie(1), new FixedDie(2))
+            .WithRandomValues(1, 2)
             .WithDecisions(decisions)
             .Build();
         Player player = game.CurrentPlayer;
@@ -161,12 +157,11 @@ public sealed class ResumableGamePhaseTests
     [Fact]
     public void JailDecisionIsCreatedBeforeDiceMoneyCardsOrStatusMutate()
     {
-        FixedDie firstDie = new(1);
-        FixedDie secondDie = new(4);
+        ScriptedMatchRandomSource randomSource = new(1, 4);
         Game game = new GameTestBuilder(new GameRules(2, 2, 6, jailFine: 75))
             .WithPlayer(0, money: 100, jailCards: 1)
             .WithPlayerInJail(0, turnsInJail: 1)
-            .WithDice(firstDie, secondDie)
+            .WithRandomSource(randomSource)
             .Build();
         Player player = game.CurrentPlayer;
 
@@ -181,8 +176,7 @@ public sealed class ResumableGamePhaseTests
         Assert.Equal(100, player.Money);
         Assert.Equal(1, player.NumberOfGetOutOFJailCards);
         Assert.Equal(1, game.TheJail.GetJailInfo(player).TurnsInJail);
-        Assert.Equal(0, firstDie.RollCount);
-        Assert.Equal(0, secondDie.RollCount);
+        Assert.Empty(randomSource.Requests);
     }
 
     [Fact]
@@ -191,7 +185,7 @@ public sealed class ResumableGamePhaseTests
         Game game = new GameTestBuilder(new GameRules(2, 2, 6, jailFine: 17))
             .WithPlayer(0, money: 100)
             .WithPlayerInJail(0)
-            .WithDice(new FixedDie(1), new FixedDie(4))
+            .WithRandomValues(1, 4)
             .Build();
         Player player = game.CurrentPlayer;
         JailReleaseDecision decision = Assert.IsType<JailReleaseDecision>(game.PlayTurn().PendingDecision);
@@ -211,7 +205,7 @@ public sealed class ResumableGamePhaseTests
         Game game = new GameTestBuilder(new GameRules(2, 2, 6, jailFine: 17))
             .WithPlayer(0, money: 100, jailCards: 1)
             .WithPlayerInJail(0)
-            .WithDice(new FixedDie(1), new FixedDie(4))
+            .WithRandomValues(1, 4)
             .Build();
         Player player = game.CurrentPlayer;
         JailReleaseDecision decision = Assert.IsType<JailReleaseDecision>(game.PlayTurn().PendingDecision);
@@ -228,11 +222,10 @@ public sealed class ResumableGamePhaseTests
     [Fact]
     public void JailDoubleCanContinueToNewPurchaseDecisionWithoutRerolling()
     {
-        FixedDie firstDie = new(1);
-        FixedDie secondDie = new(1);
+        ScriptedMatchRandomSource randomSource = new(1, 1);
         Game game = new GameTestBuilder()
             .WithPlayerInJail(0)
-            .WithDice(firstDie, secondDie)
+            .WithRandomSource(randomSource)
             .Build();
         Player player = game.CurrentPlayer;
         Player nextPlayer = game.Players[1];
@@ -247,8 +240,7 @@ public sealed class ResumableGamePhaseTests
         Assert.False(game.TheJail.IsPlayerInJail(player));
         Assert.Equal(12, player.Position);
         Assert.Same(player, game.CurrentPlayer);
-        Assert.Equal(1, firstDie.RollCount);
-        Assert.Equal(1, secondDie.RollCount);
+        Assert.Equal(2, randomSource.Requests.Count(request => request.Purpose == RandomPurpose.DetentionDice));
 
         GameActionResult completed = game.SubmitDecision(
             new DecisionResponse(purchase.DecisionId, DecisionOption.Decline));
@@ -256,14 +248,13 @@ public sealed class ResumableGamePhaseTests
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
         Assert.True(completed.TurnResult!.WasReleasedFromJailByDouble);
         Assert.Same(nextPlayer, game.CurrentPlayer);
-        Assert.Equal(1, firstDie.RollCount);
-        Assert.Equal(1, secondDie.RollCount);
+        Assert.Equal(2, randomSource.Requests.Count(request => request.Purpose == RandomPurpose.DetentionDice));
     }
 
     [Fact]
     public void InvalidResponsesAndPlayTurnRejectionAreAtomic()
     {
-        Game game = new GameTestBuilder().WithDice(new FixedDie(1), new FixedDie(2)).Build();
+        Game game = new GameTestBuilder().WithRandomValues(1, 2).Build();
         PropertyPurchaseDecision decision = RequirePurchase(game);
 
         AssertRejectedWithoutMutation(game, null, GameActionRejectionReason.MalformedResponse);
@@ -295,7 +286,7 @@ public sealed class ResumableGamePhaseTests
     {
         Game game = new GameTestBuilder()
             .WithPlayerInJail(0)
-            .WithDice(new FixedDie(1), new FixedDie(1))
+            .WithRandomValues(1, 1)
             .Build();
         JailReleaseDecision jail = Assert.IsType<JailReleaseDecision>(game.PlayTurn().PendingDecision);
         PropertyPurchaseDecision purchase = Assert.IsType<PropertyPurchaseDecision>(game.SubmitDecision(
@@ -327,7 +318,7 @@ public sealed class ResumableGamePhaseTests
     [Fact]
     public void ProgressProjectionIsDetachedPrimitiveOnlyDataAndNotPartOfVersionOne()
     {
-        Game game = new GameTestBuilder().WithDice(new FixedDie(1), new FixedDie(2)).Build();
+        Game game = new GameTestBuilder().WithRandomValues(1, 2).Build();
         PropertyPurchaseDecision decision = RequirePurchase(game);
 
         GameProgressState progress = GameProgressStateMapper.ToState(game);
@@ -337,6 +328,7 @@ public sealed class ResumableGamePhaseTests
         Assert.Equal(3, progress.PendingDecision.SquarePosition);
         Assert.Equal([DecisionOption.Purchase, DecisionOption.Decline], progress.PendingDecision.AllowedResponses);
         Assert.Equal(TurnContinuationKindState.StandardLanding, progress.Continuation!.Kind);
+        Assert.Equal(RandomPurpose.TurnDice, progress.Continuation.DicePurpose);
         Assert.Equal([1, 2], progress.Continuation.DiceResults);
         Assert.DoesNotContain(nameof(IPlayerDecisionProvider), JsonSerializer.Serialize(progress));
         Assert.DoesNotContain(typeof(Player).FullName!, JsonSerializer.Serialize(progress));
@@ -408,7 +400,7 @@ public sealed class ResumableGamePhaseTests
         Game game = new GameTestBuilder()
             .WithPlayer(0, money: 0)
             .WithSquare(3, ownerId: 1)
-            .WithDice(new FixedDie(1), new FixedDie(2))
+            .WithRandomValues(1, 2)
             .Build();
         Player survivor = game.Players[1];
 
@@ -466,7 +458,7 @@ public sealed class ResumableGamePhaseTests
         game.ConsecutiveDoubles,
         game.Fines,
         WinnerId = game.Winner?.Id,
-        Dice = game.Dice.Select(die => die.GetDieResult()),
+        Dice = game.LastDiceRoll?.Results,
         Logs = game.Logs.LogList.Select(log => new { log.Id, log.Info }),
         Chance = game.FortuneCard.GetChanceDeckOrder(),
         CommunityChest = game.FortuneCard.GetCommunityChestDeckOrder(),
@@ -481,30 +473,6 @@ public sealed class ResumableGamePhaseTests
             Assert.NotNull(property);
             Assert.False(property.SetMethod?.IsPublic ?? false, $"{typeof(T).Name}.{propertyName} has a public setter.");
         }
-    }
-
-    private sealed class FixedDie : IDie
-    {
-        private readonly Queue<int> _values;
-        private int _result;
-
-        internal FixedDie(params int[] values)
-        {
-            _values = new Queue<int>(values);
-            _result = _values.Peek();
-        }
-
-        public int RollCount { get; private set; }
-        public int GetDieResult() => _result;
-        public int GetDieType() => 6;
-
-        public void Roll()
-        {
-            RollCount++;
-            if (_values.Count > 0) _result = _values.Dequeue();
-        }
-
-        public void ScrambleDie() => _result = -1;
     }
 
     private class CountingFundsProvider : IPlayerDecisionProvider

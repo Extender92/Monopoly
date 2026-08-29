@@ -2,6 +2,7 @@ using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 using Monopoly.Core.Notifications;
+using Monopoly.Core.Randomness;
 
 namespace Monopoly.Core;
 
@@ -14,11 +15,11 @@ internal sealed class GameHandler
         CurrentGame = currentGame ?? throw new ArgumentNullException(nameof(currentGame));
     }
 
-    public void RoleDiceAndMovePlayer(Player player)
+    public DiceRoll RoleDiceAndMovePlayer(Player player, RandomPurpose purpose = RandomPurpose.TurnDice)
     {
-        RollDice(player);
-        int diceSum = CalculateDiceSum();
-        MovePlayerAndInvokeEvent(player, player.Position + diceSum);
+        DiceRoll roll = RollDice(player, purpose);
+        MovePlayerAndInvokeEvent(player, player.Position + roll.Sum);
+        return roll;
     }
 
     private void MovePlayerToBoardPosition(Player player, int targetPosition)
@@ -52,27 +53,38 @@ internal sealed class GameHandler
         return CurrentGame.Board.Squares.Count + targetPosition;
     }
 
-    public void RollDice(Player player)
+    internal DiceRoll PrepareDiceRoll(RandomPurpose purpose)
     {
-        string diceRoll = $"{player.Name} rolled:";
-        foreach (IDie die in CurrentGame.DiceControllers)
+        if (!DiceRoll.IsDicePurpose(purpose))
+            throw new ArgumentException("The random purpose does not describe a dice roll.", nameof(purpose));
+
+        int[] results = new int[CurrentGame.Rules.NumberOfDice];
+        for (int index = 0; index < results.Length; index++)
         {
-            die.Roll();
-            diceRoll += $" {die.GetDieResult()}";
+            results[index] = CurrentGame.Randomizer.NextInt(new RandomRequest(
+                purpose,
+                1,
+                checked(CurrentGame.Rules.DieSides + 1),
+                index));
         }
 
-        diceRoll += $" Total: {CalculateDiceSum()}";
-        CurrentGame.LogWriter.CreateLog(diceRoll);
+        return new DiceRoll(purpose, results, CurrentGame.Rules.DieSides);
     }
 
-    public bool IsDiceDouble()
+    internal void CommitDiceRoll(Player player, DiceRoll roll)
     {
-        if (CurrentGame.Dice.Count < 2) return false;
-        int firstDieResult = CurrentGame.Dice[0].GetDieResult();
-        return CurrentGame.Dice.All(die => die.GetDieResult() == firstDieResult);
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(roll);
+        CurrentGame.CommitDiceRoll(roll);
+        CurrentGame.LogWriter.CreateLog($"{player.Name} rolled: {string.Join(' ', roll.Results)} Total: {roll.Sum}");
     }
 
-    public int CalculateDiceSum() => CurrentGame.Dice.Sum(die => die.GetDieResult());
+    public DiceRoll RollDice(Player player, RandomPurpose purpose = RandomPurpose.TurnDice)
+    {
+        DiceRoll roll = PrepareDiceRoll(purpose);
+        CommitDiceRoll(player, roll);
+        return roll;
+    }
 
     public int GetMoneyFromBankruptPlayerAndBankruptPlayer(Player player)
     {
