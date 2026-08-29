@@ -320,7 +320,7 @@ that rejection before creating a temporary file or replacing an existing save.
 detached primitive/enum DTO projections prepared for Version 2. They are not
 serialized into the Version 1 envelope and have no physical persistence path
 in this version. `TurnContinuationState` records the committed dice purpose,
-individual results and derived roll values, but never an RNG instance, seed or
+individual results and derived roll values, but never a random-source instance, seed or
 source position.
 
 The current top-level JSON structure is:

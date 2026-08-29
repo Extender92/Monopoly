@@ -93,7 +93,7 @@ public class GameHandlerTests
     }
 
     [Fact]
-    public void DiceRollDoesNotMarkASingleValueAsDouble()
+    public void DiceRollDoesNotMarkOneValueAsDouble()
     {
         GameRules rules = new(1, 1, 6);
         Game game = new GameTestBuilder(rules).WithRandomValues(3).Build();
