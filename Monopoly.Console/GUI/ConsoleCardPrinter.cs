@@ -3,7 +3,6 @@ using Monopoly.Console.Models;
 using Monopoly.Console.Models.Board;
 using Monopoly.Core;
 using Monopoly.Core.Models.Board;
-using Monopoly.Core.Models.FortuneCard;
 using Monopoly.Core.Presentation;
 using System;
 using System.Collections.Generic;
@@ -100,7 +99,7 @@ namespace Monopoly.Console.GUI
         // Needs refactoring and Testing
         internal void PrepareAndPrintSquareCard(
             int boardPosition,
-            IFortuneCardView? drawnCard = null,
+            ICardView? drawnCard = null,
             PresentationToken? presentationToken = null)
         {
             SquareCard squareCard = SquareCards.First(s => s.BoardPosition == boardPosition);

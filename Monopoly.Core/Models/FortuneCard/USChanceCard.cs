@@ -16,7 +16,7 @@ namespace Monopoly.Core.Models.FortuneCard
             CardType = cardType;
         }
 
-        void IChanceCard.ExecuteEffect(Player player, Game game)
+        void ILegacyCard.ExecuteEffect(Player player, Game game)
         {
             // Implement logic specific to the US version
             switch (CardType)
@@ -158,7 +158,7 @@ namespace Monopoly.Core.Models.FortuneCard
         {
             int newPosition = player.Position - 3;
             if (newPosition < 0)
-                newPosition = newPosition += game.Board.Squares.Count;
+                newPosition += game.Board.Track.Count;
 
             game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
 

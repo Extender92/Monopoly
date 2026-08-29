@@ -5,12 +5,20 @@ namespace Monopoly.Core.Models.Board;
 public abstract class Square
 {
     protected Square(int position, PresentationMetadata presentation)
+        : this(LegacyStructureIds.Space(position), position, presentation)
     {
+    }
+
+    protected Square(SpaceId id, int position, PresentationMetadata presentation)
+    {
+        if (!id.IsValid) throw new ArgumentException("The space ID is invalid.", nameof(id));
         if (position < 0) throw new ArgumentOutOfRangeException(nameof(position));
         Presentation = presentation ?? throw new ArgumentNullException(nameof(presentation));
+        Id = id;
         Position = position;
     }
 
+    public SpaceId Id { get; }
     public int Position { get; }
     public PresentationToken PresentationToken => Presentation.Token;
     internal PresentationMetadata Presentation { get; }

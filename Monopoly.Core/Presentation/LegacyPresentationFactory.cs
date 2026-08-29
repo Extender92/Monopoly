@@ -61,8 +61,6 @@ internal static class LegacyPresentationFactory
     internal static IReadOnlyList<PresentationToken> RequiredReferences(GameBoard board, FortuneCardHandler cards) =>
     [
         PresentationTokens.PrimaryResource,
-        PresentationTokens.PrimaryDeck,
-        PresentationTokens.SecondaryDeck,
         PresentationTokens.PropertyPurchaseDecision,
         PresentationTokens.DetentionReleaseDecision,
         PresentationTokens.DetainedStatus,
@@ -71,6 +69,7 @@ internal static class LegacyPresentationFactory
         PresentationTokens.PlayerInformationNotification,
         .. board.Squares.Select(square => square.PresentationToken),
         .. board.Squares.OfType<PropertySquare>().Select(property => property.GroupPresentationToken),
+        .. cards.CreateSnapshot().Entries.Select(deck => deck.PresentationToken),
         .. cards.AllPresentationMetadata.Select(metadata => metadata.Token)
     ];
 

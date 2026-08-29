@@ -190,7 +190,7 @@ The completed Core suite must cover at least the following behavior groups.
 
 ### Cards
 
-- Every card instruction for each supported Classic profile.
+- Every supported declarative card effect for the Demo and synthetic profiles.
 - Correct final landing after card movement.
 - Stable card identity and source deck.
 - Held Get Out of Jail Free cards leaving their deck.
@@ -584,7 +584,7 @@ The project currently uses:
 - xUnit Visual Studio runner.
 - Coverlet collector.
 
-The suite currently contains 290 passing tests split between `CoreTests`,
+The suite currently contains 302 passing tests split between `CoreTests`,
 `InfrastructureTests` and `ConsoleTests`.
 
 Current Core coverage includes:
@@ -614,6 +614,10 @@ Current Core coverage includes:
   multi-die preparation and purpose separation.
 - Deterministic Fisher–Yates deck ordering, shuffle-free Version 1
   reconstruction and isolation between simultaneous matches.
+- Strongly typed structural IDs, variable track lengths and circular lookup.
+- Detached immutable deck snapshots with zero, one and multiple decks.
+- Duplicate space/deck/card IDs and missing structural references rejected
+  before a match is returned.
 
 State-heavy Core tests use the internal `GameTestBuilder`. It starts from a
 detached Version 1 DTO, applies explicit test arrangements, injects decisions or
@@ -650,9 +654,10 @@ metadata and assert identical movement, purchases, fees, decisions and Version
 1 state. Version 1 regression tests also assert that no presentation catalog
 fields enter the established wire representation.
 
-Issue #74 adds fingerprint-specific tests when JSON profiles become
-authoritative. Issues #72–#73 own generic board, deck and domain-ID structure
-tests, while #77 owns full generic Console projection coverage.
+Issue #72 covers the generic track, deck collection and structural IDs. Issue
+#73 reuses those identities for capability and effect references. Issue #74
+adds JSON validation and fingerprint-specific tests, while #77 owns full
+generic Console projection coverage.
 
 The current GitHub build workflow:
 

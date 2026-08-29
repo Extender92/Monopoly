@@ -36,7 +36,7 @@ namespace Monopoly.Tests.CoreTests
             Assert.NotNull(game.Board);
             Assert.NotNull(game.Transactions);
             Assert.NotNull(game.TheJail);
-            Assert.NotNull(game.FortuneCard);
+            Assert.NotNull(game.Decks);
             Assert.Equal(0, game.Fines);
         }
     }

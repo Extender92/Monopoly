@@ -1,11 +1,12 @@
-using Monopoly.Core.Models.FortuneCard;
 using Monopoly.Core.Notifications;
 using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board;
 
-public class CommunityChestSquare : Square
+public class CommunityChestSquare : Square, IDeckReferenceSpace
 {
+    DeckId IDeckReferenceSpace.DeckId => LegacyStructureIds.SecondaryDeck;
+
     public CommunityChestSquare(int position, PresentationMetadata presentation)
         : base(position, presentation)
     {
@@ -18,8 +19,11 @@ public class CommunityChestSquare : Square
 
     internal override void LandOn(Player player, Game game)
     {
-        ICommunityChestCard card = game.FortuneCard.DrawNextCommunityChestCard();
-        game.PublishNotification(new CardDrawnNotification(card, PresentationTokens.SecondaryDeck));
+        RuntimeCard card = game.CardHandler.DrawNextCard(LegacyStructureIds.SecondaryDeck);
+        game.PublishNotification(new CardDrawnNotification(
+            card,
+            LegacyStructureIds.SecondaryDeck,
+            PresentationTokens.SecondaryDeck));
         card.ExecuteEffect(player, game);
     }
 }

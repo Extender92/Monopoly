@@ -460,8 +460,8 @@ public sealed class ResumableGamePhaseTests
         WinnerId = game.Winner?.Id,
         Dice = game.LastDiceRoll?.Results,
         Logs = game.Logs.LogList.Select(log => new { log.Id, log.Info }),
-        Chance = game.FortuneCard.GetChanceDeckOrder(),
-        CommunityChest = game.FortuneCard.GetCommunityChestDeckOrder(),
+        Chance = game.CardHandler.GetLegacyPrimaryDeckOrder(),
+        CommunityChest = game.CardHandler.GetLegacySecondaryDeckOrder(),
         Progress = GameProgressStateMapper.ToState(game)
     });
 

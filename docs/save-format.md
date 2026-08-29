@@ -150,8 +150,7 @@ persisted square must have a stable identity that is valid for that profile.
 
 - Stable card identity.
 - Source deck for every card.
-- Exact Chance deck order.
-- Exact Community Chest deck order.
+- Exact order for every `DeckId` present in the validated profile.
 - Cards currently held by each player.
 - Cards temporarily involved in a pending action, if any.
 
@@ -478,6 +477,13 @@ of four categories: `NotFound`, `InvalidData`, `IncompatibleVersion` or
 for diagnostics and are not exposed as unhandled Console errors.
 
 ### Version 1 limitations
+
+Version 1 is the sole temporary exception to the generic deck contract. Its
+wire representation retains the named `ChanceDeck` and `CommunityChestDeck`
+fields and ordinal string keys so existing files remain compatible. Core maps
+those fields to internal legacy deck IDs; no active runtime/profile API exposes
+or copies that two-deck shape. Issue #4 rejects Version 1 after legacy content
+is removed, and issue #52 replaces it with generic profile, deck and card IDs.
 
 Version 1 does not currently preserve or fully validate:
 

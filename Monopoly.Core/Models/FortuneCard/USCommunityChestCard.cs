@@ -19,7 +19,7 @@ namespace Monopoly.Core.Models.FortuneCard
             CardType = cardType;
         }
 
-        void ICommunityChestCard.ExecuteEffect(Player player, Game game)
+        void ILegacyCard.ExecuteEffect(Player player, Game game)
         {
             // Implement logic specific to the US version
             switch (CardType)
