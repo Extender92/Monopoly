@@ -1,5 +1,7 @@
+IComparable
 IDictionary
 IDisposable
+IEquatable
 IFile
 IFortune
 IList
