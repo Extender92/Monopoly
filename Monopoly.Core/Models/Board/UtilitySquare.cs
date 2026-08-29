@@ -1,5 +1,6 @@
 using Monopoly.Core.Interface;
 using Monopoly.Core.Presentation;
+using Monopoly.Core.Randomness;
 
 namespace Monopoly.Core.Models.Board
 {
@@ -28,7 +29,7 @@ namespace Monopoly.Core.Models.Board
             LandOn(player, game, false);
         }
 
-        internal void LandOn(Player player, Game game, bool maxPay = false)
+        internal void LandOn(Player player, Game game, bool maxPay = false, DiceRoll? rentRoll = null)
         {
             if (Owner == null)
             {
@@ -39,33 +40,38 @@ namespace Monopoly.Core.Models.Board
             }
             else if (!IsMortgage && Owner != player)
             {
-                HandleRentPayment(player, game, maxPay);
+                HandleRentPayment(player, game, maxPay, rentRoll);
             }
         }
 
-        private void HandleRentPayment(Player player, Game game, bool maxPay = false)
+        private void HandleRentPayment(Player player, Game game, bool maxPay, DiceRoll? rentRoll)
         {
-            int rent = CalculateRent(game, maxPay);
+            int rent = CalculateRent(game, maxPay, rentRoll ?? game.LastDiceRoll);
 
             game.Handler.TryResolvePayment(player, rent, Owner, $"Could not afford rent of {rent}");
         }
 
-        private int CalculateRent(Game game, bool maxPay = false)
+        private int CalculateRent(Game game, bool maxPay, DiceRoll? rentRoll)
         {
             int ownedUtility = game.Board.Squares.OfType<UtilitySquare>()
                              .Count(square => square.Owner == Owner);
 
-            int diceSum = game.Dice.Sum(die => die.GetDieResult());
+            if (rentRoll is null)
+                throw new InvalidOperationException("A committed dice roll is required to calculate service rent.");
+            if (maxPay && rentRoll.Purpose != RandomPurpose.DedicatedRuleDice)
+                throw new InvalidOperationException("The service-rent override requires a dedicated rule roll.");
+            if (!maxPay && rentRoll.Purpose is not (RandomPurpose.TurnDice or RandomPurpose.DetentionDice))
+                throw new InvalidOperationException("Normal service rent requires the movement roll that reached the space.");
 
-            if (maxPay) return diceSum * 10;
+            if (maxPay) return rentRoll.Sum * 10;
 
             switch (ownedUtility)
             {
                 case 1:
-                    return diceSum * RentOneUtility;
+                    return rentRoll.Sum * RentOneUtility;
 
                 case 2:
-                    return diceSum * RentTwoUtility;
+                    return rentRoll.Sum * RentTwoUtility;
 
                 default:
                     throw new InvalidOperationException($"Invalid number of utility owned: {ownedUtility}");

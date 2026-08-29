@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using Monopoly.Core.Randomness;
 
 namespace Monopoly.Core;
 
@@ -10,38 +10,27 @@ internal enum TurnContinuationKind
 
 internal sealed class TurnContinuation
 {
-    private readonly ReadOnlyCollection<int> _diceResults;
-
     internal TurnContinuation(
         TurnContinuationKind kind,
         int playerId,
-        IEnumerable<int> diceResults,
-        int diceSum,
+        DiceRoll roll,
         int landedSquarePosition,
-        bool wasDouble,
         bool wasReleasedFromJailByDouble)
     {
-        ArgumentNullException.ThrowIfNull(diceResults);
-        int[] copiedResults = diceResults.ToArray();
         if (playerId < 0) throw new ArgumentOutOfRangeException(nameof(playerId));
-        if (copiedResults.Any(result => result <= 0)) throw new ArgumentOutOfRangeException(nameof(diceResults));
-        if (diceSum < 0 || diceSum != copiedResults.Sum()) throw new ArgumentOutOfRangeException(nameof(diceSum));
+        ArgumentNullException.ThrowIfNull(roll);
         if (landedSquarePosition < 0) throw new ArgumentOutOfRangeException(nameof(landedSquarePosition));
 
         Kind = kind;
         PlayerId = playerId;
-        _diceResults = Array.AsReadOnly(copiedResults);
-        DiceSum = diceSum;
+        Roll = roll;
         LandedSquarePosition = landedSquarePosition;
-        WasDouble = wasDouble;
         WasReleasedFromJailByDouble = wasReleasedFromJailByDouble;
     }
 
     internal TurnContinuationKind Kind { get; }
     internal int PlayerId { get; }
-    internal IReadOnlyList<int> DiceResults => _diceResults;
-    internal int DiceSum { get; }
+    internal DiceRoll Roll { get; }
     internal int LandedSquarePosition { get; }
-    internal bool WasDouble { get; }
     internal bool WasReleasedFromJailByDouble { get; }
 }

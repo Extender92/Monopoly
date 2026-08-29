@@ -5,6 +5,7 @@ IEquatable
 IFile
 IFortune
 IList
+IMatch
 LASTEXITCODE
 dto
 notin

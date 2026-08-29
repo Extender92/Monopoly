@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualBasic;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Randomness;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -134,16 +135,17 @@ namespace Monopoly.Core.Models.FortuneCard
 
         private void AdvanceTokenToNearestUtility(Player player, Game game)
         {
+            DiceRoll dedicatedRoll = game.Handler.PrepareDiceRoll(RandomPurpose.DedicatedRuleDice);
             int newPosition = 12;
             if (player.Position > 28) newPosition = game.Handler.GetPlayerGoPastGoNewPosition(newPosition);
             else if (player.Position > 12) newPosition = 28;
 
             game.Handler.MovePlayerAndInvokeEvent(player, newPosition);
 
-            game.Handler.RollDice(player);
+            game.Handler.CommitDiceRoll(player, dedicatedRoll);
 
             if (game.Board.GetSquareAtPosition(player.Position) is UtilitySquare square)
-                square.LandOn(player, game, true);
+                square.LandOn(player, game, true, dedicatedRoll);
         }
 
         private void BankPaysDividend(Player player, Game game)

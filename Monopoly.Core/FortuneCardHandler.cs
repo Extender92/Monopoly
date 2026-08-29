@@ -1,10 +1,5 @@
 ﻿using Monopoly.Core.Models.FortuneCard;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
+using Monopoly.Core.Randomness;
 
 namespace Monopoly.Core
 {
@@ -25,25 +20,27 @@ namespace Monopoly.Core
                 .Concat(_communityChestCards.Select(card => card.Presentation))
                 .ToArray());
 
-        internal FortuneCardHandler(GameRules gameRules)
+        internal FortuneCardHandler(GameRules gameRules, MatchRandomizer randomizer, bool shuffleDecks)
         {
-            InitializeQueues(gameRules);
+            InitializeQueues(gameRules, randomizer, shuffleDecks);
         }
 
-        private void InitializeQueues(GameRules gameRules)
+        private void InitializeQueues(GameRules gameRules, MatchRandomizer randomizer, bool shuffleDecks)
         {
+            ArgumentNullException.ThrowIfNull(gameRules);
+            ArgumentNullException.ThrowIfNull(randomizer);
             _chanceCards = Data.FortuneCardBuilder.GetChanceCards(gameRules);
             _communityChestCards = Data.FortuneCardBuilder.GetCommunityChestCards(gameRules);
-            _chanceQueue = new Queue<IChanceCard>(_chanceCards);
-            _communityChestQueue = new Queue<ICommunityChestCard>(_communityChestCards);
-            ShuffleQueues();
-        }
+            int sequenceIndex = 0;
+            IReadOnlyList<IChanceCard> chanceOrder = shuffleDecks
+                ? ShuffleCopy(_chanceCards, randomizer, ref sequenceIndex)
+                : _chanceCards.ToArray();
+            IReadOnlyList<ICommunityChestCard> communityChestOrder = shuffleDecks
+                ? ShuffleCopy(_communityChestCards, randomizer, ref sequenceIndex)
+                : _communityChestCards.ToArray();
 
-        internal void ShuffleQueues()
-        {
-            Random random = new Random();
-            _chanceQueue = new Queue<IChanceCard>(_chanceQueue.OrderBy(c => random.Next()));
-            _communityChestQueue = new Queue<ICommunityChestCard>(_communityChestQueue.OrderBy(c => random.Next()));
+            _chanceQueue = new Queue<IChanceCard>(chanceOrder);
+            _communityChestQueue = new Queue<ICommunityChestCard>(communityChestOrder);
         }
 
         internal IChanceCard DrawNextChanceCard()
@@ -85,6 +82,25 @@ namespace Monopoly.Core
                 throw new ArgumentException("Card order must contain every card exactly once.", nameof(order));
 
             return new Queue<T>(order.Select(key => canonicalCards[int.Parse(key)]));
+        }
+
+        private static IReadOnlyList<T> ShuffleCopy<T>(
+            IReadOnlyList<T> source,
+            MatchRandomizer randomizer,
+            ref int sequenceIndex)
+        {
+            T[] shuffled = source.ToArray();
+            for (int index = shuffled.Length - 1; index > 0; index--)
+            {
+                int selectedIndex = randomizer.NextInt(new RandomRequest(
+                    RandomPurpose.DeckShuffle,
+                    0,
+                    index + 1,
+                    sequenceIndex++));
+                (shuffled[index], shuffled[selectedIndex]) = (shuffled[selectedIndex], shuffled[index]);
+            }
+
+            return Array.AsReadOnly(shuffled);
         }
     }
 }

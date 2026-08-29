@@ -79,7 +79,7 @@ Unit tests should:
 
 - Construct only the minimum required state.
 - Avoid Console and physical storage.
-- Avoid real random dice.
+- Avoid production randomness; inject a scripted match source.
 - Assert domain results and rejected invalid input.
 - Prefer public behavior over private implementation details.
 - Remain valid when internal class construction is refactored.
@@ -111,7 +111,7 @@ An integration test should normally:
 
 1. Resolve an explicit rule profile.
 2. Build a match with stable player IDs.
-3. Inject deterministic dice and decisions.
+3. Inject a deterministic `IMatchRandomSource` and scripted decisions.
 4. Arrange only state that could legally exist, unless invalid-state rejection
    is the subject.
 5. Invoke the public command or turn entry point.
@@ -369,7 +369,9 @@ Automated tests must control all nondeterministic inputs that affect assertions.
 
 Use:
 
-- An `IDie` implementation with a queued sequence.
+- `ScriptedMatchRandomSource` with one queued sequence for the whole match.
+- Assertions on `RandomPurpose`, ranges and sequence indices when the caller
+  being tested owns the request.
 - Scripted player decisions.
 - Stable player, square and card IDs.
 - Explicit rule profiles.
@@ -385,6 +387,12 @@ Do not rely on:
 - Interactive input.
 - Network services in the default suite.
 - Arbitrary sleeps.
+
+A scripted random source reports exhaustion explicitly rather than repeating a
+previous value. Tests for a multi-value operation must also prove that failure
+before the final value leaves all authoritative state, pending decisions, logs
+and notifications unchanged. A minimum-value source is suitable only where a
+test needs deterministic setup but does not assert a particular shuffled order.
 
 A scripted decision provider should record every request and submitted amount so
 tests can assert that Core asked the correct question exactly once.
@@ -576,7 +584,7 @@ The project currently uses:
 - xUnit Visual Studio runner.
 - Coverlet collector.
 
-The suite currently contains 260 passing tests split between `CoreTests`,
+The suite currently contains 290 passing tests split between `CoreTests`,
 `InfrastructureTests` and `ConsoleTests`.
 
 Current Core coverage includes:
@@ -602,10 +610,14 @@ Current Core coverage includes:
 - Atomic typed rejection of malformed, stale, duplicate and disallowed
   decision responses.
 - Detached primitive-only phase, decision and continuation projections.
+- Match-scoped random request validation, typed source failures, atomic
+  multi-die preparation and purpose separation.
+- Deterministic Fisher–Yates deck ordering, shuffle-free Version 1
+  reconstruction and isolation between simultaneous matches.
 
 State-heavy Core tests use the internal `GameTestBuilder`. It starts from a
 detached Version 1 DTO, applies explicit test arrangements, injects decisions or
-test dice when needed, and always constructs the live match through
+a scripted match random source when needed, and always constructs the live match through
 `GameStateV1Mapper`'s validated reconstruction path. Tests do not arrange live
 state through public setters or mutable aggregate collections.
 

@@ -8,8 +8,8 @@ namespace Monopoly.Tests.CoreTests;
 internal sealed class GameTestBuilder
 {
     private readonly GameStateV1 _state;
-    private IReadOnlyList<IDie>? _dice;
     private IPlayerDecisionProvider? _decisions;
+    private IMatchRandomSource _randomSource = new MinimumMatchRandomSource();
 
     internal GameTestBuilder(int playerCount = 2)
         : this(new GameRules(playerCount, 2, 6))
@@ -18,7 +18,7 @@ internal sealed class GameTestBuilder
 
     internal GameTestBuilder(GameRules rules)
     {
-        Game baseline = CoreGameSetup.Setup(rules);
+        Game baseline = CoreGameSetup.Setup(rules, randomSource: new MinimumMatchRandomSource());
         _state = GameStateV1Mapper.ToState(baseline);
     }
 
@@ -83,9 +83,25 @@ internal sealed class GameTestBuilder
         return this;
     }
 
-    internal GameTestBuilder WithDice(params IDie[] dice)
+    internal GameTestBuilder WithRandomValues(params int[] values)
     {
-        _dice = Array.AsReadOnly(dice.ToArray());
+        _randomSource = new ScriptedMatchRandomSource(values);
+        return this;
+    }
+
+    internal GameTestBuilder WithRandomSource(IMatchRandomSource randomSource)
+    {
+        _randomSource = randomSource ?? throw new ArgumentNullException(nameof(randomSource));
+        return this;
+    }
+
+    internal GameTestBuilder WithChanceCardFirst(int cardIndex)
+    {
+        string cardKey = cardIndex.ToString();
+        if (!_state.ChanceDeck.Remove(cardKey))
+            throw new ArgumentOutOfRangeException(nameof(cardIndex));
+
+        _state.ChanceDeck.Insert(0, cardKey);
         return this;
     }
 
@@ -95,7 +111,7 @@ internal sealed class GameTestBuilder
         return this;
     }
 
-    internal Game Build() => GameStateV1Mapper.FromState(_state, _decisions, _dice);
+    internal Game Build() => GameStateV1Mapper.FromState(_state, _decisions, _randomSource);
 }
 
 internal static class GameTestActions

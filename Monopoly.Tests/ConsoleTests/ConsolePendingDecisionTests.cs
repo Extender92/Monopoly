@@ -17,7 +17,7 @@ public sealed class ConsolePendingDecisionTests
     public void PurchasePromptMapsUserChoiceToCoreOption(int selectedIndex, DecisionOption expected)
     {
         Game game = new GameTestBuilder()
-            .WithDice(new FixedDie(1), new FixedDie(2))
+            .WithRandomValues(1, 2)
             .Build();
         PropertyPurchaseDecision decision = Assert.IsType<PropertyPurchaseDecision>(game.PlayTurn().PendingDecision);
         DecisionFixture fixture = new(game, selectedIndex);
@@ -54,11 +54,10 @@ public sealed class ConsolePendingDecisionTests
     [Fact]
     public void ConsoleSynchronouslyDrivesJailThenPurchaseUntilTurnCompletes()
     {
-        FixedDie firstDie = new(1);
-        FixedDie secondDie = new(1);
+        ScriptedMatchRandomSource randomSource = new(1, 1);
         Game game = new GameTestBuilder()
             .WithPlayerInJail(0)
-            .WithDice(firstDie, secondDie)
+            .WithRandomSource(randomSource)
             .Build();
         DecisionFixture fixture = new(game, 1, 1);
         ConsoleLogPrinter logPrinter = new(fixture.Console.Object);
@@ -80,8 +79,7 @@ public sealed class ConsolePendingDecisionTests
         Assert.Equal(GamePhase.ReadyForTurn, game.Phase);
         Assert.Null(game.PendingDecision);
         Assert.Equal(2, fixture.Menu.CallCount);
-        Assert.Equal(1, firstDie.RollCount);
-        Assert.Equal(1, secondDie.RollCount);
+        Assert.Equal(2, randomSource.Requests.Count(request => request.Purpose == RandomPurpose.DetentionDice));
         Assert.Null(game.Board.GetSquareAtPosition(12).Owner);
     }
 
@@ -89,7 +87,7 @@ public sealed class ConsolePendingDecisionTests
     public void ConsoleDisplaysTypedRejectionBeforeResolvingCurrentDecision()
     {
         Game game = new GameTestBuilder()
-            .WithDice(new FixedDie(1), new FixedDie(2))
+            .WithRandomValues(1, 2)
             .Build();
         _ = game.PlayTurn();
         GameActionResult rejected = game.PlayTurn();
@@ -156,21 +154,4 @@ public sealed class ConsolePendingDecisionTests
         }
     }
 
-    private sealed class FixedDie : IDie
-    {
-        private readonly int _value;
-
-        internal FixedDie(int value)
-        {
-            _value = value;
-        }
-
-        public int RollCount { get; private set; }
-        public int GetDieResult() => _value;
-        public int GetDieType() => 6;
-        public void Roll() => RollCount++;
-        public void ScrambleDie()
-        {
-        }
-    }
 }

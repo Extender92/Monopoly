@@ -21,15 +21,15 @@ namespace Monopoly.Tests.CoreTests
             var gameRules = new GameRules(numberOfPlayers: 4, numberOfDice: 2, dieSides: 6);
 
             // Act
-            var game = CoreGameSetup.Setup(gameRules);
+            var game = CoreGameSetup.Setup(gameRules, randomSource: new MinimumMatchRandomSource());
 
             // Assert
             Assert.NotNull(game);
             Assert.NotNull(game.Players);
-            Assert.NotNull(game.Dice);
+            Assert.Null(game.LastDiceRoll);
             Assert.NotNull(game.Rules);
             Assert.Equal(4, game.Players.Count); // Assuming numberOfPlayers is 4
-            Assert.Equal(2, game.Dice.Count); // Assuming numberOfDice is 2
+            Assert.Equal(2, game.Rules.NumberOfDice); // Assuming numberOfDice is 2
             Assert.Equal(6, game.Rules.DieSides); // Assuming dieSides is 6
             Assert.NotNull(game.Handler);
             Assert.NotNull(game.Logs);

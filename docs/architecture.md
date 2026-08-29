@@ -81,7 +81,7 @@ The main aggregate is `Game`. It owns:
 - Players and the current player
 - Game rules
 - The board and squares
-- Dice
+- The last committed dice outcome and resumable roll data
 - Jail state
 - Transactions
 - Fortune card decks
@@ -190,6 +190,37 @@ The internal `GameHandler` contains shared game operations such as:
 - Payment resolution
 - Bankruptcy handling
 
+### Match-scoped randomness
+
+Each `Game` owns one internal randomizer backed by an injected
+`IMatchRandomSource`. A production composition root supplies a fresh
+`SystemMatchRandomSource` for every new or loaded match. Core never exposes the
+source as authoritative game state and separate matches share a source only
+when a caller explicitly injects the same instance.
+
+Every request carries a `RandomPurpose`, inclusive minimum, exclusive maximum
+and sequence index. Current purposes distinguish deck shuffling, ordinary turn
+dice, detention dice and dedicated rule dice. `SetupStartingPlayer` and
+`SetupDice` are reserved for issue #40; current setup selects the first player
+and consumes neither purpose.
+
+Core validates a request and the returned value before committing an outcome.
+All values for a multi-die roll are gathered first. Only then does Core publish
+the immutable `DiceRoll`, update `Game.LastDiceRoll` and write the roll log. A
+source that is exhausted, returns an out-of-range value or fails produces a
+typed `RandomSourceException`; the affected operation leaves match phase,
+pending decisions, logs, notifications and rule state unchanged.
+
+`TurnResult.Roll` is the canonical main-roll snapshot. Its `DiceResults`,
+`DiceSum` and `WasDouble` members are derived read-only accessors. A later
+dedicated rule roll may become `Game.LastDiceRoll`, but it never overwrites the
+main roll retained by the active continuation or completed `TurnResult`.
+
+Legacy decks are shuffled on copies with Fisher–Yates. All orders are prepared
+before the live queues are assigned. Version 1 reconstruction disables setup
+shuffling and restores the saved queue orders without consuming the injected
+source.
+
 ### Transaction
 
 The internal `Transaction` type performs money and property transactions,
@@ -252,7 +283,9 @@ The public Core API provides explicit integration points for frontends and tests
 
 - `IPlayerDecisionProvider` supplies only the transitional synchronous
   insufficient-funds callback.
-- `IDie` allows dice behavior to be provided and controlled in tests.
+- `IMatchRandomSource` supplies one validated nondeterministic integer at a
+  time for a specific match. Production uses `SystemMatchRandomSource`; tests
+  use a scripted source and assert purposes and sequence indices.
 - `IGameLog` exposes read-only game log entries without coupling Core to a UI;
   log creation remains internal to the aggregate.
 - `IGameNotificationSource` exposes one match-scoped stream of

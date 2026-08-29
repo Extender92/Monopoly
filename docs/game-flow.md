@@ -36,14 +36,19 @@ may require several Core calls when a decision pauses it.
 
 ## Match setup
 
-Core creates a match through the selected rule profile:
+The current transitional `CoreGameSetup` creates a match as follows:
 
-1. Validate the profile and supported player count.
-2. Build the regional board and card decks.
-3. Create the players with the configured starting balance.
-4. Create the configured dice.
-5. Determine the first player using the configured starting-player rule.
-6. Create one `Game` instance containing the resolved rules and state.
+1. Validate the current rules and player count.
+2. Create the players and select the first player in list order.
+3. Create one `Game` with a match-scoped random source.
+4. Build the current board and prepare both shuffled deck orders.
+5. Return the complete match without consuming setup-player or setup-dice
+   randomness.
+
+Issue #40 replaces the fixed first-player behavior with profile-selected
+`fixed`, `random` or `highest-roll` setup policies. `SetupStartingPlayer` and
+`SetupDice` random purposes are reserved for that work and are not an interim
+policy API.
 
 UK Classic and US Classic use their official setup defaults, including the Classic starting balance and highest-opening-roll starting-player selection. Custom may override supported setup values and may select another supported starting-player policy.
 
@@ -127,6 +132,19 @@ made resumable.
 If the match is already over, `PlayTurn()` performs no roll or state transition and returns a game-over result containing the winner.
 
 ## Normal roll flow
+
+Every nondeterministic choice is requested from the source owned by that
+`Game`. Ordinary movement uses `TurnDice`, detention attempts use
+`DetentionDice` and an additional rule-specific roll uses
+`DedicatedRuleDice`. Deck setup uses `DeckShuffle`. Purposes let tests and
+diagnostics distinguish operations without making the source or its internal
+state part of the match.
+
+Core prepares all configured die values before it commits the roll. If any
+request fails or returns an invalid value, no dice snapshot, log, notification,
+phase, pending decision or rule state changes. A detention roll is prepared
+before its pending response is consumed, so a failed source leaves the same
+decision available for a later valid submission.
 
 For a player who is not in jail:
 
@@ -342,6 +360,7 @@ present the completed roll/action cycle:
 | Field | Meaning |
 | --- | --- |
 | `Player` | The player whose cycle was processed. |
+| `Roll` | Immutable canonical snapshot of the main roll, including purpose, individual results, sum and doubles state; `null` when no roll occurred. |
 | `DiceResults` | The individual results rolled during the main cycle. Empty when no roll occurred. |
 | `DiceSum` | The sum of the main roll, or zero when no roll occurred. |
 | `LandedSquare` | The final square resolved by the landing chain, or `null` when no landing occurred. |
@@ -354,6 +373,10 @@ present the completed roll/action cycle:
 | `Winner` | The winning player when the match is over; otherwise `null`. |
 
 The result is a summary rather than a second source of game state. The frontend should read current player balances, positions, ownership and other persistent state from the `Game` instance after the call.
+
+`DiceResults`, `DiceSum` and `WasDouble` are derived from `Roll`. A card or
+other rule may request a later dedicated roll and update `Game.LastDiceRoll`;
+the completed result continues to describe the original movement roll.
 
 ## Notifications
 

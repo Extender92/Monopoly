@@ -6,6 +6,7 @@ using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 using Monopoly.Core.Persistence;
+using Monopoly.Core.Randomness;
 using System;
 
 namespace Monopoly.Console
@@ -29,7 +30,7 @@ namespace Monopoly.Console
 
             GameRules gameRules = SetupRules(consoleWrapper);
 
-            Game game = CoreGameSetup.Setup(gameRules);
+            Game game = CoreGameSetup.Setup(gameRules, randomSource: new SystemMatchRandomSource());
 
             ConsolePrinter consolePrinter = new ConsolePrinter(consoleWrapper, game);
 
@@ -64,7 +65,7 @@ namespace Monopoly.Console
             Game game;
             try
             {
-                game = saveStore.Load();
+                game = saveStore.Load(randomSource: new SystemMatchRandomSource());
             }
             catch (SaveStoreException exception)
             {

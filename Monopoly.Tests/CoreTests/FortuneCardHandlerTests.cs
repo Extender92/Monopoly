@@ -16,7 +16,10 @@ namespace Monopoly.Tests.CoreTests
         {
             // Arrange
             var gameRules = new GameRules(numberOfPlayers: 4, numberOfDice: 2, dieSides: 6);
-            var fortuneCardHandler = new FortuneCardHandler(gameRules);
+            var fortuneCardHandler = new FortuneCardHandler(
+                gameRules,
+                new MatchRandomizer(new MinimumMatchRandomSource()),
+                shuffleDecks: true);
 
             // Assert
             Assert.Equal(FortuneCardBuilder.GetChanceCards(gameRules).Count, fortuneCardHandler.ChanceDeck.Count);
@@ -30,7 +33,10 @@ namespace Monopoly.Tests.CoreTests
         {
             // Arrange
             var gameRules = new GameRules(numberOfPlayers: 4, numberOfDice: 2, dieSides: 6);
-            var fortuneCardHandler = new FortuneCardHandler(gameRules);
+            var fortuneCardHandler = new FortuneCardHandler(
+                gameRules,
+                new MatchRandomizer(new MinimumMatchRandomSource()),
+                shuffleDecks: true);
 
             // Act
             var drawnCard = fortuneCardHandler.DrawNextChanceCard();
@@ -53,7 +59,10 @@ namespace Monopoly.Tests.CoreTests
         {
             // Arrange
             var gameRules = new GameRules(numberOfPlayers: 4, numberOfDice: 2, dieSides: 6);
-            var fortuneCardHandler = new FortuneCardHandler(gameRules);
+            var fortuneCardHandler = new FortuneCardHandler(
+                gameRules,
+                new MatchRandomizer(new MinimumMatchRandomSource()),
+                shuffleDecks: true);
 
             // Act
             var drawnCard = fortuneCardHandler.DrawNextCommunityChestCard();

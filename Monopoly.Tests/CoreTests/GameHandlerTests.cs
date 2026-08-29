@@ -8,8 +8,7 @@ public class GameHandlerTests
     [Fact]
     public void RoleDiceAndMovePlayer_ShouldAdjustPlayerPosition()
     {
-        Mock<IDie> die = CreateDie(3);
-        Game game = new GameTestBuilder(new GameRules(2, 1, 6)).WithDice(die.Object).Build();
+        Game game = new GameTestBuilder(new GameRules(2, 1, 6)).WithRandomValues(3).Build();
 
         game.Handler.RoleDiceAndMovePlayer(game.Players[0]);
 
@@ -30,10 +29,9 @@ public class GameHandlerTests
     [Fact]
     public void CheckIfPlayerGoPastGoAfterRollingDice_ShouldAdjustPlayerPositionAndGrantSalary()
     {
-        Mock<IDie> die = CreateDie(4);
         Game game = new GameTestBuilder(new GameRules(2, 1, 6))
             .WithPlayer(0, money: 3000, position: 37)
-            .WithDice(die.Object)
+            .WithRandomValues(4)
             .Build();
 
         game.Handler.RoleDiceAndMovePlayer(game.Players[0]);
@@ -45,67 +43,62 @@ public class GameHandlerTests
     [Fact]
     public void RoleDiceAndMovePlayer_ShouldAdjustPlayerPositionWithTwoDice()
     {
-        Mock<IDie> first = CreateDie(2);
-        Mock<IDie> second = CreateDie(4);
         Game game = new GameTestBuilder()
             .WithPlayer(0, position: 10)
-            .WithDice(first.Object, second.Object)
+            .WithRandomValues(2, 4)
             .Build();
 
         game.Handler.RoleDiceAndMovePlayer(game.Players[0]);
 
         Assert.Equal(16, game.Players[0].Position);
-        Assert.Equal(new[] { 2, 4 }, game.Dice.Select(die => die.GetDieResult()));
+        Assert.Equal(new[] { 2, 4 }, game.LastDiceRoll!.Results);
     }
 
     [Fact]
     public void RollDice_ShouldRollDiceAndLogRollAndTotal()
     {
-        Mock<IDie> first = CreateDie(3);
-        Mock<IDie> second = CreateDie(4);
         Game game = new GameTestBuilder(new GameRules(1, 2, 6))
             .WithPlayer(0, name: "TestPlayer")
-            .WithDice(first.Object, second.Object)
+            .WithRandomValues(3, 4)
             .Build();
         Player player = game.Players[0];
 
-        game.Handler.RollDice(player);
+        DiceRoll roll = game.Handler.RollDice(player);
 
         Assert.Contains(game.Logs.LogList, log => log.Info == "TestPlayer rolled: 3 4 Total: 7");
-        Assert.Equal(7, game.Handler.CalculateDiceSum());
+        Assert.Equal(7, roll.Sum);
     }
 
     [Fact]
-    public void IsDiceDouble_ShouldReturnTrueForDouble()
+    public void DiceRollMarksAPairWithEqualValuesAsDouble()
     {
-        Game game = CreateGameWithDice(3, 3);
-        Assert.True(game.Handler.IsDiceDouble());
+        DiceRoll roll = CreateGameWithRoll(2, 3, 3);
+        Assert.True(roll.IsDouble);
     }
 
     [Fact]
-    public void IsDiceDouble_ShouldReturnTrueForAllDice()
+    public void DiceRollMarksAllEqualValuesAsDouble()
     {
         GameRules rules = new(1, 4, 6);
-        IDie[] dice = [CreateDie(3).Object, CreateDie(3).Object, CreateDie(3).Object, CreateDie(3).Object];
-        Game game = new GameTestBuilder(rules).WithDice(dice).Build();
+        Game game = new GameTestBuilder(rules).WithRandomValues(3, 3, 3, 3).Build();
 
-        Assert.True(game.Handler.IsDiceDouble());
+        Assert.True(game.Handler.RollDice(game.CurrentPlayer).IsDouble);
     }
 
     [Fact]
-    public void IsDiceDouble_ShouldReturnFalseForNonDouble()
+    public void DiceRollDoesNotMarkDifferentValuesAsDouble()
     {
-        Game game = CreateGameWithDice(3, 4);
-        Assert.False(game.Handler.IsDiceDouble());
+        DiceRoll roll = CreateGameWithRoll(2, 3, 4);
+        Assert.False(roll.IsDouble);
     }
 
     [Fact]
-    public void IsDiceDouble_ShouldReturnFalseForSingleDie()
+    public void DiceRollDoesNotMarkOneValueAsDouble()
     {
         GameRules rules = new(1, 1, 6);
-        Game game = new GameTestBuilder(rules).WithDice(CreateDie(3).Object).Build();
+        Game game = new GameTestBuilder(rules).WithRandomValues(3).Build();
 
-        Assert.False(game.Handler.IsDiceDouble());
+        Assert.False(game.Handler.RollDice(game.CurrentPlayer).IsDouble);
     }
 
     [Fact]
@@ -224,18 +217,11 @@ public class GameHandlerTests
         Assert.Equal(3 * (property.BuildHouseCost / 2), game.Handler.CalculateHouseAndHotelValue(property));
     }
 
-    private static Mock<IDie> CreateDie(int result)
+    private static DiceRoll CreateGameWithRoll(int diceCount, params int[] results)
     {
-        Mock<IDie> die = new();
-        die.Setup(item => item.GetDieResult()).Returns(result);
-        die.Setup(item => item.GetDieType()).Returns(6);
-        return die;
-    }
-
-    private static Game CreateGameWithDice(int firstResult, int secondResult)
-    {
-        return new GameTestBuilder(new GameRules(1, 2, 6))
-            .WithDice(CreateDie(firstResult).Object, CreateDie(secondResult).Object)
+        Game game = new GameTestBuilder(new GameRules(1, diceCount, 6))
+            .WithRandomValues(results)
             .Build();
+        return game.Handler.RollDice(game.CurrentPlayer);
     }
 }
