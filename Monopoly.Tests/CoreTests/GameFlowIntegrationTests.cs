@@ -103,7 +103,7 @@ public sealed class GameFlowIntegrationTests
 
         Assert.Equal(3, player.Position);
         Assert.Equal(1200, player.Money);
-        Assert.Same(game.Board.GetSquareAtPosition(3), result.LandedSquare);
+        Assert.Equal(game.Board.GetSpace(game.Board.Track.GetSpaceIdAt(3)), result.LandedSpace);
     }
 
     [Fact]
@@ -120,8 +120,9 @@ public sealed class GameFlowIntegrationTests
 
         Assert.False(game.TheJail.IsPlayerInJail(player));
         Assert.Equal(12, player.Position);
-        Assert.Same(game.Board.GetSquareAtPosition(12), result.LandedSquare);
+        Assert.Equal(game.Board.GetSpace(game.Board.Track.GetSpaceIdAt(12)), result.LandedSpace);
         Assert.True(result.WasReleasedFromJailByDouble);
+        Assert.Equal(StatusTransitionKind.Removed, Assert.Single(result.StatusTransitions).Kind);
         Assert.False(result.ExtraTurn);
         Assert.Same(next, game.CurrentPlayer);
     }
@@ -141,7 +142,7 @@ public sealed class GameFlowIntegrationTests
 
         TurnResult? result = null;
         Exception? exception = Record.Exception(() => result = game.PlayTurnToCompletion(
-            decision => decision is JailReleaseDecision ? DecisionOption.LeaveJail : DecisionOption.Decline));
+            decision => decision is StatusDecision ? DecisionOptions.Resolve : DecisionOptions.Decline));
 
         Assert.Null(exception);
         Assert.NotNull(result);
@@ -167,13 +168,14 @@ public sealed class GameFlowIntegrationTests
 
         TurnResult? result = null;
         Exception? exception = Record.Exception(() => result = game.PlayTurnToCompletion(
-            decision => decision is JailReleaseDecision ? DecisionOption.LeaveJail : DecisionOption.Decline));
+            decision => decision is StatusDecision ? DecisionOptions.Resolve : DecisionOptions.Decline));
 
         Assert.Null(exception);
         Assert.NotNull(result);
         Assert.Equal(new[] { 2, 2 }, result.DiceResults);
         Assert.True(result.WasDouble);
         Assert.False(result.WasReleasedFromJailByDouble);
+        Assert.Equal(StatusTransitionKind.Removed, Assert.Single(result.StatusTransitions).Kind);
         Assert.Equal(50, player.Money);
         Assert.False(game.TheJail.TryGetJailInfo(player, out _));
         Assert.Same(next, game.CurrentPlayer);
@@ -195,7 +197,8 @@ public sealed class GameFlowIntegrationTests
 
         Assert.True(game.TheJail.IsPlayerInJail(player));
         Assert.True(result.WasSentToJail);
-        Assert.Null(result.LandedSquare);
+        Assert.Null(result.LandedSpace);
+        Assert.Equal(StatusTransitionKind.Applied, Assert.Single(result.StatusTransitions).Kind);
         Assert.Equal(0, game.ConsecutiveDoubles);
         Assert.Same(next, game.CurrentPlayer);
     }
@@ -286,7 +289,7 @@ public sealed class GameFlowIntegrationTests
 
         TurnResult result = game.PlayTurnToCompletion();
 
-        Assert.IsType<TaxSquare>(result.LandedSquare);
+        Assert.Equal(game.Board.Track.GetSpaceIdAt(4), result.LandedSpace!.Id);
         Assert.True(result.PlayerBankrupt);
         Assert.False(result.ExtraTurn);
         Assert.False(result.GameOver);

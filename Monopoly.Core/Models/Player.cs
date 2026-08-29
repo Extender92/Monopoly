@@ -15,7 +15,7 @@ namespace Monopoly.Core.Models
             : throw new ArgumentException("Player name cannot be empty.", nameof(name));
         public int Money { get; private set; } = 3000;
         public int Position { get; private set; }
-        public int NumberOfGetOutOFJailCards { get; private set; }
+        internal int NumberOfGetOutOFJailCards { get; private set; }
         public bool IsBankrupt { get; private set; }
 
         internal void Credit(int amount)

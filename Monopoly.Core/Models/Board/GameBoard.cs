@@ -13,15 +13,18 @@ namespace Monopoly.Core.Models.Board
         private readonly List<Square> _squares;
         private readonly ReadOnlyCollection<Square> _squaresView;
         private readonly ReadOnlyDictionary<SpaceId, Square> _squaresById;
-        public IReadOnlyList<Square> Squares => _squaresView;
+        internal IReadOnlyList<Square> Squares => _squaresView;
+        public IReadOnlyList<SpaceView> Spaces => Array.AsReadOnly(_squares.Select(square => square.CreateView()).ToArray());
         public GameTrack Track { get; }
+
+        public SpaceView GetSpace(SpaceId id) => GetSquare(id).CreateView();
 
         internal GameBoard(GameRules gameRules)
             : this(SquareBuilder.GetBoardSquares(gameRules ?? throw new ArgumentNullException(nameof(gameRules))))
         {
         }
 
-        public GameBoard(IEnumerable<Square> squares)
+        internal GameBoard(IEnumerable<Square> squares)
         {
             ArgumentNullException.ThrowIfNull(squares);
             _squares = squares.ToList();
@@ -47,12 +50,12 @@ namespace Monopoly.Core.Models.Board
             Squares.First(s => s.Position == player.Position).LandOn(player, game);
         }
 
-        public Square GetSquareAtPosition(int position)
+        internal Square GetSquareAtPosition(int position)
         {
             return _squares[position];
         }
 
-        public Square GetSquare(SpaceId id) =>
+        internal Square GetSquare(SpaceId id) =>
             !id.IsValid
                 ? throw new ArgumentException("The space ID is invalid.", nameof(id))
                 : _squaresById.TryGetValue(id, out Square? square)
@@ -62,23 +65,23 @@ namespace Monopoly.Core.Models.Board
         internal IReadOnlyList<DeckId> ReferencedDeckIds =>
             Array.AsReadOnly(_squares.OfType<IDeckReferenceSpace>().Select(space => space.DeckId).ToArray());
 
-        public IReadOnlyList<T> GetAllSquaresOfType<T>() where T : Square
+        internal IReadOnlyList<T> GetAllSquaresOfType<T>() where T : Square
         {
             return Squares.OfType<T>().ToList().AsReadOnly();
         }
 
-        public IReadOnlyList<PropertySquare> GetAllPropertySquares()
+        internal IReadOnlyList<PropertySquare> GetAllPropertySquares()
         {
             return GetAllSquaresOfType<PropertySquare>();
         }
 
-        public IReadOnlyList<PropertySquare> GetAllPlayerOwnedPropertySquares(Player player)
+        internal IReadOnlyList<PropertySquare> GetAllPlayerOwnedPropertySquares(Player player)
         {
             IReadOnlyList<PropertySquare> propertySquares = GetAllPropertySquares();
             return propertySquares.Where(s => s.Owner == player).ToList().AsReadOnly();
         }
 
-        public IReadOnlyList<PropertySquare> GetAllPropertySquaresPlayerCanBuyHousesIn(Player player)
+        internal IReadOnlyList<PropertySquare> GetAllPropertySquaresPlayerCanBuyHousesIn(Player player)
         {
             IReadOnlyList<PropertySquare> playerOwnedPropertySquares = GetAllPlayerOwnedPropertySquares(player);
             IReadOnlyList<PropertySquare> propertySquares = GetAllPropertySquares();
@@ -89,7 +92,7 @@ namespace Monopoly.Core.Models.Board
                 .AsReadOnly();
         }
 
-        public IReadOnlyList<PropertySquare> GetAllPropertySquaresPlayerCanSellHousesIn(Player player)
+        internal IReadOnlyList<PropertySquare> GetAllPropertySquaresPlayerCanSellHousesIn(Player player)
         {
             IReadOnlyList<PropertySquare> playerOwnedPropertySquares = GetAllPlayerOwnedPropertySquares(player);
 
@@ -99,7 +102,7 @@ namespace Monopoly.Core.Models.Board
                 .AsReadOnly();
         }
 
-        public IReadOnlyList<Square> GetAllMortgageableSquares()
+        internal IReadOnlyList<Square> GetAllMortgageableSquares()
         {
             IReadOnlyList<PropertySquare> propertySquares = GetAllSquaresOfType<PropertySquare>();
             IReadOnlyList<RailroadSquare> railroadSquares = GetAllSquaresOfType<RailroadSquare>();
@@ -111,13 +114,13 @@ namespace Monopoly.Core.Models.Board
             return allMortgageableSquares.AsReadOnly();
         }
 
-        public IReadOnlyList<Square> GetAllMortgageableSquaresForPlayer(Player player)
+        internal IReadOnlyList<Square> GetAllMortgageableSquaresForPlayer(Player player)
         {
             IReadOnlyList<Square> allMortgageableSquares = GetAllMortgageableSquares();
             return allMortgageableSquares.Where(s => s.Owner == player).ToList().AsReadOnly();
         }
 
-        public IReadOnlyList<Square> GetPlayerMortgageableSquares(Player player)
+        internal IReadOnlyList<Square> GetPlayerMortgageableSquares(Player player)
         {
             IReadOnlyList<Square> playerOwnedSquares = GetAllMortgageableSquaresForPlayer(player);
 
@@ -135,13 +138,13 @@ namespace Monopoly.Core.Models.Board
             return playerMortgageableSquares;
         }
 
-        public IReadOnlyList<Square> GetPlayerMortgagedSquares(Player player)
+        internal IReadOnlyList<Square> GetPlayerMortgagedSquares(Player player)
         {
             IReadOnlyList<Square> playerOwnedSquares = GetAllMortgageableSquaresForPlayer(player);
             return playerOwnedSquares.Where(s => s.IsMortgage).ToList().AsReadOnly();
         }
 
-        public IReadOnlyList<Square> GetPlayerUnmortgagedSquares(Player player)
+        internal IReadOnlyList<Square> GetPlayerUnmortgagedSquares(Player player)
         {
             IReadOnlyList<Square> playerMortgageableSquares = GetPlayerMortgageableSquares(player);
             return playerMortgageableSquares.Where(s => !s.IsMortgage).ToList().AsReadOnly();

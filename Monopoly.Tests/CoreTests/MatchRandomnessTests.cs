@@ -90,11 +90,11 @@ public sealed class MatchRandomnessTests
             .WithPlayerInJail(0)
             .WithRandomSource(source)
             .Build();
-        JailReleaseDecision decision = Assert.IsType<JailReleaseDecision>(game.PlayTurn().PendingDecision);
+        StatusDecision decision = Assert.IsType<StatusDecision>(game.PlayTurn().PendingDecision);
         string before = JsonSerializer.Serialize(GameProgressStateMapper.ToState(game));
 
         RandomSourceException exception = Assert.Throws<RandomSourceException>(() => game.SubmitDecision(
-            new DecisionResponse(decision.DecisionId, DecisionOption.RollForDoubles)));
+            new DecisionResponse(decision.DecisionId, DecisionOptions.Roll)));
 
         Assert.Equal(RandomSourceErrorKind.Exhausted, exception.Kind);
         Assert.Equal(RandomPurpose.DetentionDice, exception.Request.Purpose);
@@ -200,7 +200,7 @@ public sealed class MatchRandomnessTests
         Assert.Equal(RandomPurpose.TurnDice, result.Roll!.Purpose);
         Assert.Equal([1, 2], result.Roll.Results);
         Assert.Equal(3, result.Roll.Sum);
-        Assert.Equal(7, result.LandedSquare!.Position);
+        Assert.Equal(7, result.LandedSpace!.Index);
         Assert.Equal(RandomPurpose.DedicatedRuleDice, game.LastDiceRoll!.Purpose);
         Assert.Equal([4, 5], game.LastDiceRoll.Results);
         Assert.Equal(12, result.Player.Position);
@@ -232,9 +232,9 @@ public sealed class MatchRandomnessTests
         List<GameNotification> notifications = [];
         using IDisposable subscription = game.Notifications.Subscribe(notifications.Add);
 
-        PropertyPurchaseDecision decision = Assert.IsType<PropertyPurchaseDecision>(game.PlayTurn().PendingDecision);
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
         GameActionResult completed = game.SubmitDecision(
-            new DecisionResponse(decision.DecisionId, DecisionOption.Decline));
+            new DecisionResponse(decision.DecisionId, DecisionOptions.Decline));
 
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
         return new ScenarioSnapshot(

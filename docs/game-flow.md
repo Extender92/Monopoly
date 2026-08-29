@@ -92,12 +92,14 @@ turn.
 ## Resumable action boundary
 
 `Game.Phase` is `ReadyForTurn`, `AwaitingDecision` or `GameOver`. The current
-resumable decisions are:
+public decision boundary uses stable `DecisionKindId` and `DecisionOptionId`
+values:
 
-- `PropertyPurchaseDecision`, with player ID, square position, price and the
-  `Purchase`/`Decline` responses.
-- `JailReleaseDecision`, with player ID, configured fine, card/Jail context and
-  the `LeaveJail`/`RollForDoubles` responses.
+- `PurchaseDecision` contains the player ID, `SpaceId`, a generic
+  `ResourceAmount` and the `Accept`/`Decline` responses.
+- Status-related choices are visible as the generic `PendingDecision` base
+  contract. The current detention payload is internal transition state used by
+  the legacy executor and Console until #75 provides generic execution.
 
 Each decision has a stable `Guid` for its lifetime. `SubmitDecision()` validates
 the complete response before mutation. Null, malformed, stale, duplicate and
@@ -105,8 +107,8 @@ defined-but-disallowed responses are typed rejections and leave both live state
 and pending progress unchanged. Calling `PlayTurn()` while a decision waits is
 also rejected without rerolling or moving.
 
-Core stores continuation data as IDs, enums, dice results, positions and turn
-flags rather than delegates or domain references. An accepted response may
+Core stores continuation data as typed IDs, primitive values, enums, dice
+results and turn flags rather than delegates or domain references. An accepted response may
 continue to another pending decision, such as rolling doubles out of Jail and
 then reaching an unowned Utility. Previous dice, movement, payments and player
 rotation occur at most once.
@@ -176,7 +178,9 @@ Movement notifications may be emitted for presentation after state changes, but 
 
 ## Landing chains
 
-After movement, Core resolves the square at the player's new position through `Square.LandOn()`.
+After movement, Core currently resolves the space through the internal legacy
+`Square.LandOn()` executor. The public board exposes only an immutable
+`SpaceView`; #75 replaces the executor with registered generic capabilities.
 
 A landing may:
 
@@ -192,7 +196,11 @@ A landing may:
 
 If a card causes movement, Core continues resolving the destination square. This creates one landing chain within the original roll/action cycle. Every movement in that chain must use the shared movement and wrapping rules.
 
-`TurnResult.LandedSquare` represents the final resolved square in the chain. It is `null` when the cycle has no landing, such as being sent directly to jail on the third consecutive doubles or remaining in jail after an unsuccessful roll.
+`TurnResult.LandedSpace` represents the final resolved `SpaceView` in the
+chain. It is `null` when the cycle has no landing, such as an internal status
+transition that skips normal movement. Status changes are exposed separately
+as immutable `StatusTransition` entries with player ID, `StatusId` and
+apply/update/remove kind.
 
 Intermediate card draws and reached squares may be presented through notifications without changing the final result or controlling the chain.
 
@@ -205,7 +213,7 @@ of the first public baseline.
 When a player lands on an unowned purchasable square:
 
 1. Core checks whether the square is eligible for purchase.
-2. Core creates `PropertyPurchaseDecision` before money or ownership changes
+2. Core creates `PurchaseDecision` before money or ownership changes
    and returns control to the frontend.
 3. If the player declines, no purchase-related asset management occurs and Core starts the configured auction flow.
 4. If the player accepts but lacks cash, Core uses the insufficient-funds flow to let the player raise the required amount when their total eligible assets are sufficient.
@@ -368,10 +376,9 @@ present the completed roll/action cycle:
 | `Roll` | Immutable canonical snapshot of the main roll, including purpose, individual results, sum and doubles state; `null` when no roll occurred. |
 | `DiceResults` | The individual results rolled during the main cycle. Empty when no roll occurred. |
 | `DiceSum` | The sum of the main roll, or zero when no roll occurred. |
-| `LandedSquare` | The final square resolved by the landing chain, or `null` when no landing occurred. |
+| `LandedSpace` | Immutable generic view of the final space resolved by the landing chain, or `null` when no landing occurred. |
 | `WasDouble` | Whether the main roll was doubles. |
-| `WasSentToJail` | Whether the cycle sent the player to jail. |
-| `WasReleasedFromJailByDouble` | Whether jailed-roll doubles released the player. |
+| `StatusTransitions` | Immutable generic status changes applied, updated or removed during the cycle. |
 | `ExtraTurn` | Whether the same player is entitled to another roll/action cycle. |
 | `PlayerBankrupt` | Whether the processed player became bankrupt. |
 | `GameOver` | Whether the match ended during or before this cycle. |

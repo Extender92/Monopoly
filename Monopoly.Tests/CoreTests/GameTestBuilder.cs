@@ -118,17 +118,17 @@ internal static class GameTestActions
 {
     internal static TurnResult PlayTurnToCompletion(
         this Game game,
-        Func<PendingDecision, DecisionOption>? chooseResponse = null)
+        Func<PendingDecision, DecisionOptionId>? chooseResponse = null)
     {
         GameActionResult result = game.PlayTurn();
         while (result.Status == GameActionStatus.DecisionRequired)
         {
             PendingDecision decision = result.PendingDecision
                 ?? throw new InvalidOperationException("A required decision did not contain a snapshot.");
-            DecisionOption response = chooseResponse?.Invoke(decision) ?? decision switch
+            DecisionOptionId response = chooseResponse?.Invoke(decision) ?? decision switch
             {
-                PropertyPurchaseDecision => DecisionOption.Decline,
-                JailReleaseDecision => DecisionOption.RollForDoubles,
+                PurchaseDecision => DecisionOptions.Decline,
+                StatusDecision => DecisionOptions.Roll,
                 _ => throw new InvalidOperationException("Unknown test decision type.")
             };
             result = game.SubmitDecision(new DecisionResponse(decision.DecisionId, response));

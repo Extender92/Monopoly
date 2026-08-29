@@ -609,7 +609,8 @@ Current Core coverage includes:
   exactly-once continuation through chained decisions.
 - Atomic typed rejection of malformed, stale, duplicate and disallowed
   decision responses.
-- Detached primitive-only phase, decision and continuation projections.
+- Detached phase, decision and continuation projections using primitive values,
+  enums and validated generic IDs.
 - Match-scoped random request validation, typed source failures, atomic
   multi-die preparation and purpose separation.
 - Deterministic Fisher–Yates deck ordering, shuffle-free Version 1
@@ -634,8 +635,8 @@ Current Console coverage includes:
 - String formatting.
 - Calls recorded through mocked Console abstractions.
 - Injected save-store use and typed save/load error presentation.
-- Purchase/Jail prompt mapping, configured Jail values, typed rejection display
-  and synchronous driving through multiple Core results.
+- Generic purchase/status decision mapping, configured legacy status values,
+  typed rejection display and synchronous driving through multiple Core results.
 
 Current Infrastructure coverage includes:
 
@@ -654,10 +655,18 @@ metadata and assert identical movement, purchases, fees, decisions and Version
 1 state. Version 1 regression tests also assert that no presentation catalog
 fields enter the established wire representation.
 
-Issue #72 covers the generic track, deck collection and structural IDs. Issue
-#73 reuses those identities for capability and effect references. Issue #74
-adds JSON validation and fingerprint-specific tests, while #77 owns full
-generic Console projection coverage.
+The generic track/deck and profile-rule suites cover structural IDs, varied
+track sizes, zero/one/multiple decks, closed capability and effect definitions,
+ordinal immutable catalogs, broken references, invalid combinations and
+detached runtime `SpaceView`/status snapshots. Reflection tests ensure exported
+Core signatures contain no concrete legacy spaces, regional cards, detention
+enums or Console types. Legacy integration and Version 1 fixture tests run
+alongside those contract tests.
+
+Issue #74 adds bounded JSON validation, canonicalization and fingerprint tests
+by constructing the definitions introduced by #73. Issue #75 adds executor
+coverage for the supported public capability set, while #77 owns full generic
+Console projection coverage.
 
 The current GitHub build workflow:
 
@@ -674,12 +683,12 @@ currently collected or published by CI.
 
 The current suite does not yet fully provide:
 
-- Systematic UK Classic, US Classic and Custom profile contracts.
+- Validated JSON profiles and canonical fingerprints.
 - Stable card-identity and held-card round trips.
 - Complete auction, rent-claim, trade, building and mortgage flow coverage.
 - Complete multi-player debt and bankruptcy settlement scenarios.
 - Physical pending-decision round trips; Version 1 rejects pending state and
-  the primitive Version 2 projections are tested without storage.
+  the detached Version 2 projections are tested without storage.
 - A deterministic automated match from setup to winner.
 - Published code-coverage diagnostics.
 

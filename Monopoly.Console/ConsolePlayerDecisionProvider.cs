@@ -28,10 +28,10 @@ internal sealed class ConsolePlayerDecisionProvider : IPlayerDecisionProvider
         ArgumentNullException.ThrowIfNull(decision);
         Player player = _game.Players.Single(candidate => candidate.Id == decision.PlayerId);
 
-        DecisionOption response = decision switch
+        DecisionOptionId response = decision switch
         {
-            PropertyPurchaseDecision purchase => GetPurchaseResponse(purchase),
-            JailReleaseDecision jail => GetJailResponse(player, jail),
+            PurchaseDecision purchase => GetPurchaseResponse(purchase),
+            StatusDecision status => GetStatusResponse(player, status),
             _ => throw new ArgumentOutOfRangeException(nameof(decision), "Unsupported pending decision type.")
         };
 
@@ -49,22 +49,22 @@ internal sealed class ConsolePlayerDecisionProvider : IPlayerDecisionProvider
         return player.Money > moneyBefore;
     }
 
-    private DecisionOption GetPurchaseResponse(PropertyPurchaseDecision decision)
+    private DecisionOptionId GetPurchaseResponse(PurchaseDecision decision)
     {
-        var square = _game.Board.GetSquareAtPosition(decision.SquarePosition);
+        var square = _game.Board.GetSquare(decision.SpaceId);
         string squareName = _presentation.GetDisplayText(square.PresentationToken);
-        string price = _presentation.FormatAmount(decision.Price, _game.Rules.PrimaryResourcePresentationToken);
+        string price = _presentation.FormatAmount(decision.Price.Value, _game.Rules.PrimaryResourcePresentationToken);
         _printer.PrintText($"Do you want to buy {squareName} for {price}?");
-        return _input.GetUserConfirmation() ? DecisionOption.Purchase : DecisionOption.Decline;
+        return _input.GetUserConfirmation() ? DecisionOptions.Accept : DecisionOptions.Decline;
     }
 
-    private DecisionOption GetJailResponse(Player player, JailReleaseDecision decision)
+    private DecisionOptionId GetStatusResponse(Player player, StatusDecision decision)
     {
-        string releaseMethod = decision.HasGetOutOfJailCard
+        string releaseMethod = decision.HasAlternative
             ? "use a Get Out of Jail For Free card"
-            : $"pay {_presentation.FormatAmount(decision.Fine, _game.Rules.PrimaryResourcePresentationToken)}";
+            : $"pay {_presentation.FormatAmount(decision.Cost.Value, _game.Rules.PrimaryResourcePresentationToken)}";
         _printer.PrintText($"{player.Name}, do you want to {releaseMethod} instead of rolling for doubles?");
-        return _input.GetUserConfirmation() ? DecisionOption.LeaveJail : DecisionOption.RollForDoubles;
+        return _input.GetUserConfirmation() ? DecisionOptions.Resolve : DecisionOptions.Roll;
     }
 
 }

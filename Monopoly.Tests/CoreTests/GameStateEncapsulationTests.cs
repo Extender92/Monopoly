@@ -373,7 +373,9 @@ public sealed class GameStateEncapsulationTests
     {
         foreach (string propertyName in propertyNames)
         {
-            PropertyInfo property = typeof(T).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public)!;
+            PropertyInfo property = typeof(T).GetProperty(
+                propertyName,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!;
             Assert.NotNull(property);
             Assert.False(property.SetMethod?.IsPublic ?? false, $"{typeof(T).Name}.{propertyName} has a public setter.");
         }

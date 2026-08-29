@@ -70,7 +70,7 @@ internal class ConsoleGame
 
                     TurnResult result = actionResult.TurnResult
                         ?? throw new InvalidOperationException("A completed game action must contain a turn result.");
-                    UpdateGameInformation(result.LandedSquare ?? CurrentGame.Board.GetSquareAtPosition(player.Position), player);
+                    UpdateGameInformation(result.LandedSpace ?? CurrentGame.Board.Spaces[player.Position], player);
                     Printer.EndPlayerTurnInfo(player, CurrentGame.Players);
                 }
             }
@@ -89,11 +89,11 @@ internal class ConsoleGame
     [Obsolete("Use StartConsoleGame instead.")]
     internal void StartGame() => StartConsoleGame();
 
-    internal void UpdateGameInformation(Square landedSquare, Player player)
+    internal void UpdateGameInformation(SpaceView landedSpace, Player player)
     {
         Printer.PrintGameBoard(TablePieces, CurrentGame.Players);
         Printer.DisplayPlayersInformation(player, CurrentGame.Players);
-        CardPrinter.PrepareAndPrintSquareCard(landedSquare.Position);
+        CardPrinter.PrepareAndPrintSquareCard(landedSpace.Index);
     }
 
     internal PlayerActionMenu CreatePlayerActionMenu(Player player) =>

@@ -2,7 +2,7 @@ using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board
 {
-    public class TaxSquare : Square
+    internal class TaxSquare : Square
     {
         public TaxSquare(int position, int tax, PresentationMetadata presentation)
             : base(position, presentation)

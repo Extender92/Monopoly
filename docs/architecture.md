@@ -82,12 +82,12 @@ The main aggregate is `Game`. It owns:
 - Game rules
 - The ordered track and current spaces
 - The last committed dice outcome and resumable roll data
-- Jail state
+- Generic status snapshots backed temporarily by internal legacy detention state
 - Transactions
 - The `DeckId`-indexed deck collection and current card order
 - Fines
 - Turn and doubles state
-- Current phase, a pending decision and primitive continuation data
+- Current phase, a pending decision and typed-ID continuation data
 - Bankruptcy and winner state
 
 As the rules engine is completed, the match state must also own any active
@@ -98,11 +98,11 @@ or collects the decision.
 A game is normally created through `CoreGameSetup.Setup()`.
 
 `Game` is the public mutation boundary for the live aggregate. Frontends receive
-getter-only state, `IReadOnlyList`/`IReadOnlyDictionary` collections backed by
-non-castable read-only wrappers, and immutable player, square, Jail and rule
-properties. They cannot rotate players, move tokens, execute square or card
-effects, change balances or ownership, draw cards, edit Jail entries or append
-game logs directly.
+getter-only state, immutable `SpaceView` and `StatusView` snapshots and
+`IReadOnlyList`/`IReadOnlyDictionary` collections backed by non-castable
+read-only wrappers. They cannot rotate players, move tokens, execute space or
+card effects, change balances or ownership, draw cards, edit internal status
+state or append game logs directly.
 
 ## Turn flow
 
@@ -252,14 +252,18 @@ across all decks in one profile.
 `ICardView` entries. The internal runtime draws by deck ID; no public match API
 has dedicated Chance or Community Chest collections.
 
-`Square` is the base type for board locations. Specific square types implement
-their internal landing behavior through `LandOn()`; a frontend cannot invoke a
-landing effect independently of Core turn flow.
+The public board surface consists of immutable `SpaceView` snapshots with
+`SpaceId`, track index and `PresentationToken`. `GameBoard.Spaces` enumerates
+the current track and `GameBoard.GetSpace()` resolves an ID without exposing an
+executable rule object. Internally, `Square` remains the legacy base type and
+specific square types still execute `LandOn()`; a frontend cannot invoke those
+landing effects independently of Core turn flow.
 
-The concrete square and card types below are legacy transition types. Issue
-#73 replaces their product-shaped rule meaning with generic capabilities, while
-#4 replaces their bundled data. Their current draw-space references are checked
-against the generic deck collection before a `Game` is returned.
+The concrete square and card types below are internal legacy transition types.
+The exported profile contract represents their future rule meaning with closed
+capability definitions, while #4 replaces their bundled data and #75 replaces
+the executor. Their current draw-space references are checked against the
+generic deck collection before a `Game` is returned.
 
 Examples include:
 
@@ -297,6 +301,35 @@ adapted as the profile architecture is implemented. Detailed profile behavior
 belongs in [game-rules.md](game-rules.md) and the documents under
 [`rules/`](rules/).
 
+### Generic profile rule contract
+
+Profile identity uses separate `ProfileId`, positive `ProfileRevision` and
+canonical lowercase `ProfileFingerprint` values. The fingerprint is a strict
+SHA-256 representation, but its calculation and JSON canonicalization belong
+to #74. `CapabilityId`, `EffectKindId`, `ResourceId` and `StatusId` cannot be
+interchanged even when their textual values match.
+
+`ProfileRuleGraph` is the immutable semantic boundary assembled from:
+
+- one ordered `GameTrack`;
+- an ordinal resource catalog and profile-level movement capability;
+- exactly one `SpaceDefinition` for each track entry;
+- zero or more ordinal `DeckDefinition` entries containing globally unique
+  `CardId` values; and
+- an ordinal status catalog.
+
+Space definitions use only the closed `Ownable`, `Purchasable`, `UsageFee` and
+`Draw` definitions. Card definitions contain ordered `Move`, `ResourceChange`
+and `Status` effects. The contracts accept no script, delegate, CLR type,
+assembly reference, `object` payload or free-form parameter map.
+
+Graph construction rejects unknown components, duplicate definitions, broken
+space/deck/card/resource/status references and invalid combinations such as a
+purchasable space without `Ownable`. Construction is detached from a live
+`Game`, so a validation failure cannot mutate an active match. Issue #74 maps
+bounded JSON into these same definitions; it must not introduce another
+capability representation. Issue #75 owns registration and execution.
+
 ## Core integration points
 
 The public Core API provides explicit integration points for frontends and tests:
@@ -325,17 +358,17 @@ independent of any particular UI technology.
 
 ## Frontend decisions
 
-Some actions require a player decision. The current Core exposes property
-purchase and Jail release as authoritative pending state:
+Some actions require a player decision. Public decisions use validated
+`DecisionKindId` and `DecisionOptionId` values. `PurchaseDecision` carries a
+`SpaceId` and generic `ResourceAmount` and offers `Accept` or `Decline`.
+The current detention choice is exposed through the generic base decision
+contract; its product-shaped payload remains internal for the legacy Console.
 
-- `PropertyPurchaseDecision` offers `Purchase` or `Decline`.
-- `JailReleaseDecision` offers `LeaveJail` or `RollForDoubles` and carries the
-  configured fine and current card/Jail context.
-
-The Console renders these snapshots and submits `DecisionResponse`. The
-remaining `IPlayerDecisionProvider.ResolveInsufficientFunds()` callback is
-temporary transition technology for synchronous asset management while a
-mandatory payment or an accepted purchase lacks cash.
+The Console temporarily renders the internal legacy status payload through its
+friend assembly access and submits a public `DecisionResponse`. The remaining
+`IPlayerDecisionProvider.ResolveInsufficientFunds()` callback is temporary
+transition technology for synchronous asset management while a mandatory
+payment or an accepted purchase lacks cash.
 
 A future web or game frontend can provide its own implementation without changing the Core rules.
 
@@ -406,9 +439,9 @@ atomic file replacement.
 
 Version 1 cannot represent `AwaitingDecision`. Mapping such a game is rejected
 before serialization or storage access, so an existing destination is not
-replaced. Core also exposes detached primitive-only progress, decision and
-continuation DTO projections for future Version 2 work; those DTOs are not
-part of the Version 1 envelope.
+replaced. Core also exposes detached progress, decision and continuation DTO
+projections made from primitive values, enums and validated generic IDs for
+future Version 2 work; those DTOs are not part of the Version 1 envelope.
 
 Save files store IDs instead of duplicated object references. During load:
 
@@ -420,8 +453,8 @@ Save files store IDs instead of duplicated object references. During load:
 5. Jail, fines, turn state and deck order are restored.
 6. The resulting game is validated.
 
-Version 2 must preserve the resolved rule profile, the current purchase/Jail
-decision progress and future pending match state such as an auction, rent claim,
+Version 2 must preserve the resolved rule profile, generic decision and status
+progress and future pending match state such as an auction, rent claim,
 trade or debt settlement. A loaded game must continue under the exact same
 effective rules.
 

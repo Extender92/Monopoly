@@ -34,7 +34,8 @@ public sealed class Game : IGame
     public GameRules Rules { get; }
     public ProfilePresentation Presentation { get; }
     internal Transaction Transactions { get; }
-    public Jail TheJail { get; }
+    internal Jail TheJail { get; }
+    public StatusCollection Statuses => TheJail.CreateStatusSnapshot();
     internal IPlayerDecisionProvider Decisions { get; private set; }
     public int Fines { get; private set; }
     public int CurrentTurn { get; private set; }
@@ -136,16 +137,16 @@ public sealed class Game : IGame
         Decisions = decisions ?? throw new ArgumentNullException(nameof(decisions));
     }
 
-    public bool TryBuyHouse(Player player, PropertySquare property) =>
+    internal bool TryBuyHouse(Player player, PropertySquare property) =>
         _notificationDispatchDepth == 0 && Transactions.TryBuyPropertyHouse(player, property);
 
-    public bool TrySellHouse(Player player, PropertySquare property) =>
+    internal bool TrySellHouse(Player player, PropertySquare property) =>
         _notificationDispatchDepth == 0 && Transactions.TrySellPropertyHouse(player, property);
 
-    public bool TryMortgageProperty(Player player, Square square) =>
+    internal bool TryMortgageProperty(Player player, Square square) =>
         _notificationDispatchDepth == 0 && Transactions.TryMortgageProperty(player, square);
 
-    public bool TryRepayMortgage(Player player, Square square) =>
+    internal bool TryRepayMortgage(Player player, Square square) =>
         _notificationDispatchDepth == 0 && Transactions.TryRepayMortgageProperty(player, square);
 
     /// <summary>Starts a turn and runs until it completes or requires a frontend decision.</summary>
@@ -192,7 +193,7 @@ public sealed class Game : IGame
             roll,
             landedSquare.Position,
             false);
-        PublishNotification(new SpaceReachedNotification(landedSquare));
+        PublishNotification(new SpaceReachedNotification(landedSquare.CreateView()));
         landedSquare.LandOn(player, this);
 
         if (PendingDecision is not null)
@@ -206,7 +207,7 @@ public sealed class Game : IGame
         if (_notificationDispatchDepth > 0)
             return GameActionResult.Rejected(GameActionRejectionReason.OperationInProgress, PendingDecision);
 
-        if (response is null || response.DecisionId == Guid.Empty || !Enum.IsDefined(response.Response))
+        if (response is null || response.DecisionId == Guid.Empty || !response.Response.IsValid)
             return GameActionResult.Rejected(GameActionRejectionReason.MalformedResponse, PendingDecision);
 
         if (PendingDecision is null)
@@ -231,15 +232,15 @@ public sealed class Game : IGame
             return GameActionResult.Rejected(GameActionRejectionReason.ResponseNotAllowed, PendingDecision);
 
         PendingDecision acceptedDecision = PendingDecision;
-        DiceRoll? preparedDetentionRoll = acceptedDecision is JailReleaseDecision
+        DiceRoll? preparedDetentionRoll = acceptedDecision is StatusDecision
             ? Handler.PrepareDiceRoll(RandomPurpose.DetentionDice)
             : null;
         ConsumePendingDecision(acceptedDecision.DecisionId);
 
         return acceptedDecision switch
         {
-            PropertyPurchaseDecision purchase => ResumePropertyPurchase(purchase, response.Response),
-            JailReleaseDecision => ResumeJailTurn(response.Response, preparedDetentionRoll!),
+            PurchaseDecision purchase => ResumePropertyPurchase(purchase, response.Response),
+            StatusDecision => ResumeJailTurn(response.Response, preparedDetentionRoll!),
             _ => throw new InvalidOperationException("The pending decision type is not supported.")
         };
     }
@@ -259,17 +260,22 @@ public sealed class Game : IGame
         if (player.IsBankrupt || square.Owner is not null || square.Price < 0 || !Handler.CanAffordWithAssets(player, square.Price))
             return;
 
-        PendingDecision = new PropertyPurchaseDecision(Guid.NewGuid(), player.Id, square.Position, square.Price);
+        PendingDecision = new PurchaseDecision(
+            Guid.NewGuid(),
+            player.Id,
+            square.Id,
+            new ResourceAmount(LegacyResourceIds.Primary, square.Price));
         Phase = GamePhase.AwaitingDecision;
     }
 
     private GameActionResult RequestJailDecision(Player player)
     {
         Jail.JailStatus jailStatus = TheJail.GetJailInfo(player);
-        PendingDecision = new JailReleaseDecision(
+        PendingDecision = new StatusDecision(
             Guid.NewGuid(),
             player.Id,
-            Rules.JailFine,
+            LegacyStatusIds.Detained,
+            new ResourceAmount(LegacyResourceIds.Primary, Rules.JailFine),
             player.NumberOfGetOutOFJailCards > 0,
             jailStatus.TurnsInJail,
             Rules.MaxTurnsInJail);
@@ -277,7 +283,7 @@ public sealed class Game : IGame
         return GameActionResult.DecisionRequired(PendingDecision);
     }
 
-    private bool CanApplyPendingDecision(PendingDecision decision, DecisionOption response)
+    private bool CanApplyPendingDecision(PendingDecision decision, DecisionOptionId response)
     {
         Player? player = _players.SingleOrDefault(candidate => candidate.Id == decision.PlayerId);
         if (player is null || player.IsBankrupt || !ReferenceEquals(player, CurrentPlayer))
@@ -285,19 +291,21 @@ public sealed class Game : IGame
 
         return decision switch
         {
-            PropertyPurchaseDecision purchase =>
+            PurchaseDecision purchase =>
                 _turnContinuation is not null &&
-                Board.GetSquareAtPosition(purchase.SquarePosition) is Square square &&
+                Board.GetSquare(purchase.SpaceId) is Square square &&
                 square.Owner is null &&
-                square.Price == purchase.Price &&
-                (response != DecisionOption.Purchase || Handler.CanAffordWithAssets(player, purchase.Price)),
-            JailReleaseDecision jail =>
+                purchase.Price.ResourceId == LegacyResourceIds.Primary &&
+                square.Price == purchase.Price.Value &&
+                (response != DecisionOptions.Accept || Handler.CanAffordWithAssets(player, purchase.Price.Value)),
+            StatusDecision statusDecision =>
                 _turnContinuation is null &&
                 TheJail.TryGetJailInfo(player, out Jail.JailStatus? status) &&
-                jail.Fine == Rules.JailFine &&
-                jail.HasGetOutOfJailCard == (player.NumberOfGetOutOFJailCards > 0) &&
-                jail.TurnsInJail == status.TurnsInJail &&
-                jail.MaximumTurnsInJail == Rules.MaxTurnsInJail,
+                statusDecision.StatusId == LegacyStatusIds.Detained &&
+                statusDecision.Cost == new ResourceAmount(LegacyResourceIds.Primary, Rules.JailFine) &&
+                statusDecision.HasAlternative == (player.NumberOfGetOutOFJailCards > 0) &&
+                statusDecision.CurrentValue == status.TurnsInJail &&
+                statusDecision.MaximumValue == Rules.MaxTurnsInJail,
             _ => false
         };
     }
@@ -310,29 +318,32 @@ public sealed class Game : IGame
         Phase = GamePhase.ReadyForTurn;
     }
 
-    private GameActionResult ResumePropertyPurchase(PropertyPurchaseDecision decision, DecisionOption response)
+    private GameActionResult ResumePropertyPurchase(PurchaseDecision decision, DecisionOptionId response)
     {
         Player player = _players.Single(candidate => candidate.Id == decision.PlayerId);
-        Square square = Board.GetSquareAtPosition(decision.SquarePosition);
-        if (response == DecisionOption.Purchase)
+        Square square = Board.GetSquare(decision.SpaceId);
+        if (response == DecisionOptions.Accept)
             Transactions.TryBuyPurchasableSquareAfterDecision(player, square);
 
         return CompleteTurnContinuation(player);
     }
 
-    private GameActionResult ResumeJailTurn(DecisionOption response, DiceRoll roll)
+    private GameActionResult ResumeJailTurn(DecisionOptionId response, DiceRoll roll)
     {
         Player player = CurrentPlayer;
-        if (response == DecisionOption.LeaveJail)
+        bool statusRemoved = false;
+        if (response == DecisionOptions.Resolve)
         {
             if (player.NumberOfGetOutOFJailCards > 0)
             {
                 TheJail.BuyOutPlayerFromJail(player);
                 TheJail.ReleasePlayerFromJail(player, ", used a Get Out of Jail For Free card");
+                statusRemoved = true;
             }
             else if (Handler.TryResolvePayment(player, Rules.JailFine, null, "Could not afford to pay Jail Fine"))
             {
                 TheJail.ReleasePlayerFromJail(player, ", paid the fine to get out of jail");
+                statusRemoved = true;
             }
 
             if (player.IsBankrupt)
@@ -347,7 +358,14 @@ public sealed class Game : IGame
         if (!TheJail.TryGetJailInfo(player, out _))
         {
             AdvanceToNextActivePlayer();
-            return CompleteAction(BuildResult(player, roll, null, false, false, false));
+            return CompleteAction(BuildResult(
+                player,
+                roll,
+                null,
+                false,
+                false,
+                false,
+                wasStatusRemoved: statusRemoved));
         }
 
         if (roll.IsDouble)
@@ -360,7 +378,7 @@ public sealed class Game : IGame
                 roll,
                 landedSquare.Position,
                 true);
-            PublishNotification(new SpaceReachedNotification(landedSquare));
+            PublishNotification(new SpaceReachedNotification(landedSquare.CreateView()));
             landedSquare.LandOn(player, this);
             if (PendingDecision is not null)
                 return GameActionResult.DecisionRequired(PendingDecision);
@@ -375,10 +393,12 @@ public sealed class Game : IGame
             {
                 TheJail.BuyOutPlayerFromJail(player);
                 TheJail.ReleasePlayerFromJail(player, ", used a Get Out of Jail For Free card");
+                statusRemoved = true;
             }
             else if (Handler.TryResolvePayment(player, Rules.JailFine, null, "Could not afford to pay Jail Fine"))
             {
                 TheJail.ReleasePlayerFromJail(player, ", paid the fine to get out of jail");
+                statusRemoved = true;
             }
             else
             {
@@ -388,7 +408,14 @@ public sealed class Game : IGame
         }
 
         AdvanceToNextActivePlayer();
-        return CompleteAction(BuildResult(player, roll, null, false, false, false));
+        return CompleteAction(BuildResult(
+            player,
+            roll,
+            null,
+            false,
+            false,
+            false,
+            wasStatusRemoved: statusRemoved));
     }
 
     private GameActionResult CompleteTurnContinuation(Player? knownPlayer = null)
@@ -455,7 +482,8 @@ public sealed class Game : IGame
         bool wasSentToJail,
         bool wasReleasedFromJailByDouble,
         bool extraTurn,
-        bool playerBankrupt = false)
+        bool playerBankrupt = false,
+        bool wasStatusRemoved = false)
     {
         return new TurnResult
         {
@@ -464,6 +492,7 @@ public sealed class Game : IGame
             LandedSquare = landedSquare,
             WasSentToJail = wasSentToJail,
             WasReleasedFromJailByDouble = wasReleasedFromJailByDouble,
+            WasStatusRemoved = wasStatusRemoved,
             ExtraTurn = extraTurn,
             PlayerBankrupt = playerBankrupt || player.IsBankrupt,
             GameOver = IsGameOver,

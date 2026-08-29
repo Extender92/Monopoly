@@ -95,14 +95,14 @@ public sealed class PresentationContractTests
         variant.CardHandler.RestoreLegacyDeckOrder(initial.ChanceDeck, initial.CommunityChestDeck);
         AssertEquivalentV1(baseline, variant);
 
-        PropertyPurchaseDecision baselineDecision = Assert.IsType<PropertyPurchaseDecision>(baseline.PlayTurn().PendingDecision);
-        PropertyPurchaseDecision variantDecision = Assert.IsType<PropertyPurchaseDecision>(variant.PlayTurn().PendingDecision);
-        Assert.Equal(baselineDecision.SquarePosition, variantDecision.SquarePosition);
+        PurchaseDecision baselineDecision = Assert.IsType<PurchaseDecision>(baseline.PlayTurn().PendingDecision);
+        PurchaseDecision variantDecision = Assert.IsType<PurchaseDecision>(variant.PlayTurn().PendingDecision);
+        Assert.Equal(baselineDecision.SpaceId, variantDecision.SpaceId);
         Assert.Equal(baselineDecision.Price, variantDecision.Price);
         Assert.Equal(baselineDecision.AllowedResponses, variantDecision.AllowedResponses);
 
-        baseline.SubmitDecision(new DecisionResponse(baselineDecision.DecisionId, DecisionOption.Purchase));
-        variant.SubmitDecision(new DecisionResponse(variantDecision.DecisionId, DecisionOption.Purchase));
+        baseline.SubmitDecision(new DecisionResponse(baselineDecision.DecisionId, DecisionOptions.Accept));
+        variant.SubmitDecision(new DecisionResponse(variantDecision.DecisionId, DecisionOptions.Accept));
         baseline.PlayTurnToCompletion();
         variant.PlayTurnToCompletion();
 
@@ -134,7 +134,7 @@ public sealed class PresentationContractTests
     public void SpacesCardsDecksStatusesDecisionsAndNotificationsExposeResolvableTokens()
     {
         Game purchaseGame = new GameTestBuilder().WithRandomValues(1, 2).Build();
-        PendingDecision decision = Assert.IsType<PropertyPurchaseDecision>(purchaseGame.PlayTurn().PendingDecision);
+        PendingDecision decision = Assert.IsType<PurchaseDecision>(purchaseGame.PlayTurn().PendingDecision);
         Assert.NotNull(purchaseGame.Presentation.Resolve(decision.PresentationToken));
         Assert.All(purchaseGame.Board.Squares, square => Assert.NotNull(purchaseGame.Presentation.Resolve(square.PresentationToken)));
         Assert.All(purchaseGame.Decks.Entries.SelectMany(deck => deck.Cards),

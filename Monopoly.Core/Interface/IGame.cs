@@ -23,7 +23,7 @@ namespace Monopoly.Core.Interface
         DiceRoll? LastDiceRoll { get; }
         GameRules Rules { get; }
         ProfilePresentation Presentation { get; }
-        Jail TheJail { get; }
+        StatusCollection Statuses { get; }
         int Fines { get; }
         int CurrentTurn { get; }
         int ConsecutiveDoubles { get; }
@@ -33,10 +33,6 @@ namespace Monopoly.Core.Interface
         PendingDecision? PendingDecision { get; }
 
         void SetDecisionProvider(IPlayerDecisionProvider decisions);
-        bool TryBuyHouse(Player player, PropertySquare property);
-        bool TrySellHouse(Player player, PropertySquare property);
-        bool TryMortgageProperty(Player player, Square square);
-        bool TryRepayMortgage(Player player, Square square);
         GameActionResult PlayTurn();
         GameActionResult SubmitDecision(DecisionResponse? response);
     }

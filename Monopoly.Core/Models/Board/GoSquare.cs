@@ -2,7 +2,7 @@ using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board;
 
-public class GoSquare : Square
+    internal class GoSquare : Square
 {
     public GoSquare(int position, PresentationMetadata presentation)
         : base(position, presentation)

@@ -12,39 +12,39 @@ namespace Monopoly.Tests.ConsoleTests;
 public sealed class ConsolePendingDecisionTests
 {
     [Theory]
-    [InlineData(0, DecisionOption.Purchase)]
-    [InlineData(1, DecisionOption.Decline)]
-    public void PurchasePromptMapsUserChoiceToCoreOption(int selectedIndex, DecisionOption expected)
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    public void PurchasePromptMapsUserChoiceToCoreOption(int selectedIndex, bool accepted)
     {
         Game game = new GameTestBuilder()
             .WithRandomValues(1, 2)
             .Build();
-        PropertyPurchaseDecision decision = Assert.IsType<PropertyPurchaseDecision>(game.PlayTurn().PendingDecision);
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
         DecisionFixture fixture = new(game, selectedIndex);
 
         DecisionResponse response = fixture.Provider.GetResponse(decision);
 
         Assert.Equal(decision.DecisionId, response.DecisionId);
-        Assert.Equal(expected, response.Response);
+        Assert.Equal(accepted ? DecisionOptions.Accept : DecisionOptions.Decline, response.Response);
         fixture.Console.Verify(wrapper => wrapper.Write(
             It.Is<string>(message => message.Contains(game.Presentation.ResolveDisplayText(game.Board.GetSquareAtPosition(3).PresentationToken), StringComparison.Ordinal) &&
-                                     message.Contains(decision.Price.ToString(), StringComparison.Ordinal))), Times.Once);
+                                     message.Contains(decision.Price.Value.ToString(), StringComparison.Ordinal))), Times.Once);
     }
 
     [Theory]
-    [InlineData(0, DecisionOption.LeaveJail)]
-    [InlineData(1, DecisionOption.RollForDoubles)]
-    public void JailPromptUsesConfiguredCoreFineAndMapsChoice(int selectedIndex, DecisionOption expected)
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    public void StatusPromptUsesConfiguredCoreCostAndMapsChoice(int selectedIndex, bool resolved)
     {
         Game game = new GameTestBuilder(new GameRules(2, 2, 6, jailFine: 73))
             .WithPlayerInJail(0)
             .Build();
-        JailReleaseDecision decision = Assert.IsType<JailReleaseDecision>(game.PlayTurn().PendingDecision);
+        StatusDecision decision = Assert.IsType<StatusDecision>(game.PlayTurn().PendingDecision);
         DecisionFixture fixture = new(game, selectedIndex);
 
         DecisionResponse response = fixture.Provider.GetResponse(decision);
 
-        Assert.Equal(expected, response.Response);
+        Assert.Equal(resolved ? DecisionOptions.Resolve : DecisionOptions.Roll, response.Response);
         fixture.Console.Verify(wrapper => wrapper.Write(
             It.Is<string>(message => message.Contains("73", StringComparison.Ordinal))), Times.Once);
         fixture.Console.Verify(wrapper => wrapper.Write(
