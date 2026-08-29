@@ -18,15 +18,16 @@ public sealed class GameProgressState
 public sealed class PendingDecisionState
 {
     public Guid DecisionId { get; set; }
-    public DecisionKind Kind { get; set; }
+    public DecisionKindId Kind { get; set; }
     public int PlayerId { get; set; }
-    public List<DecisionOption> AllowedResponses { get; set; } = new();
-    public int? SquarePosition { get; set; }
-    public int? Price { get; set; }
-    public int? JailFine { get; set; }
-    public bool? HasGetOutOfJailCard { get; set; }
-    public int? TurnsInJail { get; set; }
-    public int? MaximumTurnsInJail { get; set; }
+    public List<DecisionOptionId> AllowedResponses { get; set; } = new();
+    public SpaceId? SpaceId { get; set; }
+    public ResourceId? ResourceId { get; set; }
+    public int? ResourceAmount { get; set; }
+    public StatusId? StatusId { get; set; }
+    public bool? HasAlternative { get; set; }
+    public int? StatusValue { get; set; }
+    public int? MaximumStatusValue { get; set; }
 }
 
 public sealed class TurnContinuationState
@@ -36,15 +37,15 @@ public sealed class TurnContinuationState
     public RandomPurpose DicePurpose { get; set; }
     public List<int> DiceResults { get; set; } = new();
     public int DiceSum { get; set; }
-    public int LandedSquarePosition { get; set; }
+    public SpaceId LandedSpaceId { get; set; }
     public bool WasDouble { get; set; }
-    public bool WasReleasedFromJailByDouble { get; set; }
+    public StatusId? ReleasedStatusId { get; set; }
 }
 
 public enum TurnContinuationKindState
 {
     StandardLanding,
-    JailDoubleLanding
+    StatusRollLanding
 }
 
 public static class GameProgressStateMapper
@@ -57,7 +58,7 @@ public static class GameProgressStateMapper
         {
             Phase = game.Phase,
             PendingDecision = game.PendingDecision is null ? null : MapDecision(game.PendingDecision),
-            Continuation = game.TurnContinuationSnapshot is null ? null : MapContinuation(game.TurnContinuationSnapshot),
+            Continuation = game.TurnContinuationSnapshot is null ? null : MapContinuation(game, game.TurnContinuationSnapshot),
             LastConsumedDecisionId = game.LastConsumedDecisionId,
             ConsumedDecisionIds = game.ConsumedDecisionIds.OrderBy(id => id).ToList()
         };
@@ -75,32 +76,35 @@ public static class GameProgressStateMapper
 
         switch (decision)
         {
-            case PropertyPurchaseDecision purchase:
-                state.SquarePosition = purchase.SquarePosition;
-                state.Price = purchase.Price;
+            case PurchaseDecision purchase:
+                state.SpaceId = purchase.SpaceId;
+                state.ResourceId = purchase.Price.ResourceId;
+                state.ResourceAmount = purchase.Price.Value;
                 break;
-            case JailReleaseDecision jail:
-                state.JailFine = jail.Fine;
-                state.HasGetOutOfJailCard = jail.HasGetOutOfJailCard;
-                state.TurnsInJail = jail.TurnsInJail;
-                state.MaximumTurnsInJail = jail.MaximumTurnsInJail;
+            case StatusDecision status:
+                state.StatusId = status.StatusId;
+                state.ResourceId = status.Cost.ResourceId;
+                state.ResourceAmount = status.Cost.Value;
+                state.HasAlternative = status.HasAlternative;
+                state.StatusValue = status.CurrentValue;
+                state.MaximumStatusValue = status.MaximumValue;
                 break;
         }
 
         return state;
     }
 
-    private static TurnContinuationState MapContinuation(TurnContinuation continuation) => new()
+    private static TurnContinuationState MapContinuation(Game game, TurnContinuation continuation) => new()
     {
         Kind = continuation.Kind == TurnContinuationKind.StandardLanding
             ? TurnContinuationKindState.StandardLanding
-            : TurnContinuationKindState.JailDoubleLanding,
+            : TurnContinuationKindState.StatusRollLanding,
         PlayerId = continuation.PlayerId,
         DicePurpose = continuation.Roll.Purpose,
         DiceResults = continuation.Roll.Results.ToList(),
         DiceSum = continuation.Roll.Sum,
-        LandedSquarePosition = continuation.LandedSquarePosition,
+        LandedSpaceId = game.Board.Track.GetSpaceIdAt(continuation.LandedSquarePosition),
         WasDouble = continuation.Roll.IsDouble,
-        WasReleasedFromJailByDouble = continuation.WasReleasedFromJailByDouble
+        ReleasedStatusId = continuation.WasReleasedFromJailByDouble ? LegacyStatusIds.Detained : null
     };
 }

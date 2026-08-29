@@ -6,7 +6,7 @@ using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core
 {
-    public sealed class Jail
+    internal sealed class Jail
     {
         private readonly Game CurrentGame;
         private readonly Dictionary<Player, JailStatus> _playersInJail = new();
@@ -22,7 +22,7 @@ namespace Monopoly.Core
             _playersInJailView = new ReadOnlyDictionary<Player, JailStatus>(_playersInJail);
         }
 
-        public sealed class JailStatus
+        internal sealed class JailStatus
         {
             public int TurnsInJail { get; private set; }
             public PresentationToken PresentationToken => PresentationTokens.DetainedStatus;
@@ -83,6 +83,11 @@ namespace Monopoly.Core
         {
             return TryGetJailInfo(player, out _);
         }
+
+        internal StatusCollection CreateStatusSnapshot() => new(
+            _playersInJail.Select(entry => new PlayerStatusView(
+                entry.Key.Id,
+                new StatusView(LegacyStatusIds.Detained, PresentationTokens.DetainedStatus, entry.Value.TurnsInJail))));
 
         private void ValidatePlayer(Player player)
         {
@@ -161,5 +166,10 @@ namespace Monopoly.Core
         {
             CurrentGame.LogWriter.CreateLog($"JailTurn {jailInfo.TurnsInJail}: {log}.");
         }
+    }
+
+    internal static class LegacyStatusIds
+    {
+        internal static StatusId Detained { get; } = new("status.detained");
     }
 }

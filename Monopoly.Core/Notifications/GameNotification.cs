@@ -16,7 +16,7 @@ public sealed record CardDrawnNotification(
     PresentationToken DeckPresentationToken)
     : GameNotification(DeckPresentationToken);
 
-public sealed record SpaceReachedNotification(Square Space)
+public sealed record SpaceReachedNotification(SpaceView Space)
     : GameNotification(Space.PresentationToken);
 
 public sealed record BoardChangedNotification()

@@ -35,7 +35,7 @@ internal sealed class ConsoleEventHandler : IDisposable
                 break;
 
             case SpaceReachedNotification spaceReached:
-                _consoleGame.CardPrinter.PrepareAndPrintSquareCard(spaceReached.Space.Position);
+                _consoleGame.CardPrinter.PrepareAndPrintSquareCard(spaceReached.Space.Index);
                 break;
 
             case BoardChangedNotification:

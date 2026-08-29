@@ -27,14 +27,15 @@ public sealed class ResumableGamePhaseTests
             nameof(PendingDecision.PlayerId),
             nameof(PendingDecision.Kind),
             nameof(PendingDecision.AllowedResponses));
-        AssertNoPublicSetter<PropertyPurchaseDecision>(
-            nameof(PropertyPurchaseDecision.SquarePosition),
-            nameof(PropertyPurchaseDecision.Price));
-        AssertNoPublicSetter<JailReleaseDecision>(
-            nameof(JailReleaseDecision.Fine),
-            nameof(JailReleaseDecision.HasGetOutOfJailCard),
-            nameof(JailReleaseDecision.TurnsInJail),
-            nameof(JailReleaseDecision.MaximumTurnsInJail));
+        AssertNoPublicSetter<PurchaseDecision>(
+            nameof(PurchaseDecision.SpaceId),
+            nameof(PurchaseDecision.Price));
+        AssertNoPublicSetter<StatusDecision>(
+            nameof(StatusDecision.StatusId),
+            nameof(StatusDecision.Cost),
+            nameof(StatusDecision.HasAlternative),
+            nameof(StatusDecision.CurrentValue),
+            nameof(StatusDecision.MaximumValue));
         Assert.Equal(
             [nameof(IPlayerDecisionProvider.ResolveInsufficientFunds)],
             typeof(IPlayerDecisionProvider).GetMethods().Select(method => method.Name));
@@ -49,15 +50,15 @@ public sealed class ResumableGamePhaseTests
 
         GameActionResult required = game.PlayTurn();
 
-        PropertyPurchaseDecision decision = Assert.IsType<PropertyPurchaseDecision>(required.PendingDecision);
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(required.PendingDecision);
         Assert.Equal(GameActionStatus.DecisionRequired, required.Status);
         Assert.Equal(GamePhase.AwaitingDecision, game.Phase);
         Assert.Same(decision, game.PendingDecision);
         Assert.Equal(player.Id, decision.PlayerId);
-        Assert.Equal(3, decision.SquarePosition);
-        Assert.Equal(game.Board.GetSquareAtPosition(3).Price, decision.Price);
-        Assert.Equal([DecisionOption.Purchase, DecisionOption.Decline], decision.AllowedResponses);
-        Assert.Throws<NotSupportedException>(() => ((IList<DecisionOption>)decision.AllowedResponses).Add(DecisionOption.LeaveJail));
+        Assert.Equal(game.Board.GetSquareAtPosition(3).Id, decision.SpaceId);
+        Assert.Equal(game.Board.GetSquareAtPosition(3).Price, decision.Price.Value);
+        Assert.Equal([DecisionOptions.Accept, DecisionOptions.Decline], decision.AllowedResponses);
+        Assert.Throws<NotSupportedException>(() => ((IList<DecisionOptionId>)decision.AllowedResponses).Add(DecisionOptions.Resolve));
         Assert.Equal(3, player.Position);
         Assert.Null(game.Board.GetSquareAtPosition(3).Owner);
 
@@ -78,17 +79,17 @@ public sealed class ResumableGamePhaseTests
         Player buyer = game.CurrentPlayer;
         Player nextPlayer = game.Players[1];
         int originalMoney = buyer.Money;
-        PropertyPurchaseDecision decision = RequirePurchase(game);
+        PurchaseDecision decision = RequirePurchase(game);
 
         GameActionResult completed = game.SubmitDecision(
-            new DecisionResponse(decision.DecisionId, DecisionOption.Purchase));
+            new DecisionResponse(decision.DecisionId, DecisionOptions.Accept));
 
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
         Assert.NotNull(completed.TurnResult);
         Assert.Equal(GamePhase.ReadyForTurn, game.Phase);
         Assert.Null(game.PendingDecision);
-        Assert.Same(buyer, game.Board.GetSquareAtPosition(decision.SquarePosition).Owner);
-        Assert.Equal(originalMoney - decision.Price, buyer.Money);
+        Assert.Same(buyer, game.Board.GetSquare(decision.SpaceId).Owner);
+        Assert.Equal(originalMoney - decision.Price.Value, buyer.Money);
         Assert.Same(nextPlayer, game.CurrentPlayer);
         Assert.Equal(2, randomSource.Requests.Count(request => request.Purpose == RandomPurpose.TurnDice));
     }
@@ -99,13 +100,13 @@ public sealed class ResumableGamePhaseTests
         Game game = new GameTestBuilder().WithRandomValues(1, 2).Build();
         Player player = game.CurrentPlayer;
         int money = player.Money;
-        PropertyPurchaseDecision decision = RequirePurchase(game);
+        PurchaseDecision decision = RequirePurchase(game);
 
         GameActionResult completed = game.SubmitDecision(
-            new DecisionResponse(decision.DecisionId, DecisionOption.Decline));
+            new DecisionResponse(decision.DecisionId, DecisionOptions.Decline));
 
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
-        Assert.Null(game.Board.GetSquareAtPosition(decision.SquarePosition).Owner);
+        Assert.Null(game.Board.GetSquare(decision.SpaceId).Owner);
         Assert.Equal(money, player.Money);
     }
 
@@ -119,12 +120,12 @@ public sealed class ResumableGamePhaseTests
             .WithRandomValues(1, 2)
             .WithDecisions(decisions)
             .Build();
-        PropertyPurchaseDecision decision = RequirePurchase(game);
+        PurchaseDecision decision = RequirePurchase(game);
 
         Assert.Equal(0, decisions.RequestCount);
 
         GameActionResult completed = game.SubmitDecision(
-            new DecisionResponse(decision.DecisionId, DecisionOption.Purchase));
+            new DecisionResponse(decision.DecisionId, DecisionOptions.Accept));
 
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
         Assert.Equal(1, decisions.RequestCount);
@@ -143,15 +144,15 @@ public sealed class ResumableGamePhaseTests
             .WithDecisions(decisions)
             .Build();
         Player player = game.CurrentPlayer;
-        PropertyPurchaseDecision decision = RequirePurchase(game);
+        PurchaseDecision decision = RequirePurchase(game);
 
         GameActionResult completed = game.SubmitDecision(
-            new DecisionResponse(decision.DecisionId, DecisionOption.Purchase));
+            new DecisionResponse(decision.DecisionId, DecisionOptions.Accept));
 
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
         Assert.Equal(1, decisions.RequestCount);
         Assert.False(player.IsBankrupt);
-        Assert.Null(game.Board.GetSquareAtPosition(decision.SquarePosition).Owner);
+        Assert.Null(game.Board.GetSquare(decision.SpaceId).Owner);
     }
 
     [Fact]
@@ -167,12 +168,13 @@ public sealed class ResumableGamePhaseTests
 
         GameActionResult required = game.PlayTurn();
 
-        JailReleaseDecision decision = Assert.IsType<JailReleaseDecision>(required.PendingDecision);
-        Assert.Equal(75, decision.Fine);
-        Assert.True(decision.HasGetOutOfJailCard);
-        Assert.Equal(1, decision.TurnsInJail);
-        Assert.Equal(3, decision.MaximumTurnsInJail);
-        Assert.Equal([DecisionOption.LeaveJail, DecisionOption.RollForDoubles], decision.AllowedResponses);
+        StatusDecision decision = Assert.IsType<StatusDecision>(required.PendingDecision);
+        Assert.Equal(LegacyStatusIds.Detained, decision.StatusId);
+        Assert.Equal(75, decision.Cost.Value);
+        Assert.True(decision.HasAlternative);
+        Assert.Equal(1, decision.CurrentValue);
+        Assert.Equal(3, decision.MaximumValue);
+        Assert.Equal([DecisionOptions.Resolve, DecisionOptions.Roll], decision.AllowedResponses);
         Assert.Equal(100, player.Money);
         Assert.Equal(1, player.NumberOfGetOutOFJailCards);
         Assert.Equal(1, game.TheJail.GetJailInfo(player).TurnsInJail);
@@ -188,15 +190,19 @@ public sealed class ResumableGamePhaseTests
             .WithRandomValues(1, 4)
             .Build();
         Player player = game.CurrentPlayer;
-        JailReleaseDecision decision = Assert.IsType<JailReleaseDecision>(game.PlayTurn().PendingDecision);
+        StatusDecision decision = Assert.IsType<StatusDecision>(game.PlayTurn().PendingDecision);
 
         GameActionResult completed = game.SubmitDecision(
-            new DecisionResponse(decision.DecisionId, DecisionOption.LeaveJail));
+            new DecisionResponse(decision.DecisionId, DecisionOptions.Resolve));
 
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
         Assert.Equal(83, player.Money);
         Assert.False(game.TheJail.IsPlayerInJail(player));
         Assert.Equal([1, 4], completed.TurnResult!.DiceResults);
+        StatusTransition transition = Assert.Single(completed.TurnResult.StatusTransitions);
+        Assert.Equal(player.Id, transition.PlayerId);
+        Assert.Equal(LegacyStatusIds.Detained, transition.StatusId);
+        Assert.Equal(StatusTransitionKind.Removed, transition.Kind);
     }
 
     [Fact]
@@ -208,10 +214,10 @@ public sealed class ResumableGamePhaseTests
             .WithRandomValues(1, 4)
             .Build();
         Player player = game.CurrentPlayer;
-        JailReleaseDecision decision = Assert.IsType<JailReleaseDecision>(game.PlayTurn().PendingDecision);
+        StatusDecision decision = Assert.IsType<StatusDecision>(game.PlayTurn().PendingDecision);
 
         GameActionResult completed = game.SubmitDecision(
-            new DecisionResponse(decision.DecisionId, DecisionOption.LeaveJail));
+            new DecisionResponse(decision.DecisionId, DecisionOptions.Resolve));
 
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
         Assert.Equal(100, player.Money);
@@ -229,13 +235,13 @@ public sealed class ResumableGamePhaseTests
             .Build();
         Player player = game.CurrentPlayer;
         Player nextPlayer = game.Players[1];
-        JailReleaseDecision jailDecision = Assert.IsType<JailReleaseDecision>(game.PlayTurn().PendingDecision);
+        StatusDecision jailDecision = Assert.IsType<StatusDecision>(game.PlayTurn().PendingDecision);
 
         GameActionResult purchaseRequired = game.SubmitDecision(
-            new DecisionResponse(jailDecision.DecisionId, DecisionOption.RollForDoubles));
+            new DecisionResponse(jailDecision.DecisionId, DecisionOptions.Roll));
 
-        PropertyPurchaseDecision purchase = Assert.IsType<PropertyPurchaseDecision>(purchaseRequired.PendingDecision);
-        Assert.Equal(12, purchase.SquarePosition);
+        PurchaseDecision purchase = Assert.IsType<PurchaseDecision>(purchaseRequired.PendingDecision);
+        Assert.Equal(game.Board.GetSquareAtPosition(12).Id, purchase.SpaceId);
         Assert.NotEqual(jailDecision.DecisionId, purchase.DecisionId);
         Assert.False(game.TheJail.IsPlayerInJail(player));
         Assert.Equal(12, player.Position);
@@ -243,10 +249,16 @@ public sealed class ResumableGamePhaseTests
         Assert.Equal(2, randomSource.Requests.Count(request => request.Purpose == RandomPurpose.DetentionDice));
 
         GameActionResult completed = game.SubmitDecision(
-            new DecisionResponse(purchase.DecisionId, DecisionOption.Decline));
+            new DecisionResponse(purchase.DecisionId, DecisionOptions.Decline));
 
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
         Assert.True(completed.TurnResult!.WasReleasedFromJailByDouble);
+        StatusTransition transition = Assert.Single(completed.TurnResult.StatusTransitions);
+        Assert.Equal(player.Id, transition.PlayerId);
+        Assert.Equal(LegacyStatusIds.Detained, transition.StatusId);
+        Assert.Equal(StatusTransitionKind.Removed, transition.Kind);
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<StatusTransition>)completed.TurnResult.StatusTransitions).Clear());
         Assert.Same(nextPlayer, game.CurrentPlayer);
         Assert.Equal(2, randomSource.Requests.Count(request => request.Purpose == RandomPurpose.DetentionDice));
     }
@@ -255,24 +267,24 @@ public sealed class ResumableGamePhaseTests
     public void InvalidResponsesAndPlayTurnRejectionAreAtomic()
     {
         Game game = new GameTestBuilder().WithRandomValues(1, 2).Build();
-        PropertyPurchaseDecision decision = RequirePurchase(game);
+        PurchaseDecision decision = RequirePurchase(game);
 
         AssertRejectedWithoutMutation(game, null, GameActionRejectionReason.MalformedResponse);
         AssertRejectedWithoutMutation(
             game,
-            new DecisionResponse(Guid.Empty, DecisionOption.Purchase),
+            new DecisionResponse(Guid.Empty, DecisionOptions.Accept),
             GameActionRejectionReason.MalformedResponse);
         AssertRejectedWithoutMutation(
             game,
-            new DecisionResponse(decision.DecisionId, (DecisionOption)999),
+            new DecisionResponse(decision.DecisionId, default),
             GameActionRejectionReason.MalformedResponse);
         AssertRejectedWithoutMutation(
             game,
-            new DecisionResponse(Guid.NewGuid(), DecisionOption.Purchase),
+            new DecisionResponse(Guid.NewGuid(), DecisionOptions.Accept),
             GameActionRejectionReason.StaleDecision);
         AssertRejectedWithoutMutation(
             game,
-            new DecisionResponse(decision.DecisionId, DecisionOption.LeaveJail),
+            new DecisionResponse(decision.DecisionId, DecisionOptions.Resolve),
             GameActionRejectionReason.ResponseNotAllowed);
 
         string before = CaptureSnapshot(game);
@@ -288,30 +300,30 @@ public sealed class ResumableGamePhaseTests
             .WithPlayerInJail(0)
             .WithRandomValues(1, 1)
             .Build();
-        JailReleaseDecision jail = Assert.IsType<JailReleaseDecision>(game.PlayTurn().PendingDecision);
-        PropertyPurchaseDecision purchase = Assert.IsType<PropertyPurchaseDecision>(game.SubmitDecision(
-            new DecisionResponse(jail.DecisionId, DecisionOption.RollForDoubles)).PendingDecision);
+        StatusDecision jail = Assert.IsType<StatusDecision>(game.PlayTurn().PendingDecision);
+        PurchaseDecision purchase = Assert.IsType<PurchaseDecision>(game.SubmitDecision(
+            new DecisionResponse(jail.DecisionId, DecisionOptions.Roll)).PendingDecision);
 
         AssertRejectedWithoutMutation(
             game,
-            new DecisionResponse(jail.DecisionId, DecisionOption.RollForDoubles),
+            new DecisionResponse(jail.DecisionId, DecisionOptions.Roll),
             GameActionRejectionReason.DuplicateDecision);
 
         GameActionResult completed = game.SubmitDecision(
-            new DecisionResponse(purchase.DecisionId, DecisionOption.Decline));
+            new DecisionResponse(purchase.DecisionId, DecisionOptions.Decline));
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
 
         AssertRejectedWithoutMutation(
             game,
-            new DecisionResponse(purchase.DecisionId, DecisionOption.Decline),
+            new DecisionResponse(purchase.DecisionId, DecisionOptions.Decline),
             GameActionRejectionReason.DuplicateDecision);
         AssertRejectedWithoutMutation(
             game,
-            new DecisionResponse(jail.DecisionId, DecisionOption.RollForDoubles),
+            new DecisionResponse(jail.DecisionId, DecisionOptions.Roll),
             GameActionRejectionReason.StaleDecision);
         AssertRejectedWithoutMutation(
             game,
-            new DecisionResponse(Guid.NewGuid(), DecisionOption.Decline),
+            new DecisionResponse(Guid.NewGuid(), DecisionOptions.Decline),
             GameActionRejectionReason.NoPendingDecision);
     }
 
@@ -319,14 +331,14 @@ public sealed class ResumableGamePhaseTests
     public void ProgressProjectionIsDetachedPrimitiveOnlyDataAndNotPartOfVersionOne()
     {
         Game game = new GameTestBuilder().WithRandomValues(1, 2).Build();
-        PropertyPurchaseDecision decision = RequirePurchase(game);
+        PurchaseDecision decision = RequirePurchase(game);
 
         GameProgressState progress = GameProgressStateMapper.ToState(game);
 
         Assert.Equal(GamePhase.AwaitingDecision, progress.Phase);
         Assert.Equal(decision.DecisionId, progress.PendingDecision!.DecisionId);
-        Assert.Equal(3, progress.PendingDecision.SquarePosition);
-        Assert.Equal([DecisionOption.Purchase, DecisionOption.Decline], progress.PendingDecision.AllowedResponses);
+        Assert.Equal(decision.SpaceId, progress.PendingDecision.SpaceId);
+        Assert.Equal([DecisionOptions.Accept, DecisionOptions.Decline], progress.PendingDecision.AllowedResponses);
         Assert.Equal(TurnContinuationKindState.StandardLanding, progress.Continuation!.Kind);
         Assert.Equal(RandomPurpose.TurnDice, progress.Continuation.DicePurpose);
         Assert.Equal([1, 2], progress.Continuation.DiceResults);
@@ -365,7 +377,10 @@ public sealed class ResumableGamePhaseTests
                     propertyType = propertyType.GetGenericArguments()[0];
 
                 Assert.True(
-                    propertyType.IsPrimitive || propertyType.IsEnum || propertyType == typeof(Guid) || dtoTypes.Contains(propertyType),
+                    propertyType.IsPrimitive || propertyType.IsEnum || propertyType == typeof(Guid) ||
+                    propertyType == typeof(DecisionKindId) || propertyType == typeof(DecisionOptionId) ||
+                    propertyType == typeof(SpaceId) || propertyType == typeof(ResourceId) ||
+                    propertyType == typeof(StatusId) || dtoTypes.Contains(propertyType),
                     $"{dtoType.Name}.{property.Name} exposes {property.PropertyType}.");
                 Assert.False(typeof(Delegate).IsAssignableFrom(propertyType));
                 Assert.False(propertyType.Namespace?.StartsWith("Monopoly.Console", StringComparison.Ordinal) ?? false);
@@ -413,11 +428,11 @@ public sealed class ResumableGamePhaseTests
         Assert.Null(game.PendingDecision);
     }
 
-    private static PropertyPurchaseDecision RequirePurchase(Game game)
+    private static PurchaseDecision RequirePurchase(Game game)
     {
         GameActionResult result = game.PlayTurn();
         Assert.Equal(GameActionStatus.DecisionRequired, result.Status);
-        return Assert.IsType<PropertyPurchaseDecision>(result.PendingDecision);
+        return Assert.IsType<PurchaseDecision>(result.PendingDecision);
     }
 
     private static void AssertRejectedWithoutMutation(
@@ -469,7 +484,9 @@ public sealed class ResumableGamePhaseTests
     {
         foreach (string propertyName in propertyNames)
         {
-            PropertyInfo property = typeof(T).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public)!;
+            PropertyInfo property = typeof(T).GetProperty(
+                propertyName,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!;
             Assert.NotNull(property);
             Assert.False(property.SetMethod?.IsPublic ?? false, $"{typeof(T).Name}.{propertyName} has a public setter.");
         }

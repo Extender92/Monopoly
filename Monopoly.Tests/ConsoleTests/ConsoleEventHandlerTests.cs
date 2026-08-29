@@ -20,7 +20,7 @@ public class ConsoleEventHandlerTests
 
         session.Game.TheJail.PlayerGoToJail(player);
         session.ConsoleGame.UpdateGameInformation(
-            session.Game.Board.GetSquareAtPosition(player.Position),
+            session.Game.Board.Spaces[player.Position],
             player);
 
         Assert.Single(session.Game.Logs.LogList);

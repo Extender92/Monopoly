@@ -2,7 +2,7 @@ using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board;
 
-public abstract class Square
+internal abstract class Square
 {
     protected Square(int position, PresentationMetadata presentation)
         : this(LegacyStructureIds.Space(position), position, presentation)
@@ -26,6 +26,8 @@ public abstract class Square
     public int Price { get; protected set; }
     public int MortgageValue { get; protected set; }
     public bool IsMortgage { get; private set; }
+
+    internal SpaceView CreateView() => new(Id, Position, PresentationToken);
 
     internal abstract void LandOn(Player player, Game game);
 

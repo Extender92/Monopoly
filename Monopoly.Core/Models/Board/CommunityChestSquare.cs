@@ -3,7 +3,7 @@ using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board;
 
-public class CommunityChestSquare : Square, IDeckReferenceSpace
+    internal class CommunityChestSquare : Square, IDeckReferenceSpace
 {
     DeckId IDeckReferenceSpace.DeckId => LegacyStructureIds.SecondaryDeck;
 

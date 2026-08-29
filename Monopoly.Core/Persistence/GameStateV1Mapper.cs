@@ -265,7 +265,7 @@ public sealed class SquareState
     public int Houses { get; set; }
     public bool IsMortgage { get; set; }
 
-    public static SquareState From(Square square) => new()
+    internal static SquareState From(Square square) => new()
     {
         Position = square.Position,
         OwnerId = square.Owner?.Id,

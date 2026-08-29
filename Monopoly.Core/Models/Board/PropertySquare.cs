@@ -2,7 +2,7 @@ using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board;
 
-public class PropertySquare : Square
+internal class PropertySquare : Square
 {
     public PropertySquare(
         GroupId groupId,

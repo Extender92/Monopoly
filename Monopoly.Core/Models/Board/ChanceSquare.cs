@@ -3,7 +3,7 @@ using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board;
 
-public class ChanceSquare : Square, IDeckReferenceSpace
+    internal class ChanceSquare : Square, IDeckReferenceSpace
 {
     DeckId IDeckReferenceSpace.DeckId => LegacyStructureIds.PrimaryDeck;
 

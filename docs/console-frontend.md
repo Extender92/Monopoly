@@ -214,12 +214,12 @@ Core is authoritative for `CurrentPlayer`, extra rolls, pending decisions,
 bankruptcy and `Winner`. The Console must not increment turns, rotate players
 or infer completion itself.
 
-The current Console reads players, board squares, dice, logs, Jail entries and
-card decks through Core read-only views. Its building and mortgage menus submit
-`Game.TryBuyHouse()`, `TrySellHouse()`, `TryMortgageProperty()` and
-`TryRepayMortgage()` commands; their menu eligibility lists are presentation
-hints, while Core repeats authoritative validation before mutation. New and
-loaded sessions attach `ConsolePlayerDecisionProvider` with
+The current Console reads public players, generic space/status snapshots, dice,
+logs and deck views. During migration its legacy building, mortgage and
+detention screens still use selected internal Core operations through friend
+assembly access. Those operations are not part of `IGame` or the reusable
+frontend contract; Core still repeats authoritative validation before every
+mutation. New and loaded sessions attach `ConsolePlayerDecisionProvider` with
 `Game.SetDecisionProvider()`.
 
 When `GameActionResult` requires a decision, the session loop renders the
@@ -229,10 +229,12 @@ while the same Core state remains usable by asynchronous frontends.
 
 ## Player decisions
 
-The current Console adapter maps `PropertyPurchaseDecision` and
-`JailReleaseDecision` to `DecisionResponse` after Core returns control. Its
-`IPlayerDecisionProvider` implementation contains only the transitional
-`ResolveInsufficientFunds()` callback for synchronous asset management.
+The current Console adapter maps public `PurchaseDecision` data and an internal
+legacy status-decision payload to `DecisionResponse` after Core returns control.
+Responses use `DecisionOptionId`; the product-shaped status payload is not an
+exported frontend contract. Its `IPlayerDecisionProvider` implementation
+contains only the transitional `ResolveInsufficientFunds()` callback for
+synchronous asset management.
 
 The complete rules require richer decisions, including:
 

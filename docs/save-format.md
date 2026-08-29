@@ -61,6 +61,12 @@ the transitional legacy catalog from the saved `GameLanguage`; the exact JSON
 shape remains unchanged. Rendered values are never authoritative persistence
 references.
 
+The closed profile definitions introduced by #73 are also absent from Version
+1. `ProfileId`, revision, fingerprint, generic resources, statuses,
+capabilities and effects become persistent only through Save Format Version 2.
+Issue #74 owns JSON canonicalization and fingerprint calculation, while #75
+owns execution; persistence does not define either contract again.
+
 ## Save consistency
 
 A save represents one internally consistent match state.
@@ -316,7 +322,8 @@ explicitly rejects `AwaitingDecision`; `JsonFileGameSaveStore.Save()` translates
 that rejection before creating a temporary file or replacing an existing save.
 
 `GameProgressState`, `PendingDecisionState` and `TurnContinuationState` are
-detached primitive/enum DTO projections prepared for Version 2. They are not
+detached DTO projections made from primitive values, enums and validated
+profile/decision/space/resource/status IDs for future Version 2 work. They are not
 serialized into the Version 1 envelope and have no physical persistence path
 in this version. `TurnContinuationState` records the committed dice purpose,
 individual results and derived roll values, but never a random-source instance, seed or
@@ -438,7 +445,7 @@ new `Game` is returned, so failure cannot partially change an existing match.
 `IPlayerDecisionProvider` is the transitional insufficient-funds runtime service
 rather than saved state. Loading may supply it during reconstruction, and a
 frontend may later reconnect it with `Game.SetDecisionProvider()`. Purchase and
-Jail choices are authoritative pending state rather than provider callbacks.
+status choices are authoritative pending state rather than provider callbacks.
 
 `IGameSaveStore.Load()` returns a newly reconstructed `Game`. The removed
 `SaveCoreData`, `LoadCoreData` and `GameStateSerializer` APIs are not part of
@@ -484,6 +491,9 @@ fields and ordinal string keys so existing files remain compatible. Core maps
 those fields to internal legacy deck IDs; no active runtime/profile API exposes
 or copies that two-deck shape. Issue #4 rejects Version 1 after legacy content
 is removed, and issue #52 replaces it with generic profile, deck and card IDs.
+The public Version 1 DTO property names, including its regional and detention
+fields, are a wire-compatibility exception and are not reusable runtime or
+profile contracts.
 
 Version 1 does not currently preserve or fully validate:
 

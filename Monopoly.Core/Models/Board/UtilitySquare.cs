@@ -4,7 +4,7 @@ using Monopoly.Core.Randomness;
 
 namespace Monopoly.Core.Models.Board
 {
-    public class UtilitySquare : Square
+    internal class UtilitySquare : Square
     {
         public int RentOneUtility { get; }
         public int RentTwoUtility { get; }

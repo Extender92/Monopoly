@@ -46,6 +46,14 @@ Core represents the route as an immutable, profile-sized `GameTrack` keyed by
 there is no public two-deck runtime contract. Save Format Version 1 retains its
 old named fields only as a temporary compatibility exception.
 
+Profile rules now have closed, immutable contracts for capabilities, card
+effects, resources and statuses. `ProfileRuleGraph` validates their structural
+references and combinations before they can become profile data. Public match
+state exposes generic `SpaceView`, status and decision IDs; concrete legacy
+spaces, regional cards and detention payloads remain internal migration code.
+Issue #74 owns JSON parsing and canonical profile fingerprints, while #75 owns
+registration and execution of the new declarations.
+
 ```text
 Monopoly.Console ──> Monopoly.Core
 Monopoly.Console ──> Infrastructure ──> Monopoly.Core

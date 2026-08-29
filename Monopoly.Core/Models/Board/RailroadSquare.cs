@@ -2,7 +2,7 @@ using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board
 {
-    public class RailroadSquare : Square
+    internal class RailroadSquare : Square
     {
         public int RentOneStation { get; }
         public int RentTwoStation { get; }
