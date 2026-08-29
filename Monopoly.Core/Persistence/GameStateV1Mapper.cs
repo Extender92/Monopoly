@@ -33,8 +33,8 @@ public static class GameStateV1Mapper
             Jail = game.TheJail.PlayersInJail
                 .Select(pair => new JailState { PlayerId = pair.Key.Id, TurnsInJail = pair.Value.TurnsInJail })
                 .ToList(),
-            ChanceDeck = game.FortuneCard.GetChanceDeckOrder().ToList(),
-            CommunityChestDeck = game.FortuneCard.GetCommunityChestDeckOrder().ToList()
+            ChanceDeck = game.CardHandler.GetLegacyPrimaryDeckOrder().ToList(),
+            CommunityChestDeck = game.CardHandler.GetLegacySecondaryDeckOrder().ToList()
         };
     }
 
@@ -72,7 +72,7 @@ public static class GameStateV1Mapper
             foreach (JailState jailState in state.Jail)
                 game.TheJail.RestorePlayerInJail(playersById[jailState.PlayerId], jailState.TurnsInJail);
 
-            game.FortuneCard.RestoreDeckOrder(state.ChanceDeck, state.CommunityChestDeck);
+            game.CardHandler.RestoreLegacyDeckOrder(state.ChanceDeck, state.CommunityChestDeck);
 
             List<Player> activePlayers = players.Where(player => !player.IsBankrupt).ToList();
             if (activePlayers.Count <= 1)

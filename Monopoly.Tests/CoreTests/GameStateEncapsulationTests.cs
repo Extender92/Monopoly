@@ -20,6 +20,7 @@ public sealed class GameStateEncapsulationTests
             nameof(Game.LastDiceRoll),
             nameof(Game.Rules),
             nameof(Game.Presentation),
+            nameof(Game.Decks),
             nameof(Game.Fines),
             nameof(Game.CurrentTurn),
             nameof(Game.ConsecutiveDoubles),
@@ -57,8 +58,8 @@ public sealed class GameStateEncapsulationTests
         Assert.Null(typeof(Square).GetMethod("LandOn", publicInstance));
         Assert.Null(typeof(Jail).GetMethod("PlayerGoToJail", publicInstance));
         Assert.Null(typeof(Jail).GetMethod("ReleasePlayerFromJail", publicInstance));
-        Assert.Null(typeof(FortuneCardHandler).GetMethod("DrawNextChanceCard", publicInstance));
-        Assert.Null(typeof(FortuneCardHandler).GetMethod("DrawNextCommunityChestCard", publicInstance));
+        Assert.False(typeof(FortuneCardHandler).IsPublic);
+        Assert.Null(typeof(Game).GetProperty("FortuneCard", publicInstance));
         Assert.Null(typeof(UKChanceCard).GetMethod("ExecuteEffect", publicInstance));
         Assert.Null(typeof(USChanceCard).GetMethod("ExecuteEffect", publicInstance));
         Assert.Null(typeof(UKCommunityChestCard).GetMethod("ExecuteEffect", publicInstance));
@@ -84,9 +85,11 @@ public sealed class GameStateEncapsulationTests
         Assert.Throws<NotSupportedException>(() => ((IList<Log>)game.Logs.LogList).Clear());
         Assert.Throws<NotSupportedException>(() =>
             ((IDictionary<Player, JailStatus>)game.TheJail.PlayersInJail).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IList<IFortuneCardView>)game.FortuneCard.ChanceDeck).Clear());
+        DeckCollection decks = game.Decks;
         Assert.Throws<NotSupportedException>(() =>
-            ((IList<IFortuneCardView>)game.FortuneCard.CommunityChestDeck).Clear());
+            ((IDictionary<DeckId, DeckView>)decks.ById).Clear());
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<ICardView>)decks.Entries[0].Cards).Clear());
 
         Assert.Equal(2, game.Players.Count);
         Assert.Equal(40, game.Board.Squares.Count);
@@ -198,7 +201,7 @@ public sealed class GameStateEncapsulationTests
         Assert.Equal(restoredMoney, restored.Players[0].Money);
         Assert.Equal(2, restored.Players.Count);
         Assert.Same(restored.Players[0], restored.Board.GetSquareAtPosition(1).Owner);
-        Assert.NotEmpty(restored.FortuneCard.ChanceDeck);
+        Assert.NotEmpty(restored.Decks.Resolve(LegacyStructureIds.PrimaryDeck).Cards);
     }
 
     [Fact]

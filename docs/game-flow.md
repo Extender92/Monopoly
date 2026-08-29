@@ -41,7 +41,8 @@ The current transitional `CoreGameSetup` creates a match as follows:
 1. Validate the current rules and player count.
 2. Create the players and select the first player in list order.
 3. Create one `Game` with a match-scoped random source.
-4. Build the current board and prepare both shuffled deck orders.
+4. Build the ordered track, validate every current draw-space deck reference
+   and prepare the `DeckId`-ordered deck collection.
 5. Return the complete match without consuming setup-player or setup-dice
    randomness.
 
@@ -50,7 +51,9 @@ Issue #40 replaces the fixed first-player behavior with profile-selected
 `SetupDice` random purposes are reserved for that work and are not an interim
 policy API.
 
-UK Classic and US Classic use their official setup defaults, including the Classic starting balance and highest-opening-roll starting-player selection. Custom may override supported setup values and may select another supported starting-player policy.
+The current legacy composition still supplies its transitional setup values.
+Issue #40 replaces that path with setup values and starting-player policy from
+one validated profile.
 
 Frontend setup screens collect names and allowed profile choices. Core validates the choices, creates the match and determines the first player.
 
@@ -181,7 +184,7 @@ A landing may:
 - Charge rent owed to another player.
 - Charge tax, a fine or another bank payment.
 - Award money.
-- Draw and execute a Chance or Community Chest card.
+- Draw and execute a card from the space's referenced `DeckId`.
 - Move the player to another square.
 - Send the player to jail.
 - Cause bankruptcy.
@@ -193,7 +196,9 @@ If a card causes movement, Core continues resolving the destination square. This
 
 Intermediate card draws and reached squares may be presented through notifications without changing the final result or controlling the chain.
 
-When a player receives a Get Out of Jail Free card, that specific card leaves its deck while held. It returns to the bottom of its originating deck after use or when required by bankruptcy. It must not be drawn by another player while held.
+Deferred held-card capabilities must preserve the stable `CardId` and source
+`DeckId` when a card temporarily leaves its deck. That capability is not part
+of the first public baseline.
 
 ## Purchasing flow
 

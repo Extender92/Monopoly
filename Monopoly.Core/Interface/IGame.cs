@@ -17,13 +17,13 @@ namespace Monopoly.Core.Interface
         IGameLog Logs { get; }
         IGameNotificationSource Notifications { get; }
         GameBoard Board { get; }
+        DeckCollection Decks { get; }
         IReadOnlyList<Player> Players { get; }
         Player CurrentPlayer { get; }
         DiceRoll? LastDiceRoll { get; }
         GameRules Rules { get; }
         ProfilePresentation Presentation { get; }
         Jail TheJail { get; }
-        FortuneCardHandler FortuneCard { get; }
         int Fines { get; }
         int CurrentTurn { get; }
         int ConsecutiveDoubles { get; }

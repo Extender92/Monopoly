@@ -1,6 +1,5 @@
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models.Board;
-using Monopoly.Core.Models.FortuneCard;
 using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Notifications;
@@ -11,7 +10,10 @@ public abstract record GameNotification(PresentationToken PresentationToken);
 public sealed record LogAddedNotification(Log Log)
     : GameNotification(PresentationTokens.LogNotification);
 
-public sealed record CardDrawnNotification(IFortuneCardView Card, PresentationToken DeckPresentationToken)
+public sealed record CardDrawnNotification(
+    ICardView Card,
+    DeckId DeckId,
+    PresentationToken DeckPresentationToken)
     : GameNotification(DeckPresentationToken);
 
 public sealed record SpaceReachedNotification(Square Space)

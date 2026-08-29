@@ -12,12 +12,33 @@ namespace Monopoly.Core.Models.Board
     {
         private readonly List<Square> _squares;
         private readonly ReadOnlyCollection<Square> _squaresView;
+        private readonly ReadOnlyDictionary<SpaceId, Square> _squaresById;
         public IReadOnlyList<Square> Squares => _squaresView;
+        public GameTrack Track { get; }
 
-        public GameBoard(GameRules gameRules)
+        internal GameBoard(GameRules gameRules)
+            : this(SquareBuilder.GetBoardSquares(gameRules ?? throw new ArgumentNullException(nameof(gameRules))))
         {
-            ArgumentNullException.ThrowIfNull(gameRules);
-            _squares = SquareBuilder.GetBoardSquares(gameRules);
+        }
+
+        public GameBoard(IEnumerable<Square> squares)
+        {
+            ArgumentNullException.ThrowIfNull(squares);
+            _squares = squares.ToList();
+            if (_squares.Count == 0 || _squares.Any(square => square is null))
+                throw new ArgumentException("A game board requires at least one non-null space.", nameof(squares));
+
+            for (int index = 0; index < _squares.Count; index++)
+            {
+                if (_squares[index].Position != index)
+                    throw new ArgumentException(
+                        "Space positions must be contiguous from zero and match the supplied track order.",
+                        nameof(squares));
+            }
+
+            Track = new GameTrack(_squares.Select(square => square.Id));
+            _squaresById = new ReadOnlyDictionary<SpaceId, Square>(
+                _squares.ToDictionary(square => square.Id));
             _squaresView = _squares.AsReadOnly();
         }
 
@@ -28,8 +49,18 @@ namespace Monopoly.Core.Models.Board
 
         public Square GetSquareAtPosition(int position)
         {
-            return Squares.First(s => s.Position == position);
+            return _squares[position];
         }
+
+        public Square GetSquare(SpaceId id) =>
+            !id.IsValid
+                ? throw new ArgumentException("The space ID is invalid.", nameof(id))
+                : _squaresById.TryGetValue(id, out Square? square)
+                ? square
+                : throw new KeyNotFoundException($"Space ID '{id}' does not belong to this board.");
+
+        internal IReadOnlyList<DeckId> ReferencedDeckIds =>
+            Array.AsReadOnly(_squares.OfType<IDeckReferenceSpace>().Select(space => space.DeckId).ToArray());
 
         public IReadOnlyList<T> GetAllSquaresOfType<T>() where T : Square
         {

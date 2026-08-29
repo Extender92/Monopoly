@@ -140,8 +140,8 @@ public sealed class MatchRandomnessTests
         Game loaded = GameStateV1Mapper.FromState(saved, randomSource: source);
 
         Assert.Empty(source.Requests);
-        Assert.Equal(saved.ChanceDeck, loaded.FortuneCard.GetChanceDeckOrder());
-        Assert.Equal(saved.CommunityChestDeck, loaded.FortuneCard.GetCommunityChestDeckOrder());
+        Assert.Equal(saved.ChanceDeck, loaded.CardHandler.GetLegacyPrimaryDeckOrder());
+        Assert.Equal(saved.CommunityChestDeck, loaded.CardHandler.GetLegacySecondaryDeckOrder());
 
         _ = loaded.PlayTurn();
 
@@ -240,8 +240,8 @@ public sealed class MatchRandomnessTests
         return new ScenarioSnapshot(
             JsonSerializer.Serialize(GameStateV1Mapper.ToState(game)),
             string.Join(',', completed.TurnResult!.Roll!.Results),
-            string.Join(',', game.FortuneCard.GetChanceDeckOrder()),
-            string.Join(',', game.FortuneCard.GetCommunityChestDeckOrder()),
+            string.Join(',', game.CardHandler.GetLegacyPrimaryDeckOrder()),
+            string.Join(',', game.CardHandler.GetLegacySecondaryDeckOrder()),
             string.Join(',', notifications.Select(notification =>
                 $"{notification.GetType().Name}:{notification.PresentationToken.Value}")));
     }

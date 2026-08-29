@@ -92,7 +92,7 @@ public sealed class PresentationContractTests
         Game variant = CreateGame(rules, variantPresentation);
 
         GameStateV1 initial = GameStateV1Mapper.ToState(baseline);
-        variant.FortuneCard.RestoreDeckOrder(initial.ChanceDeck, initial.CommunityChestDeck);
+        variant.CardHandler.RestoreLegacyDeckOrder(initial.ChanceDeck, initial.CommunityChestDeck);
         AssertEquivalentV1(baseline, variant);
 
         PropertyPurchaseDecision baselineDecision = Assert.IsType<PropertyPurchaseDecision>(baseline.PlayTurn().PendingDecision);
@@ -137,9 +137,10 @@ public sealed class PresentationContractTests
         PendingDecision decision = Assert.IsType<PropertyPurchaseDecision>(purchaseGame.PlayTurn().PendingDecision);
         Assert.NotNull(purchaseGame.Presentation.Resolve(decision.PresentationToken));
         Assert.All(purchaseGame.Board.Squares, square => Assert.NotNull(purchaseGame.Presentation.Resolve(square.PresentationToken)));
-        Assert.All(purchaseGame.FortuneCard.ChanceDeck, card => Assert.NotNull(purchaseGame.Presentation.Resolve(card.PresentationToken)));
-        Assert.NotNull(purchaseGame.Presentation.Resolve(purchaseGame.FortuneCard.ChanceDeckPresentationToken));
-        Assert.NotNull(purchaseGame.Presentation.Resolve(purchaseGame.FortuneCard.CommunityChestDeckPresentationToken));
+        Assert.All(purchaseGame.Decks.Entries.SelectMany(deck => deck.Cards),
+            card => Assert.NotNull(purchaseGame.Presentation.Resolve(card.PresentationToken)));
+        Assert.All(purchaseGame.Decks.Entries,
+            deck => Assert.NotNull(purchaseGame.Presentation.Resolve(deck.PresentationToken)));
 
         Game detained = new GameTestBuilder().WithPlayerInJail(0).Build();
         Assert.NotNull(detained.Presentation.Resolve(detained.TheJail.GetJailInfo(detained.Players[0]).PresentationToken));
@@ -149,7 +150,10 @@ public sealed class PresentationContractTests
         using IDisposable subscription = notificationGame.Notifications.Subscribe(notifications.Add);
         notificationGame.PlayTurn();
         Assert.Contains(notifications, notification => notification is SpaceReachedNotification);
-        Assert.Contains(notifications, notification => notification is CardDrawnNotification);
+        CardDrawnNotification drawn = Assert.Single(notifications.OfType<CardDrawnNotification>());
+        Assert.Equal(LegacyStructureIds.PrimaryDeck, drawn.DeckId);
+        Assert.Contains(drawn.Card.Id,
+            notificationGame.Decks.Resolve(drawn.DeckId).Cards.Select(card => card.Id));
         Assert.All(notifications, notification => Assert.NotNull(notificationGame.Presentation.Resolve(notification.PresentationToken)));
     }
 
@@ -188,7 +192,7 @@ public sealed class PresentationContractTests
 
         Assert.Null(typeof(Square).GetProperty("Name"));
         Assert.Null(typeof(Square).GetProperty("Info"));
-        Assert.Null(typeof(IFortuneCardView).GetProperty("Info"));
+        Assert.Null(typeof(ICardView).GetProperty("Info"));
         Assert.Null(typeof(JailSquare).GetProperty("InJailInfo"));
         Assert.Null(typeof(GameRules).GetProperty("CurrencySymbol"));
         Assert.Null(typeof(PropertySquare).GetProperty("Color"));

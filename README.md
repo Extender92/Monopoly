@@ -41,6 +41,11 @@ and dice outcomes, while immutable `DiceRoll` snapshots record only committed
 results. The Console creates a fresh production source for every new or loaded
 match; deterministic tests inject scripted sources.
 
+Core represents the route as an immutable, profile-sized `GameTrack` keyed by
+`SpaceId`. Current deck state is exposed as detached `DeckId`-indexed snapshots;
+there is no public two-deck runtime contract. Save Format Version 1 retains its
+old named fields only as a temporary compatibility exception.
+
 ```text
 Monopoly.Console ──> Monopoly.Core
 Monopoly.Console ──> Infrastructure ──> Monopoly.Core

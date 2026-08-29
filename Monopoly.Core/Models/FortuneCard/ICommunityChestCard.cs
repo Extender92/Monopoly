@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace Monopoly.Core.Models.FortuneCard
 {
-    internal interface ICommunityChestCard : IFortuneCardView
+    internal interface ICommunityChestCard : ILegacyCard
     {
-        Monopoly.Core.Presentation.PresentationMetadata Presentation { get; }
-        void ExecuteEffect(Player player, Game game);
     }
 }

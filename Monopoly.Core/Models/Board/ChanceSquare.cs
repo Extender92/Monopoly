@@ -1,11 +1,12 @@
-using Monopoly.Core.Models.FortuneCard;
 using Monopoly.Core.Notifications;
 using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board;
 
-public class ChanceSquare : Square
+public class ChanceSquare : Square, IDeckReferenceSpace
 {
+    DeckId IDeckReferenceSpace.DeckId => LegacyStructureIds.PrimaryDeck;
+
     public ChanceSquare(int position, PresentationMetadata presentation)
         : base(position, presentation)
     {
@@ -18,8 +19,11 @@ public class ChanceSquare : Square
 
     internal override void LandOn(Player player, Game game)
     {
-        IChanceCard card = game.FortuneCard.DrawNextChanceCard();
-        game.PublishNotification(new CardDrawnNotification(card, PresentationTokens.PrimaryDeck));
+        RuntimeCard card = game.CardHandler.DrawNextCard(LegacyStructureIds.PrimaryDeck);
+        game.PublishNotification(new CardDrawnNotification(
+            card,
+            LegacyStructureIds.PrimaryDeck,
+            PresentationTokens.PrimaryDeck));
         card.ExecuteEffect(player, game);
     }
 }

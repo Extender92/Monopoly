@@ -80,11 +80,11 @@ The main aggregate is `Game`. It owns:
 
 - Players and the current player
 - Game rules
-- The board and squares
+- The ordered track and current spaces
 - The last committed dice outcome and resumable roll data
 - Jail state
 - Transactions
-- Fortune card decks
+- The `DeckId`-indexed deck collection and current card order
 - Fines
 - Turn and doubles state
 - Current phase, a pending decision and primitive continuation data
@@ -216,10 +216,11 @@ pending decisions, logs, notifications and rule state unchanged.
 dedicated rule roll may become `Game.LastDiceRoll`, but it never overwrites the
 main roll retained by the active continuation or completed `TurnResult`.
 
-Legacy decks are shuffled on copies with Fisher–Yates. All orders are prepared
-before the live queues are assigned. Version 1 reconstruction disables setup
-shuffling and restores the saved queue orders without consuming the injected
-source.
+Decks are processed in ordinal `DeckId` order and shuffled on copies with
+Fisher–Yates. The collection supports zero, one or many decks, and all orders
+are prepared before the live queues are assigned. Version 1 reconstruction
+disables setup shuffling and restores its two legacy queue orders without
+consuming the injected source.
 
 ### Transaction
 
@@ -235,11 +236,30 @@ including:
 
 ### Board and squares
 
-`GameBoard` owns the 40 board squares.
+`GameBoard` owns an immutable `GameTrack` and the matching current spaces. The
+track is an ordered list of stable `SpaceId` values with no fixed length. It
+maps between identity and the zero-based runtime index used by the transitional
+player state and normalizes circular movement in either direction.
+
+`SpaceId`, `DeckId` and `CardId` are separate authoritative value types even
+when their text happens to match. They contain at most 128 characters and use
+lowercase ASCII segments separated by `.` or `-`. Space IDs are unique within
+the track, deck IDs are unique within the collection and card IDs are unique
+across all decks in one profile.
+
+`Game.Decks` exposes a detached immutable `DeckCollection` snapshot indexed by
+`DeckId`. Each immutable `DeckView` preserves the current order of generic
+`ICardView` entries. The internal runtime draws by deck ID; no public match API
+has dedicated Chance or Community Chest collections.
 
 `Square` is the base type for board locations. Specific square types implement
 their internal landing behavior through `LandOn()`; a frontend cannot invoke a
 landing effect independently of Core turn flow.
+
+The concrete square and card types below are legacy transition types. Issue
+#73 replaces their product-shaped rule meaning with generic capabilities, while
+#4 replaces their bundled data. Their current draw-space references are checked
+against the generic deck collection before a `Game` is returned.
 
 Examples include:
 
@@ -394,7 +414,8 @@ Save files store IDs instead of duplicated object references. During load:
 
 1. Rules are reconstructed.
 2. Players are recreated.
-3. The board and card decks are built.
+3. The ordered track and current deck collection are built and structurally
+   validated.
 4. Owners and current player references are restored by ID.
 5. Jail, fines, turn state and deck order are restored.
 6. The resulting game is validated.
@@ -429,9 +450,10 @@ Console-only models include `TablePiece`, `SquareCard` and the different printer
 
 ## Authoritative identity and profile presentation
 
-Authoritative identity is separate from rendering. A property group is
-identified by `GroupId`; ownership and fee rules compare that ID and never a
-color, label or layout hint. Spaces, current decks and cards, statuses,
+Authoritative identity is separate from rendering. Spaces, decks and cards use
+`SpaceId`, `DeckId` and `CardId`; a property group is identified by `GroupId`.
+Rules compare those IDs and never a color, label, visual side or layout hint.
+Spaces, current decks and cards, statuses,
 resources, pending decisions and notifications expose stable semantic
 `PresentationToken` references.
 

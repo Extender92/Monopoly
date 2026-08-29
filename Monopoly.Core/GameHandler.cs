@@ -24,19 +24,18 @@ internal sealed class GameHandler
 
     private void MovePlayerToBoardPosition(Player player, int targetPosition)
     {
-        int boardSize = CurrentGame.Board.Squares.Count;
-        if (boardSize == 0) throw new InvalidOperationException("The game board cannot be empty.");
+        int boardSize = CurrentGame.Board.Track.Count;
 
         if (targetPosition >= boardSize)
         {
             int laps = targetPosition / boardSize;
-            player.MoveTo(targetPosition % boardSize);
+            player.MoveTo(CurrentGame.Board.Track.NormalizeIndex(targetPosition));
             for (int i = 0; i < laps; i++)
                 CurrentGame.Transactions.PlayerGetSalary(player);
         }
         else if (targetPosition < 0)
         {
-            player.MoveTo(((targetPosition % boardSize) + boardSize) % boardSize);
+            player.MoveTo(CurrentGame.Board.Track.NormalizeIndex(targetPosition));
         }
         else
             player.MoveTo(targetPosition);
@@ -50,7 +49,7 @@ internal sealed class GameHandler
 
     public int GetPlayerGoPastGoNewPosition(int targetPosition)
     {
-        return CurrentGame.Board.Squares.Count + targetPosition;
+        return CurrentGame.Board.Track.Count + targetPosition;
     }
 
     internal DiceRoll PrepareDiceRoll(RandomPurpose purpose)

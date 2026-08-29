@@ -24,7 +24,9 @@ public sealed class Game : IGame
     public IGameLog Logs => _logs;
     public IGameNotificationSource Notifications => _notifications;
     internal ILogHandler LogWriter => _logs;
+    internal FortuneCardHandler CardHandler { get; }
     public GameBoard Board { get; }
+    public DeckCollection Decks => CardHandler.CreateSnapshot();
     public IReadOnlyList<Player> Players => _playersView;
     public Player CurrentPlayer { get; private set; }
     public DiceRoll? LastDiceRoll { get; private set; }
@@ -33,7 +35,6 @@ public sealed class Game : IGame
     public ProfilePresentation Presentation { get; }
     internal Transaction Transactions { get; }
     public Jail TheJail { get; }
-    public FortuneCardHandler FortuneCard { get; }
     internal IPlayerDecisionProvider Decisions { get; private set; }
     public int Fines { get; private set; }
     public int CurrentTurn { get; private set; }
@@ -108,10 +109,11 @@ public sealed class Game : IGame
         CurrentTurn = 1;
         Phase = GamePhase.ReadyForTurn;
         Board = new GameBoard(rules);
-        FortuneCard = new FortuneCardHandler(rules, Randomizer, shuffleDecks);
-        ProfilePresentation defaultPresentation = LegacyPresentationFactory.Create(rules, Board, FortuneCard);
+        CardHandler = new FortuneCardHandler(rules, Randomizer, shuffleDecks);
+        CardHandler.EnsureReferences(Board.ReferencedDeckIds);
+        ProfilePresentation defaultPresentation = LegacyPresentationFactory.Create(rules, Board, CardHandler);
         Presentation = presentation ?? defaultPresentation;
-        Presentation.EnsureReferences(LegacyPresentationFactory.RequiredReferences(Board, FortuneCard));
+        Presentation.EnsureReferences(LegacyPresentationFactory.RequiredReferences(Board, CardHandler));
         TheJail = new Jail(this, Board.Squares.OfType<JailSquare>().Single().Position);
         Handler = new GameHandler(this);
         Transactions = new Transaction(this);
@@ -635,6 +637,11 @@ public sealed class Game : IGame
             throw new InvalidOperationException("The current player must be active and belong to the game.");
         if (Board.Squares.Select(square => square.Position).Distinct().Count() != Board.Squares.Count)
             throw new InvalidOperationException("Board positions must be unique.");
+        if (Board.Track.Count != Board.Squares.Count ||
+            Board.Squares.Where((square, index) => square.Id != Board.Track.GetSpaceIdAt(index)).Any())
+        {
+            throw new InvalidOperationException("The board spaces must match the authoritative track order.");
+        }
         if (Board.Squares.Any(square => square.Owner is not null && !ContainsPlayer(square.Owner)))
             throw new InvalidOperationException("Every square owner must belong to the game.");
         if (Board.Squares.Any(square => square.IsMortgage && square.Owner is null) ||

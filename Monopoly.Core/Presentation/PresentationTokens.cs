@@ -4,8 +4,8 @@ namespace Monopoly.Core.Presentation;
 public static class PresentationTokens
 {
     public static PresentationToken PrimaryResource { get; } = new("resource.primary");
-    public static PresentationToken PrimaryDeck { get; } = new("deck.primary");
-    public static PresentationToken SecondaryDeck { get; } = new("deck.secondary");
+    internal static PresentationToken PrimaryDeck { get; } = new("deck.primary");
+    internal static PresentationToken SecondaryDeck { get; } = new("deck.secondary");
     public static PresentationToken PropertyPurchaseDecision { get; } = new("decision.property-purchase");
     public static PresentationToken DetentionReleaseDecision { get; } = new("decision.detention-release");
     public static PresentationToken DetainedStatus { get; } = new("status.detained");
