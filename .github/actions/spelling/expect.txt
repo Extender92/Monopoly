@@ -12,6 +12,7 @@ IMatch
 LASTEXITCODE
 dto
 notin
+notnull
 pdb
 pscustomobject
 pwsh
