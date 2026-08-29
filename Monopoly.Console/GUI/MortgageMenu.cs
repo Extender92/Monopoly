@@ -27,7 +27,7 @@ namespace Monopoly.Console.GUI
         public MortgageMenu(IMenuOptionSelector menuOptionSelector, Game game, Player player, IGameSaveStore saveStore)
         {
             MenuOptionSelector = menuOptionSelector;
-            ListOptionSelector = new ListOptionSelector();
+            ListOptionSelector = new ListOptionSelector(game.Presentation);
             CurrentGame = game;
             Player = player;
             SaveStore = saveStore;
@@ -110,7 +110,7 @@ namespace Monopoly.Console.GUI
         private void MortgageProperty()
         {
             int index = 0;
-            int spacingPerLine = AvailableMortgageList.Max(x => x.Name.Length);
+            int spacingPerLine = AvailableMortgageList.Max(x => CurrentGame.Presentation.ResolveDisplayText(x.PresentationToken).Length);
             int optionsPerLine = AvailableMortgageList.Count / 2;
             string errorMessage = "";
 
@@ -124,7 +124,7 @@ namespace Monopoly.Console.GUI
                 var selectedSquare = AvailableMortgageList[index];
 
                 if (!selectedSquare.IsMortgage) canMortgage = true;
-                else errorMessage = $"Cannot mortgage property on {selectedSquare.Name}. It is already mortgage.";
+                else errorMessage = $"Cannot mortgage property on {CurrentGame.Presentation.ResolveDisplayText(selectedSquare.PresentationToken)}. It is already mortgage.";
 
             } while (!canMortgage);
             CurrentGame.TryMortgageProperty(Player, AvailableMortgageList[index]);
@@ -135,7 +135,7 @@ namespace Monopoly.Console.GUI
         private void LiftMortgage()
         {
             int index = 0;
-            int spacingPerLine = AvailableLiftMortgageList.Max(x => x.Name.Length);
+            int spacingPerLine = AvailableLiftMortgageList.Max(x => CurrentGame.Presentation.ResolveDisplayText(x.PresentationToken).Length);
             int optionsPerLine = AvailableLiftMortgageList.Count / 2;
             string errorMessage = "";
 
@@ -149,7 +149,7 @@ namespace Monopoly.Console.GUI
                 var selectedSquare = AvailableLiftMortgageList[index];
 
                 if (selectedSquare.IsMortgage) canLift = true;
-                else errorMessage = $"Cannot lift mortgage on {selectedSquare.Name}. It is not mortgage.";
+                else errorMessage = $"Cannot lift mortgage on {CurrentGame.Presentation.ResolveDisplayText(selectedSquare.PresentationToken)}. It is not mortgage.";
 
             } while (!canLift);
             CurrentGame.TryRepayMortgage(Player, AvailableLiftMortgageList[index]);

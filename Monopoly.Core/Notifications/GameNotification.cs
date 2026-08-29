@@ -1,20 +1,24 @@
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models.Board;
 using Monopoly.Core.Models.FortuneCard;
+using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Notifications;
 
 /// <summary>A non-authoritative presentation hint emitted by one match.</summary>
-public abstract record GameNotification;
+public abstract record GameNotification(PresentationToken PresentationToken);
 
-public sealed record LogAddedNotification(Log Log) : GameNotification;
+public sealed record LogAddedNotification(Log Log)
+    : GameNotification(PresentationTokens.LogNotification);
 
-public sealed record CardDrawnNotification(
-    IFortuneCardView Card,
-    string PresentationToken) : GameNotification;
+public sealed record CardDrawnNotification(IFortuneCardView Card, PresentationToken DeckPresentationToken)
+    : GameNotification(DeckPresentationToken);
 
-public sealed record SpaceReachedNotification(Square Space) : GameNotification;
+public sealed record SpaceReachedNotification(Square Space)
+    : GameNotification(Space.PresentationToken);
 
-public sealed record BoardChangedNotification : GameNotification;
+public sealed record BoardChangedNotification()
+    : GameNotification(PresentationTokens.BoardNotification);
 
-public sealed record PlayerInformationChangedNotification : GameNotification;
+public sealed record PlayerInformationChangedNotification()
+    : GameNotification(PresentationTokens.PlayerInformationNotification);

@@ -18,7 +18,7 @@ categories:
 | Fixed board/deck and concrete square/card/status types | Replace with structural and capability contracts | #72, #73 |
 | Profile parsing and validation assumptions | Replace with bounded schema v1 | #74 |
 | Product-shaped rule and setup behavior | Restrict to the supported public baseline | #40, #75 |
-| Frontend-specific presentation values in Core | Replace with semantic profile metadata | #32 |
+| Frontend-specific presentation values in Core | Semantic profile metadata boundary implemented; final content/projections remain separate gates | #4, #77 |
 | Regional Version 1 save fields | Remove and replace with exact-profile Save V2 | #52 |
 | Legacy solution, package, namespace, command and URL identity | Replace before clean export | #56 |
 | Legacy Console type branches | Replace with generic projections | #77 |

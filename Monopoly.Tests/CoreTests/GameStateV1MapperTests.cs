@@ -36,15 +36,15 @@ public sealed class GameStateV1MapperTests
         Player second = game.Players[1];
         PropertySquare property = (PropertySquare)game.Board.GetSquareAtPosition(1);
         Square mortgagedSquare = game.Board.GetSquareAtPosition(5);
-        string[] chanceOrder = game.FortuneCard.ChanceDeck.Select(card => card.Info).ToArray();
-        string[] chestOrder = game.FortuneCard.CommunityChestDeck.Select(card => card.Info).ToArray();
+        Monopoly.Core.Presentation.PresentationToken[] chanceOrder = game.FortuneCard.ChanceDeck.Select(card => card.PresentationToken).ToArray();
+        Monopoly.Core.Presentation.PresentationToken[] chestOrder = game.FortuneCard.CommunityChestDeck.Select(card => card.PresentationToken).ToArray();
 
         GameStateV1 state = GameStateV1Mapper.ToState(game);
         Game loaded = GameStateV1Mapper.FromState(state, decisions);
 
         Assert.Equal(GameStateV1Mapper.CurrentVersion, state.Version);
         Assert.Equal(language, loaded.Rules.GameLanguage);
-        Assert.Equal(currency, loaded.Rules.CurrencySymbol);
+        Assert.Equal(currency, loaded.Presentation.Resolve(loaded.Rules.PrimaryResourcePresentationToken).Symbol);
         Assert.Equal(250, loaded.Rules.Salary);
         Assert.Equal(GameRules.Parking.Fines, loaded.Rules.FreeParking);
         Assert.Equal(35, loaded.Fines);
@@ -66,8 +66,8 @@ public sealed class GameStateV1MapperTests
         Assert.NotNull(jailStatus);
         Assert.Equal(1, jailStatus.TurnsInJail);
         Assert.Throws<ArgumentException>(() => loaded.TheJail.TryGetJailInfo(second, out _));
-        Assert.Equal(chanceOrder, loaded.FortuneCard.ChanceDeck.Select(card => card.Info));
-        Assert.Equal(chestOrder, loaded.FortuneCard.CommunityChestDeck.Select(card => card.Info));
+        Assert.Equal(chanceOrder, loaded.FortuneCard.ChanceDeck.Select(card => card.PresentationToken));
+        Assert.Equal(chestOrder, loaded.FortuneCard.CommunityChestDeck.Select(card => card.PresentationToken));
     }
 
     [Fact]

@@ -10,10 +10,12 @@ namespace Monopoly.Console.GUI
     internal class ListOptionSelector
     {
         private readonly IConsoleWrapper Console;
+        private readonly ConsolePresentationResolver _presentation;
 
-        public ListOptionSelector()
+        public ListOptionSelector(Monopoly.Core.Presentation.ProfilePresentation presentation)
         {
             Console = new ConsoleWrapper();
+            _presentation = new ConsolePresentationResolver(presentation);
         }
 
         public int GetSelectedOption(List<Square> options, int spacingPerLine = 18, int index = 0, string errorMessage = "", int optionsPerLine = 1, bool canCancel = false, ConsoleColor selectColor = ConsoleColor.Red)
@@ -40,12 +42,14 @@ namespace Monopoly.Console.GUI
                 {
                     Console.SetPosition(ConsolePositions.ListMenuPosX + (i % optionsPerLine) * spacingPerLine, ConsolePositions.ListMenuPosY + i / optionsPerLine);
 
-                    if (options[i] is PropertySquare property) textColor = property.Color;
+                    textColor = options[i] is PropertySquare property
+                        ? _presentation.GetColor(property.GroupPresentationToken)
+                        : ConsoleColor.White;
                     Console.SetTextColor(textColor);
 
                     if (i == index)
                     {
-                        Console.Write(options[i].Name);
+                        Console.Write(_presentation.GetDisplayText(options[i].PresentationToken));
 
                         Console.SetTextColor(selectColor);
                         Console.Write(" *");
@@ -53,7 +57,7 @@ namespace Monopoly.Console.GUI
                         Console.SetPosition((ConsolePositions.ListMenuPosX + (i % optionsPerLine) * spacingPerLine) - 2, ConsolePositions.ListMenuPosY + i / optionsPerLine);
                         Console.Write("*");
                     }
-                    else Console.Write(options[i].Name);
+                    else Console.Write(_presentation.GetDisplayText(options[i].PresentationToken));
                 }
 
                 Console.ResetColor();

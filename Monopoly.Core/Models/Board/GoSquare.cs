@@ -1,19 +1,22 @@
-﻿namespace Monopoly.Core.Models.Board
+using Monopoly.Core.Presentation;
+
+namespace Monopoly.Core.Models.Board;
+
+public class GoSquare : Square
 {
-    public class GoSquare : Square
+    public GoSquare(int position, PresentationMetadata presentation)
+        : base(position, presentation)
     {
+    }
 
-        public GoSquare(int position ,string name,  string info)
-        {
-            Position = position;
-            Name = name;
-            Info = info;
-        }
+    internal GoSquare(int position, string name, string info)
+        : this(position, LegacyPresentationFactory.Space(position, name, info))
+    {
+    }
 
-        internal override void LandOn(Player player, Game game)
-        {
-            if (game.Rules.DoubleOnGo)
-                game.Transactions.PlayerGetSalary(player);
-        }
+    internal override void LandOn(Player player, Game game)
+    {
+        if (game.Rules.DoubleOnGo)
+            game.Transactions.PlayerGetSalary(player);
     }
 }

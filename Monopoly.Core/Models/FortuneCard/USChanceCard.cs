@@ -5,12 +5,13 @@ namespace Monopoly.Core.Models.FortuneCard
 {
     internal sealed class USChanceCard : IChanceCard
     {
-        public string Info { get; }
+        public Monopoly.Core.Presentation.PresentationToken PresentationToken => Presentation.Token;
+        public Monopoly.Core.Presentation.PresentationMetadata Presentation { get; }
         public USChanceCardType CardType { get; }
 
         public USChanceCard(string info, USChanceCardType cardType)
         {
-            Info = info;
+            Presentation = Monopoly.Core.Presentation.LegacyPresentationFactory.Card("primary", (int)cardType, info);
             CardType = cardType;
         }
 

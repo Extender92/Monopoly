@@ -19,6 +19,7 @@ public sealed class GameStateEncapsulationTests
             nameof(Game.CurrentPlayer),
             nameof(Game.Dice),
             nameof(Game.Rules),
+            nameof(Game.Presentation),
             nameof(Game.Fines),
             nameof(Game.CurrentTurn),
             nameof(Game.ConsecutiveDoubles),
@@ -32,8 +33,7 @@ public sealed class GameStateEncapsulationTests
             nameof(Player.IsBankrupt));
         AssertNoPublicSetter<Square>(
             nameof(Square.Position),
-            nameof(Square.Name),
-            nameof(Square.Info),
+            nameof(Square.PresentationToken),
             nameof(Square.Owner),
             nameof(Square.Price),
             nameof(Square.MortgageValue),
@@ -126,7 +126,7 @@ public sealed class GameStateEncapsulationTests
         GameRules defaults = new(2, 2, 6);
 
         Assert.Equal(GameRules.Language.UK, defaults.GameLanguage);
-        Assert.Equal("£", defaults.CurrencySymbol);
+        Assert.Equal(Monopoly.Core.Presentation.PresentationTokens.PrimaryResource, defaults.PrimaryResourcePresentationToken);
         Assert.Equal(200, defaults.Salary);
         Assert.False(defaults.DoubleOnGo);
         Assert.Equal(GameRules.Parking.Classic, defaults.FreeParking);
@@ -145,7 +145,7 @@ public sealed class GameStateEncapsulationTests
             mortgageInterestRate: 12,
             jailFine: 75,
             maxTurnsInJail: 4);
-        Assert.Equal("$", customized.CurrencySymbol);
+        Assert.Equal(Monopoly.Core.Presentation.PresentationTokens.PrimaryResource, customized.PrimaryResourcePresentationToken);
         Assert.Equal(250, customized.Salary);
         Assert.True(customized.DoubleOnGo);
         Assert.Equal(GameRules.Parking.Fines, customized.FreeParking);

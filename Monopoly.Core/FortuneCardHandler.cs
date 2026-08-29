@@ -18,6 +18,12 @@ namespace Monopoly.Core
             Array.AsReadOnly(_chanceQueue.Cast<IFortuneCardView>().ToArray());
         public IReadOnlyList<IFortuneCardView> CommunityChestDeck =>
             Array.AsReadOnly(_communityChestQueue.Cast<IFortuneCardView>().ToArray());
+        public Presentation.PresentationToken ChanceDeckPresentationToken => Presentation.PresentationTokens.PrimaryDeck;
+        public Presentation.PresentationToken CommunityChestDeckPresentationToken => Presentation.PresentationTokens.SecondaryDeck;
+        internal IReadOnlyList<Presentation.PresentationMetadata> AllPresentationMetadata =>
+            Array.AsReadOnly(_chanceCards.Select(card => card.Presentation)
+                .Concat(_communityChestCards.Select(card => card.Presentation))
+                .ToArray());
 
         internal FortuneCardHandler(GameRules gameRules)
         {

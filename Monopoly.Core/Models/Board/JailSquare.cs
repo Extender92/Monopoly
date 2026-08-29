@@ -1,25 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Monopoly.Core.Presentation;
 
-namespace Monopoly.Core.Models.Board
+namespace Monopoly.Core.Models.Board;
+
+public class JailSquare : Square
 {
-    public class JailSquare : Square
+    public JailSquare(int position, PresentationMetadata presentation)
+        : base(position, presentation)
     {
-        public string InJailInfo { get; }
-        public JailSquare(int position, string name, string info, string inJailInfo)
-        {
-            Position = position;
-            Name = name;
-            Info = info;
-            InJailInfo = inJailInfo;
-        }
+    }
 
-        internal override void LandOn(Player player, Game game)
-        {
-            
-        }
+    internal JailSquare(int position, string name, string info, string inJailInfo)
+        : this(position, LegacyPresentationFactory.Space(position, name, $"{info} || {inJailInfo}"))
+    {
+    }
+
+    internal override void LandOn(Player player, Game game)
+    {
     }
 }

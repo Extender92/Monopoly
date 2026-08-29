@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board
 {
@@ -14,16 +10,20 @@ namespace Monopoly.Core.Models.Board
         public int RentFourStation { get; }
 
 
-        public RailroadSquare(int position, string name, int price, int rentOneStation, int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
+        public RailroadSquare(int position, PresentationMetadata presentation, int price, int rentOneStation, int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
+            : base(position, presentation)
         {
-            Position = position;
-            Name = name;
             Price = price;
             RentOneStation = rentOneStation;
             RentTwoStation = rentTwoStation;
             RentThreeStation = rentThreeStation;
             RentFourStation = rentFourStation;
             MortgageValue = mortgageValue;
+        }
+
+        internal RailroadSquare(int position, string name, int price, int rentOneStation, int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
+            : this(position, LegacyPresentationFactory.Space(position, name), price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue)
+        {
         }
 
         internal override void LandOn(Player player, Game game)

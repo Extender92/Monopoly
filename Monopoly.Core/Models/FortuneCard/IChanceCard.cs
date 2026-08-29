@@ -8,11 +8,12 @@ namespace Monopoly.Core.Models.FortuneCard
 {
     public interface IFortuneCardView
     {
-        string Info { get; }
+        Monopoly.Core.Presentation.PresentationToken PresentationToken { get; }
     }
 
     internal interface IChanceCard : IFortuneCardView
     {
+        Monopoly.Core.Presentation.PresentationMetadata Presentation { get; }
         void ExecuteEffect(Player player, Game game);
     }
 }

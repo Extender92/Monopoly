@@ -31,6 +31,11 @@ as the current implementation. Current defects and planned work are tracked in
 `Monopoly.Core` is the game. It owns authoritative match state, rules and state
 transitions. Frontends own presentation, input and framework integration.
 
+Each match also exposes an immutable `ProfilePresentation` catalog. Core state
+refers to that catalog through validated semantic `PresentationToken` values;
+terminal colors and other framework-specific values are mapped only by the
+frontend. Authoritative property grouping uses `GroupId`, never a color hint.
+
 ```text
 Monopoly.Console ──> Monopoly.Core
 Monopoly.Console ──> Infrastructure ──> Monopoly.Core

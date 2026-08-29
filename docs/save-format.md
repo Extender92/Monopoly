@@ -55,6 +55,12 @@ Frontend presentation state is separate from authoritative match state. Token
 art, colors, open menus, animations and window layout must not be required to
 reconstruct the game.
 
+The current Version 1 wire format contains no `ProfilePresentation` catalog,
+display text, symbol, color token or layout token. Loading Version 1 reconstructs
+the transitional legacy catalog from the saved `GameLanguage`; the exact JSON
+shape remains unchanged. Rendered values are never authoritative persistence
+references.
+
 ## Save consistency
 
 A save represents one internally consistent match state.
@@ -391,6 +397,11 @@ moves that player to the rebuilt board's Jail position.
 `ChanceDeck` and `CommunityChestDeck` contain string representations of numeric
 indexes into the current canonical card lists. These indexes preserve current
 queue order but are not stable domain card identities.
+
+Issue #52 replaces these transitional fields in Save Format Version 2. V2 uses
+generic profile, space, deck and card IDs plus profile revision and canonical
+fingerprint. Issue #74 defines how the presentation catalog contributes to that
+fingerprint; this presentation refactor does not add fields to Version 1.
 
 ### Version 1 reconstruction
 

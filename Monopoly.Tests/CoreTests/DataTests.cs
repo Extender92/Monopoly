@@ -28,9 +28,9 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Equal(expectedPosition, tax.Position);
-            Assert.Equal(expectedInfo, tax.Info);
+            Assert.Equal(expectedInfo, tax.Presentation.Description);
             Assert.Equal(expectedPrice, tax.Price);
-            Assert.Equal(expectedName, tax.Name);
+            Assert.Equal(expectedName, tax.Presentation.DisplayText);
         }
 
 
@@ -51,7 +51,7 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Equal(expectedPosition, railroad.Position);
-            Assert.Equal(expectedInfo, railroad.Name);
+            Assert.Equal(expectedInfo, railroad.Presentation.DisplayText);
             Assert.Equal(expectedRenOneStation, railroad.RentOneStation);
             Assert.Equal(expectedRentTwoStation, railroad.RentTwoStation);
             Assert.Equal(expectedRenThreeStation, railroad.RentThreeStation);
@@ -70,7 +70,7 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Equal(expectedPosition, parkingSpace.Position);
-            Assert.Equal(expectedInfo, parkingSpace.Name);
+            Assert.Equal(expectedInfo, parkingSpace.Presentation.DisplayText);
         }
 
         [Fact]
@@ -86,8 +86,8 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Equal(expectedPosition, jailSpace.Position);
-            Assert.Equal(expectedInfo, jailSpace.Info);
-            Assert.Equal(expectedName, jailSpace.Name);
+            Assert.Equal(expectedInfo, jailSpace.Presentation.Description);
+            Assert.Equal(expectedName, jailSpace.Presentation.DisplayText);
         }
 
         [Fact]
@@ -104,9 +104,8 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Equal(expectedPosition, jail.Position);
-            Assert.Equal(expectedInfo, jail.Info);
-            Assert.Equal(expectedInJail, jail.InJailInfo);
-            Assert.Equal(expectedName, jail.Name);
+            Assert.Equal($"{expectedInfo} || {expectedInJail}", jail.Presentation.Description);
+            Assert.Equal(expectedName, jail.Presentation.DisplayText);
         }
 
         [Fact]
@@ -122,8 +121,8 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Equal(expectedPosition, goSpace.Position);
-            Assert.Equal(expectedInfo, goSpace.Info);
-            Assert.Equal(name, goSpace.Name);
+            Assert.Equal(expectedInfo, goSpace.Presentation.Description);
+            Assert.Equal(name, goSpace.Presentation.DisplayText);
         }
 
         [Fact]
@@ -141,7 +140,7 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.Equal(expectedPosition, utility.Position);
-            Assert.Equal(expectedInfo, utility.Name);
+            Assert.Equal(expectedInfo, utility.Presentation.DisplayText);
             Assert.Equal(expectedPrice, utility.Price);
             Assert.Equal(expectedRentOneUtility, utility.RentOneUtility);
             Assert.Equal(expectedRentTwoUtility, utility.RentTwoUtility);
@@ -169,10 +168,10 @@ namespace Monopoly.Tests.CoreTests
             );
 
             Assert.Collection(result,
-                item => Assert.Equal("Kings Cross Station", item.Name),
-                item => Assert.Equal("Marylebone Station", item.Name),
-                item => Assert.Equal("Fenchurch Street Station", item.Name),
-                item => Assert.Equal("Liverpool Street Station", item.Name)
+                item => Assert.Equal("Kings Cross Station", item.Presentation.DisplayText),
+                item => Assert.Equal("Marylebone Station", item.Presentation.DisplayText),
+                item => Assert.Equal("Fenchurch Street Station", item.Presentation.DisplayText),
+                item => Assert.Equal("Liverpool Street Station", item.Presentation.DisplayText)
             );
         }
 
@@ -193,15 +192,15 @@ namespace Monopoly.Tests.CoreTests
                 {
                     Assert.Equal(expectedFirstPositionTax, item.Position);
                     Assert.Equal(200, item.Price);
-                    Assert.Equal("Income Tax", item.Name);
-                    Assert.Equal("Pay tax", item.Info);
+                    Assert.Equal("Income Tax", item.Presentation.DisplayText);
+                    Assert.Equal("Pay tax", item.Presentation.Description);
                 },
                 item =>
                 {
                     Assert.Equal(expectedSecondPositionTax, item.Position);
                     Assert.Equal(100, item.Price);
-                    Assert.Equal("Luxury Tax", item.Name);
-                    Assert.Equal("Pay tax", item.Info);
+                    Assert.Equal("Luxury Tax", item.Presentation.DisplayText);
+                    Assert.Equal("Pay tax", item.Presentation.Description);
                 }
             );
         }
@@ -222,7 +221,7 @@ namespace Monopoly.Tests.CoreTests
                 item =>
                 {
                     Assert.Equal(expectedFirstPositionUtility, item.Position);
-                    Assert.Equal("Electric Company", item.Name);
+                    Assert.Equal("Electric Company", item.Presentation.DisplayText);
                     Assert.Equal(150, item.Price);
                     Assert.Equal(4, item.RentOneUtility);
                     Assert.Equal(10, item.RentTwoUtility);
@@ -231,7 +230,7 @@ namespace Monopoly.Tests.CoreTests
                 item =>
                 {
                     Assert.Equal(expectedSecondPositionUtility, item.Position);
-                    Assert.Equal("Water Works", item.Name);
+                    Assert.Equal("Water Works", item.Presentation.DisplayText);
                     Assert.Equal(150, item.Price);
                     Assert.Equal(4, item.RentOneUtility);
                     Assert.Equal(10, item.RentTwoUtility);

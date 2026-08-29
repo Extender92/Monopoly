@@ -13,7 +13,7 @@ namespace Monopoly.Core
         public int NumberOfDice { get; }
         public int DieSides { get; }
         public Language GameLanguage { get; }
-        public string CurrencySymbol { get; }
+        public Presentation.PresentationToken PrimaryResourcePresentationToken => Presentation.PresentationTokens.PrimaryResource;
         public int Salary { get; }
         public bool DoubleOnGo { get; }
         public Parking FreeParking { get; }
@@ -47,12 +47,6 @@ namespace Monopoly.Core
             NumberOfDice = numberOfDice;
             DieSides = dieSides;
             GameLanguage = gameLanguage;
-            CurrencySymbol = gameLanguage switch
-            {
-                Language.UK => "£",
-                Language.US => "$",
-                _ => "M"
-            };
             Salary = salary;
             DoubleOnGo = doubleOnGo;
             FreeParking = freeParking;
