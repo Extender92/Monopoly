@@ -296,9 +296,17 @@ Console presentation models such as `TablePiece` and `SquareCard` may format
 Core state for terminal output. They are disposable projections, not an
 alternative domain model.
 
-Property groups are represented by `PropertyGroup` in Core. Console maps each
-group to a `ConsoleColor` locally. A web frontend may map the same group to CSS
-or RGB without changing Core.
+Property groups use authoritative `GroupId` values in Core and expose a
+separate group presentation token. `ConsolePresentationResolver` maps the
+catalog's semantic color hint to `ConsoleColor` locally. A web frontend may map
+the same hint to CSS or RGB without changing Core or group identity.
+
+Known Console color hints use an explicit local mapping. An unknown or absent
+hint uses `ConsoleColor.White`. Unknown or absent layout hints keep the current
+position-based board rendering. Display text always falls back to short text
+and then the token value, so color is never the only identifier. A missing
+referenced catalog entry is a profile/configuration error rather than a
+rendering fallback.
 
 Color must not be the only way important information is communicated. Text,
 symbols or labels should continue to identify players and property state when
@@ -482,9 +490,12 @@ all legality.
 `IConsoleWrapper` for most operations. `ConsoleGame` still calls
 `System.Console.Clear()` directly.
 
-`SquareCardBuilder` creates Console presentation cards from Core squares. It
-currently stores rules and currency in static mutable properties and reads the
-legacy `PropertySquare.Color` value from Core.
+`SquareCardBuilder` creates Console presentation cards for one `Game`. It has no
+static rules, currency or current-match state. Names, descriptions, symbols and
+color hints are resolved through that match's `ProfilePresentation`; concurrent
+matches therefore cannot share presentation state. The builder deliberately
+keeps its current square-type projection until issue #77 introduces generic
+space and deck projections.
 
 `ConsoleEventHandler` is an instance-scoped adapter over one match notification
 source. It contains no static current session. The session owns the returned
@@ -521,7 +532,8 @@ They should cover:
 - Mapping Core-provided choices to submitted commands.
 - Decision prompts using profile values.
 - Board, card, ownership, mortgage and building rendering.
-- `PropertyGroup` to `ConsoleColor` mapping.
+- Semantic color-token mapping and neutral color/layout fallbacks.
+- Text labels remaining present when color hints are missing or unknown.
 - Log refresh without duplicate presentation.
 - Match-scoped subscription and cleanup.
 - New-game and load-game composition through the same path.

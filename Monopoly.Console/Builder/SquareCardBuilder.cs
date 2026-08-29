@@ -1,244 +1,141 @@
-﻿using Monopoly.Console.Models;
+using Monopoly.Console.GUI;
 using Monopoly.Console.Models.Board;
 using Monopoly.Core;
 using Monopoly.Core.Models.Board;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using static Monopoly.Core.GameRules;
 
-namespace Monopoly.Console.Builder
+namespace Monopoly.Console.Builder;
+
+internal sealed class SquareCardBuilder
 {
-    internal class SquareCardBuilder
+    private readonly Game _game;
+    private readonly ConsolePresentationResolver _presentation;
+
+    internal SquareCardBuilder(Game game)
     {
-        public static GameRules Rules { get; set; } = null!;
-        public static string Currency { get; set; } = string.Empty;
+        _game = game ?? throw new ArgumentNullException(nameof(game));
+        _presentation = new ConsolePresentationResolver(game.Presentation);
+    }
 
-        internal static List<SquareCard> BuildAllSquareCards(IReadOnlyList<Square> squares, GameRules gameRules)
+    internal List<SquareCard> BuildAllSquareCards()
+    {
+        List<SquareCard> cards = [];
+        foreach (Square square in _game.Board.Squares)
         {
-            Rules = gameRules;
-            Currency = gameRules.CurrencySymbol;
-
-            List<SquareCard> squareCardList = new List<SquareCard>();
-
-            foreach (Square square in squares)
+            cards.Add(square switch
             {
-                if (square is PropertySquare property)
-                {
-                    squareCardList.Add(BuildPropertyCardFromProperty(property));
-                }
-                else if (square is ChanceSquare chance)
-                {
-                    squareCardList.Add(BuildChanceCardFromChanceSquare(chance));
-                }
-                else if (square is CommunityChestSquare communityChest)
-                {
-                    squareCardList.Add(BuildCommunityChestCardFromCommunityChestSquare(communityChest));
-                }
-                else if (square is GoSquare go)
-                {
-                    squareCardList.Add(BuildGoCardFromGo(go));
-                }
-                else if (square is GoToJailSquare goToJail)
-                {
-                    squareCardList.Add(BuildGoToJailCardFromGoToJail(goToJail));
-                }
-                else if (square is JailSquare jail)
-                {
-                    squareCardList.Add(BuildJailCardFromJail(jail));
-                }
-                else if (square is ParkingSquare parking)
-                {
-                    squareCardList.Add(BuildParkingCardFromParking(parking));
-                }
-                else if (square is RailroadSquare railroad)
-                {
-                    squareCardList.Add(BuildRailroadCardFromRailroad(railroad));
-                }
-                else if (square is TaxSquare tax)
-                {
-                    squareCardList.Add(BuildTaxCardFromTax(tax));
-                }
-                else if (square is UtilitySquare utility)
-                {
-                    squareCardList.Add(BuildUtilityCardFromUtility(utility));
-                }
-            }
-
-            return squareCardList;
+                PropertySquare property => BuildProperty(property),
+                ChanceSquare chance => Basic<ChanceSquareCard>(chance),
+                CommunityChestSquare community => Basic<CommunityChestSquareCard>(community),
+                GoSquare go => BuildGo(go),
+                GoToJailSquare goToJail => BuildGoToJail(goToJail),
+                JailSquare jail => Basic<JailSquareCard>(jail),
+                ParkingSquare parking => BuildParking(parking),
+                RailroadSquare railroad => BuildRailroad(railroad),
+                TaxSquare tax => BuildTax(tax),
+                UtilitySquare utility => BuildUtility(utility),
+                _ => throw new InvalidOperationException($"Unsupported square type '{square.GetType().Name}'.")
+            });
         }
 
-        private static PropertySquareCard BuildPropertyCardFromProperty(PropertySquare property)
+        return cards;
+    }
+
+    private PropertySquareCard BuildProperty(PropertySquare property) => new()
+    {
+        Name = Name(property),
+        BoardPosition = property.Position,
+        BorderColor = _presentation.GetColor(property.GroupPresentationToken),
+        Prop =
+        [
+            "Property Price",
+            "Rent",
+            "Rent with group",
+            "Rent with 1 house",
+            "Rent with 2 houses",
+            "Rent with 3 houses",
+            "Rent with 4 houses",
+            "Rent with hotel"
+        ],
+        Rent =
+        [
+            Amount(property.Price),
+            Amount(property.Rent),
+            Amount(property.RentWithGroup),
+            Amount(property.RentOneHouse),
+            Amount(property.RentTwoHouses),
+            Amount(property.RentThreeHouses),
+            Amount(property.RentFourHouses),
+            Amount(property.RentHotel)
+        ],
+        Info = $"Mortgage Value: {Amount(property.MortgageValue)}. Houses Cost {Amount(property.BuildHouseCost)} each. " +
+            $"Hotels Cost {Amount(property.BuildHotelCost)} plus 4 houses"
+    };
+
+    private GoSquareCard BuildGo(GoSquare square) => new()
+    {
+        BoardPosition = square.Position,
+        Name = Name(square),
+        Info = $"Collect {Amount(_game.Rules.Salary)} salary as you pass {Name(square)}"
+    };
+
+    private GoToJailSquareCard BuildGoToJail(GoToJailSquare square) => new()
+    {
+        BoardPosition = square.Position,
+        Name = Name(square),
+        Info = $"Move to the detention space. Do not collect {Amount(_game.Rules.Salary)}"
+    };
+
+    private ParkingSquareCard BuildParking(ParkingSquare square)
+    {
+        string info = _game.Rules.FreeParking switch
         {
-            var propertyCard = new PropertySquareCard
-            {
-                Name = property.Name,
-                BoardPosition = property.Position,
-                BorderColor = property.Color,
-                Prop = new List<string>
-                {
-                    "Property Price",
-                    "Rent",
-                    "Rent with color set",
-                    "Rent with 1 house",
-                    "Rent with 2 house",
-                    "Rent with 3 house",
-                    "Rent with 4 house",
-                    "Rent with hotel",
-                },
-                Rent = new List<string>
-                {
-                    $"{property.Price}{Currency}",
-                    $"{property.Rent}{Currency}",
-                    $"{property.RentWithColorGroup}{Currency}",
-                    $"{property.RentOneHouse}{Currency}",
-                    $"{property.RentTwoHouses}{Currency}",
-                    $"{property.RentThreeHouses}{Currency}",
-                    $"{property.RentFourHouses}{Currency}",
-                    $"{property.RentHotel}{Currency}",
-                },
-                Info = $"Mortgage Value: {property.MortgageValue}{Currency}. Houses Cost {property.BuildHouseCost}{Currency} each. " +
-                $"Hotels Cost {property.BuildHouseCost}{Currency} plus 4 houses"
-            };
-
-            return propertyCard;
-        }
-
-        private static ChanceSquareCard BuildChanceCardFromChanceSquare(ChanceSquare chance)
-        {
-            var chanceCard = new ChanceSquareCard
-            {
-                Name = chance.Name,
-                BoardPosition = chance.Position,
-                Info = chance.Info
-            };
-
-            return chanceCard;
-        }
-
-        private static CommunityChestSquareCard BuildCommunityChestCardFromCommunityChestSquare(CommunityChestSquare communityChest)
-        {
-            var communityChestCard = new CommunityChestSquareCard
-            {
-                Name = communityChest.Name,
-                BoardPosition = communityChest.Position,
-                Info = communityChest.Info
-            };
-
-            return communityChestCard;
-        }
-
-        private static GoSquareCard BuildGoCardFromGo(GoSquare go)
-        {
-            var goCard = new GoSquareCard
-            {
-                BoardPosition = go.Position,
-                Name = go.Name,
-                Info = $"Collect {Rules.Salary}{Currency} salary as you pass {go.Name}"
-            };
-
-            return goCard;
-        }
-
-        private static GoToJailSquareCard BuildGoToJailCardFromGoToJail(GoToJailSquare goToJail)
-        {
-            var goToJailCard = new GoToJailSquareCard
-            {
-                Name = goToJail.Name,
-                BoardPosition = goToJail.Position,
-                Info = $"Go to jail!. Do not collect {Rules.Salary}{Currency} salary for passing GO"
+            GameRules.Parking.SetFee => $"Collect {Amount((int)GameRules.Parking.SetFee)}",
+            GameRules.Parking.Fines => "Collect fines",
+            _ => Description(square)
         };
 
-            return goToJailCard;
-        }
-
-        private static JailSquareCard BuildJailCardFromJail(JailSquare jail)
-        {
-            var jailCard = new JailSquareCard
-            {
-                BoardPosition = jail.Position,
-                Name = jail.Name,
-                Info = jail.Info + " || " + jail.InJailInfo
-            };
-
-            return jailCard;
-        }
-
-        private static ParkingSquareCard BuildParkingCardFromParking(ParkingSquare parking)
-        {
-            string info = "";
-            if (Rules.FreeParking == Parking.SetFee)
-            {
-                info = $"Collect {(int)Parking.SetFee}{Currency}";
-            }
-            else if (Rules.FreeParking == Parking.Fines)
-            {
-                info = $"Collect fines{Currency}";
-            }
-            var parkingCard = new ParkingSquareCard
-            {
-                Name = parking.Name,
-                BoardPosition = parking.Position,
-                Info = info
-            };
-
-            return parkingCard;
-        }
-
-        private static RailroadSquareCard BuildRailroadCardFromRailroad(RailroadSquare railroad)
-        {
-            var railroadCard = new RailroadSquareCard
-            {
-                Name = railroad.Name,
-                BoardPosition = railroad.Position,
-                Prop = new List<string>
-                {
-                    "Railroad Price",
-                    "Rent",
-                    "if 2 stations are owned",
-                    "if 3 stations are owned",
-                    "if 4 stations are owned"
-                },
-                Rent = new List<string>
-                {
-                    $"{railroad.Price}{Currency}",
-                    $"{railroad.RentOneStation}{Currency}",
-                    $"{railroad.RentTwoStation}{Currency}",
-                    $"{railroad.RentThreeStation}{Currency}",
-                    $"{railroad.RentFourStation}{Currency}"
-                },
-                Info = $"Mortgage Value: {railroad.MortgageValue}{Currency}"
-            };
-
-            return railroadCard;
-        }
-
-        private static TaxSquareCard BuildTaxCardFromTax(TaxSquare tax)
-        {
-            var taxCard = new TaxSquareCard
-            {
-                Name = tax.Name,
-                BoardPosition = tax.Position,
-                Info = $"Pay {tax.Price}{Currency}"
-            };
-
-            return taxCard;
-        }
-
-        private static UtilitySquareCard BuildUtilityCardFromUtility(UtilitySquare utility)
-        {
-            var utilityCard = new UtilitySquareCard
-            {
-                Name = utility.Name,
-                BoardPosition = utility.Position,
-                Info = $"If one utility is owned rent is {utility.RentOneUtility} times amount shown on dice. if both utilities are owned rent is" +
-                $" {utility.RentTwoUtility} times amount shown on dice. Mortgage value: {utility.MortgageValue}{Currency}"
-            };
-
-            return utilityCard;
-        }
+        return new ParkingSquareCard { Name = Name(square), BoardPosition = square.Position, Info = info };
     }
+
+    private RailroadSquareCard BuildRailroad(RailroadSquare square) => new()
+    {
+        Name = Name(square),
+        BoardPosition = square.Position,
+        Prop = ["Property Price", "Rent", "If 2 are owned", "If 3 are owned", "If 4 are owned"],
+        Rent =
+        [
+            Amount(square.Price),
+            Amount(square.RentOneStation),
+            Amount(square.RentTwoStation),
+            Amount(square.RentThreeStation),
+            Amount(square.RentFourStation)
+        ],
+        Info = $"Mortgage Value: {Amount(square.MortgageValue)}"
+    };
+
+    private TaxSquareCard BuildTax(TaxSquare square) => new()
+    {
+        Name = Name(square),
+        BoardPosition = square.Position,
+        Info = $"Pay {Amount(square.Price)}"
+    };
+
+    private UtilitySquareCard BuildUtility(UtilitySquare square) => new()
+    {
+        Name = Name(square),
+        BoardPosition = square.Position,
+        Info = $"With one service property, the fee is {square.RentOneUtility} times the dice total; with two, " +
+            $"it is {square.RentTwoUtility} times the dice total. Mortgage value: {Amount(square.MortgageValue)}"
+    };
+
+    private T Basic<T>(Square square) where T : SquareCard, new() => new()
+    {
+        Name = Name(square),
+        BoardPosition = square.Position,
+        Info = Description(square)
+    };
+
+    private string Name(Square square) => _presentation.GetDisplayText(square.PresentationToken);
+    private string Description(Square square) => _presentation.GetDescription(square.PresentationToken);
+    private string Amount(int value) => _presentation.FormatAmount(value, _game.Rules.PrimaryResourcePresentationToken);
 }

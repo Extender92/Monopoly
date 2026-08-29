@@ -4,6 +4,7 @@ using Monopoly.Console.Models.Board;
 using Monopoly.Core;
 using Monopoly.Core.Models.Board;
 using Monopoly.Core.Models.FortuneCard;
+using Monopoly.Core.Presentation;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -18,14 +19,22 @@ namespace Monopoly.Console.GUI
         internal IConsoleWrapper Console { get; set; }
 
         private List<SquareCard> SquareCards = new();
+        private readonly ConsolePresentationResolver _presentation;
         private int CardPosX { get; set; }
         private int CardPosY { get; set; }
 
-        public ConsoleCardPrinter(IConsoleWrapper consoleWrapper, IReadOnlyList<Square> squares, GameRules gameRules)
+        public ConsoleCardPrinter(IConsoleWrapper consoleWrapper, Game game)
         {
             Console = consoleWrapper;
+            ArgumentNullException.ThrowIfNull(game);
+            _presentation = new ConsolePresentationResolver(game.Presentation);
             SetCardPosition();
-            GetAllSquareCards(squares, gameRules);
+            GetAllSquareCards(game);
+        }
+
+        internal ConsoleCardPrinter(IConsoleWrapper consoleWrapper, IReadOnlyList<Square> squares, GameRules rules)
+            : this(consoleWrapper, CoreGameSetup.Setup(rules))
+        {
         }
 
         internal void SetCardPosition()
@@ -34,9 +43,9 @@ namespace Monopoly.Console.GUI
             CardPosY = ConsolePositions.CardPosY;
         }
 
-        internal void GetAllSquareCards(IReadOnlyList<Square> squares, GameRules gameRules)
+        internal void GetAllSquareCards(Game game)
         {
-            SquareCards = SquareCardBuilder.BuildAllSquareCards(squares, gameRules);
+            SquareCards = new SquareCardBuilder(game).BuildAllSquareCards();
         }
 
         internal void PrintCard(string header, int width, int maxInfoVerticalLength, List<string> info, ConsoleColor borderColor = ConsoleColor.White, ConsoleColor textColor = ConsoleColor.White)
@@ -92,7 +101,7 @@ namespace Monopoly.Console.GUI
         internal void PrepareAndPrintSquareCard(
             int boardPosition,
             IFortuneCardView? drawnCard = null,
-            string? presentationToken = null)
+            PresentationToken? presentationToken = null)
         {
             SquareCard squareCard = SquareCards.First(s => s.BoardPosition == boardPosition);
 
@@ -138,13 +147,12 @@ namespace Monopoly.Console.GUI
 
             if (drawnCard is not null)
             {
-                borderColor = presentationToken switch
-                {
-                    "event.primary" => ConsoleColor.Red,
-                    "event.secondary" => ConsoleColor.Blue,
-                    _ => ConsoleColor.White
-                };
-                infoText += (". " + drawnCard.Info);
+                borderColor = presentationToken is null
+                    ? ConsoleColor.White
+                    : _presentation.GetColor(presentationToken.Value);
+                string cardText = _presentation.GetDescription(drawnCard.PresentationToken);
+                if (!string.IsNullOrEmpty(cardText))
+                    infoText += ". " + cardText;
             }
 
             List<string> stringList = Utilities.StringHelper.CenterStringInList(Utilities.StringHelper.GetListOfStringsFromString(infoText, length), length);

@@ -2,6 +2,7 @@
 using Monopoly.Core.Notifications;
 using Monopoly.Core.Models.Board;
 using Monopoly.Core.Models;
+using Monopoly.Core.Presentation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace Monopoly.Core.Interface
         Player CurrentPlayer { get; }
         IReadOnlyList<IDieView> Dice { get; }
         GameRules Rules { get; }
+        ProfilePresentation Presentation { get; }
         Jail TheJail { get; }
         FortuneCardHandler FortuneCard { get; }
         int Fines { get; }

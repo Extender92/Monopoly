@@ -2,6 +2,7 @@ using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core
 {
@@ -24,6 +25,7 @@ namespace Monopoly.Core
         public sealed class JailStatus
         {
             public int TurnsInJail { get; private set; }
+            public PresentationToken PresentationToken => PresentationTokens.DetainedStatus;
 
             internal JailStatus(int turnsInJail = 0)
             {
@@ -107,7 +109,7 @@ namespace Monopoly.Core
             _ = GetJailInfo(player);
             if (CurrentGame.Handler.IsPlayerBankrupt(player, CurrentGame.Rules.JailFine))
             {
-                string reason = $", {player.Name} Could not afford to pay Jail Fine of {CurrentGame.Rules.JailFine}{CurrentGame.Rules.CurrencySymbol}";
+                string reason = $", {player.Name} Could not afford to pay Jail Fine of {CurrentGame.FormatAmount(CurrentGame.Rules.JailFine)}";
                 _playersInJail.Remove(player);
                 CurrentGame.Handler.HandlePlayerBankruptcy(player, reason);
             }
@@ -138,7 +140,7 @@ namespace Monopoly.Core
                         CurrentGame.Rules.JailFine);
                     if (!madeProgress || player.Money <= moneyBefore)
                     {
-                        CurrentGame.Handler.HandlePlayerBankruptcy(player, $", {player.Name} Could not afford to pay Jail Fine of {CurrentGame.Rules.JailFine}{CurrentGame.Rules.CurrencySymbol}");
+                        CurrentGame.Handler.HandlePlayerBankruptcy(player, $", {player.Name} Could not afford to pay Jail Fine of {CurrentGame.FormatAmount(CurrentGame.Rules.JailFine)}");
                         break;
                     }
                 }

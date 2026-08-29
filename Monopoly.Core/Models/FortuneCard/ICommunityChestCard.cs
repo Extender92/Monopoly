@@ -8,6 +8,7 @@ namespace Monopoly.Core.Models.FortuneCard
 {
     internal interface ICommunityChestCard : IFortuneCardView
     {
+        Monopoly.Core.Presentation.PresentationMetadata Presentation { get; }
         void ExecuteEffect(Player player, Game game);
     }
 }

@@ -5,6 +5,7 @@ using Monopoly.Core;
 using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Presentation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -28,12 +29,28 @@ namespace Monopoly.Console.GUI
         internal IConsoleWrapper Console {  get; set; }
         private IReadOnlyList<Square> _squares;
         private GameRules _rules;
+        private ConsolePresentationResolver _presentation;
 
-        public ConsolePrinter(IConsoleWrapper consoleWrapper, IReadOnlyList<Square> squares, GameRules rules)
+        public ConsolePrinter(IConsoleWrapper consoleWrapper, Game game)
         {
+            Console = consoleWrapper;
+            ArgumentNullException.ThrowIfNull(game);
+            _squares = game.Board.Squares;
+            _rules = game.Rules;
+            _presentation = new ConsolePresentationResolver(game.Presentation);
+            InitializePositions();
+        }
+
+        internal ConsolePrinter(IConsoleWrapper consoleWrapper, IReadOnlyList<Square> squares, GameRules rules)
+        {
+            ArgumentNullException.ThrowIfNull(consoleWrapper);
+            ArgumentNullException.ThrowIfNull(squares);
+            ArgumentNullException.ThrowIfNull(rules);
+            Game presentationGame = CoreGameSetup.Setup(rules);
             Console = consoleWrapper;
             _squares = squares;
             _rules = rules;
+            _presentation = new ConsolePresentationResolver(presentationGame.Presentation);
             InitializePositions();
         }
 
@@ -196,7 +213,8 @@ namespace Monopoly.Console.GUI
                 {
                     Console.SetTextColor(ConsoleColor.Yellow);
                 }
-                Console.Write($"{players[i].Name} Money: {players[i].Money}{_rules.CurrencySymbol}");
+                string amount = _presentation.FormatAmount(players[i].Money, _rules.PrimaryResourcePresentationToken);
+                Console.Write($"{players[i].Name} Money: {amount}");
                 Console.ResetColor();
             }
         }

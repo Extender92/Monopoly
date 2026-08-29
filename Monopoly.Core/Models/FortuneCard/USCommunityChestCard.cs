@@ -9,12 +9,13 @@ namespace Monopoly.Core.Models.FortuneCard
 {
     internal sealed class USCommunityChestCard : ICommunityChestCard
     {
-        public string Info { get; }
+        public Monopoly.Core.Presentation.PresentationToken PresentationToken => Presentation.Token;
+        public Monopoly.Core.Presentation.PresentationMetadata Presentation { get; }
         public USCommunityChestCardType CardType { get; }
 
         public USCommunityChestCard(string info, USCommunityChestCardType cardType)
         {
-            Info = info;
+            Presentation = Monopoly.Core.Presentation.LegacyPresentationFactory.Card("secondary", (int)cardType, info);
             CardType = cardType;
         }
 

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core;
 
@@ -52,6 +53,7 @@ public abstract class PendingDecision
         Guid decisionId,
         int playerId,
         DecisionKind kind,
+        PresentationToken presentationToken,
         IEnumerable<DecisionOption> allowedResponses)
     {
         if (decisionId == Guid.Empty) throw new ArgumentException("A decision ID cannot be empty.", nameof(decisionId));
@@ -65,12 +67,15 @@ public abstract class PendingDecision
         DecisionId = decisionId;
         PlayerId = playerId;
         Kind = kind;
+        if (!presentationToken.IsValid) throw new ArgumentException("The decision presentation token is invalid.", nameof(presentationToken));
+        PresentationToken = presentationToken;
         _allowedResponses = Array.AsReadOnly(responses);
     }
 
     public Guid DecisionId { get; }
     public int PlayerId { get; }
     public DecisionKind Kind { get; }
+    public PresentationToken PresentationToken { get; }
     public IReadOnlyList<DecisionOption> AllowedResponses => _allowedResponses;
 }
 
@@ -81,6 +86,7 @@ public sealed class PropertyPurchaseDecision : PendingDecision
             decisionId,
             playerId,
             DecisionKind.PropertyPurchase,
+            PresentationTokens.PropertyPurchaseDecision,
             [DecisionOption.Purchase, DecisionOption.Decline])
     {
         if (squarePosition < 0) throw new ArgumentOutOfRangeException(nameof(squarePosition));
@@ -107,6 +113,7 @@ public sealed class JailReleaseDecision : PendingDecision
             decisionId,
             playerId,
             DecisionKind.JailRelease,
+            PresentationTokens.DetentionReleaseDecision,
             [DecisionOption.LeaveJail, DecisionOption.RollForDoubles])
     {
         if (fine < 0) throw new ArgumentOutOfRangeException(nameof(fine));

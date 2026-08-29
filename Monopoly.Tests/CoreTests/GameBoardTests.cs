@@ -24,7 +24,7 @@ namespace Monopoly.Tests.CoreTests
 
             // Assert
             Assert.IsType<RailroadSquare>(square);
-            Assert.Equal("Kings Cross Station", square.Name);
+            Assert.Equal("Kings Cross Station", square.Presentation.DisplayText);
         }
 
         [Fact]
@@ -162,7 +162,7 @@ namespace Monopoly.Tests.CoreTests
                 .Build();
             GameBoard board = game.Board;
             Player player = game.Players[0];
-            List<PropertySquare> colorGroup = board.GetAllPropertySquares().GroupBy(p => p.Color).First().ToList();
+            List<PropertySquare> colorGroup = board.GetAllPropertySquares().GroupBy(p => p.GroupId).First().ToList();
 
             // Act
             var propertiesCanBuyHousesIn = board.GetAllPropertySquaresPlayerCanBuyHousesIn(player);
@@ -207,8 +207,8 @@ namespace Monopoly.Tests.CoreTests
             GameBoard board = game.Board;
             Player player = game.Players[0];
             IReadOnlyList<PropertySquare> allProperties = board.GetAllPropertySquares();
-            List<PropertySquare> firstColorGroup = allProperties.GroupBy(p => p.Color).First().ToList();
-            List<PropertySquare> secondColorGroup = allProperties.GroupBy(p => p.Color).Skip(1).First().ToList();
+            List<PropertySquare> firstColorGroup = allProperties.GroupBy(p => p.GroupId).First().ToList();
+            List<PropertySquare> secondColorGroup = allProperties.GroupBy(p => p.GroupId).Skip(1).First().ToList();
 
             // Act
             var propertiesCanBuyHousesIn = board.GetAllPropertySquaresPlayerCanBuyHousesIn(player);

@@ -1,9 +1,5 @@
 using Monopoly.Core.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board
 {
@@ -13,14 +9,18 @@ namespace Monopoly.Core.Models.Board
         public int RentTwoUtility { get; }
 
 
-        public UtilitySquare(int position, string name, int price, int rentOneUtility, int rentTwoUtility, int mortgageValue)
+        public UtilitySquare(int position, PresentationMetadata presentation, int price, int rentOneUtility, int rentTwoUtility, int mortgageValue)
+            : base(position, presentation)
         {
-            Position = position;
-            Name = name;
             Price = price;
             RentOneUtility = rentOneUtility;
             RentTwoUtility = rentTwoUtility;
             MortgageValue = mortgageValue;
+        }
+
+        internal UtilitySquare(int position, string name, int price, int rentOneUtility, int rentTwoUtility, int mortgageValue)
+            : this(position, LegacyPresentationFactory.Space(position, name), price, rentOneUtility, rentTwoUtility, mortgageValue)
+        {
         }
 
         internal override void LandOn(Player player, Game game)

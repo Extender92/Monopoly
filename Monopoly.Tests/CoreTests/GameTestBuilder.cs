@@ -76,7 +76,7 @@ internal sealed class GameTestBuilder
     internal GameTestBuilder WithPlayerInJail(int playerId, int turnsInJail = 0)
     {
         GameRules rules = _state.Rules.ToGameRules();
-        int jailPosition = new GameBoard(rules).Squares.Single(square => square.Name == "Jail").Position;
+        int jailPosition = new GameBoard(rules).Squares.OfType<JailSquare>().Single().Position;
         WithPlayer(playerId, position: jailPosition);
         _state.Jail.RemoveAll(jail => jail.PlayerId == playerId);
         _state.Jail.Add(new JailState { PlayerId = playerId, TurnsInJail = turnsInJail });

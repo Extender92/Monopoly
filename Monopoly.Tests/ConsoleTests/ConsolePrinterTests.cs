@@ -4,6 +4,7 @@ using Monopoly.Console.Models;
 using Monopoly.Core;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Presentation;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace Monopoly.Tests.ConsoleTests
             var squares = new List<Square>
             {
                 new GoSquare(0, "GO", "GO"),
-                new PropertySquare(ConsoleColor.Red, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1),
+                new PropertySquare(LegacyPropertyGroup.Group5, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1),
                 new TaxSquare(2, 1, "Tax", "Tax"),
                 new RailroadSquare(3, "Railroad", 10, 1,2,3,4,5),
                 new ParkingSquare(4, "Parking"),
@@ -31,10 +32,10 @@ namespace Monopoly.Tests.ConsoleTests
                 new GoToJailSquare(6, "GoToJail", "GoToJail"),
                 new CommunityChestSquare(7, "Community Chest", "Community Chest"),
                 new ChanceSquare(8, "Chance", "Chance"),
-                new PropertySquare(ConsoleColor.Red, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 9),
-                new PropertySquare(ConsoleColor.Red, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 10),
-                new PropertySquare(ConsoleColor.Red, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 11),
-                new PropertySquare(ConsoleColor.Red, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12),
+                new PropertySquare(LegacyPropertyGroup.Group5, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 9),
+                new PropertySquare(LegacyPropertyGroup.Group5, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 10),
+                new PropertySquare(LegacyPropertyGroup.Group5, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 11),
+                new PropertySquare(LegacyPropertyGroup.Group5, "Property", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12),
                 new GoSquare(13, "GO", "GO"),
                 new GoSquare(14, "GO", "GO"),
                 new GoSquare(15, "GO", "GO"),

@@ -320,7 +320,9 @@ They should cover:
 - Core-provided choices rendered and returned correctly.
 - Decision prompts using current profile values.
 - Board, card, player, building, mortgage and winner rendering.
-- `PropertyGroup` mapped locally to `ConsoleColor`.
+- Semantic color tokens mapped locally to `ConsoleColor` with white fallback.
+- Unknown or missing layout hints retaining position-based rendering.
+- Visible text falling back to the stable token when labels are absent.
 - Save selection and error presentation.
 - One refresh per logical change without duplicate log output.
 - Match-scoped subscription and cleanup.
@@ -627,6 +629,18 @@ Current Infrastructure coverage includes:
 - Preservation of an existing save after write, flush or promotion failures.
 - Rejection of awaiting-decision Version 1 saves before an existing file is
   touched.
+
+Presentation-contract coverage verifies token grammar, deterministic immutable
+catalogs, duplicate or conflicting entries, missing references and
+frontend-neutral public Core signatures. Behavioral comparisons run the same
+authoritative match with different synthetic text, symbol, color and layout
+metadata and assert identical movement, purchases, fees, decisions and Version
+1 state. Version 1 regression tests also assert that no presentation catalog
+fields enter the established wire representation.
+
+Issue #74 adds fingerprint-specific tests when JSON profiles become
+authoritative. Issues #72–#73 own generic board, deck and domain-ID structure
+tests, while #77 owns full generic Console projection coverage.
 
 The current GitHub build workflow:
 

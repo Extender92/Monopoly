@@ -53,7 +53,7 @@ namespace Monopoly.Core.Models.Board
             IReadOnlyList<PropertySquare> propertySquares = GetAllPropertySquares();
 
             return playerOwnedPropertySquares
-                .Where(property => property.OwnerHasColorGroup(propertySquares))
+                .Where(property => property.OwnerHasGroup(propertySquares))
                 .ToList()
                 .AsReadOnly();
         }
@@ -94,7 +94,7 @@ namespace Monopoly.Core.Models.Board
                 .OfType<PropertySquare>()
                 .Where(property => property.Houses <= 0 &&
                                    playerOwnedSquares.OfType<PropertySquare>()
-                                   .Where(p => p.Group == property.Group)
+                                   .Where(p => p.GroupId == property.GroupId)
                                    .All(p => p.Houses <= 0))
                 .Cast<Square>()
                 .Concat(playerOwnedSquares.Where(s => !(s is PropertySquare)))

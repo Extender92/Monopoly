@@ -28,7 +28,7 @@ namespace Monopoly.Console.GUI
         public HouseMenu(IMenuOptionSelector menuOptionSelector, Game game, Player player, IGameSaveStore saveStore)
         {
             MenuOptionSelector = menuOptionSelector;
-            ListOptionSelector = new ListOptionSelector();
+            ListOptionSelector = new ListOptionSelector(game.Presentation);
             CurrentGame = game;
             Player = player;
             SaveStore = saveStore;
@@ -109,7 +109,7 @@ namespace Monopoly.Console.GUI
         private void BuyHouse()
         {
             int index = 0;
-            int spacingPerLine = AvailableBuyHouseList.Max(x => x.Name.Length);
+            int spacingPerLine = AvailableBuyHouseList.Max(x => CurrentGame.Presentation.ResolveDisplayText(x.PresentationToken).Length);
             int optionsPerLine = AvailableBuyHouseList.Count / 2;
             string errorMessage = "";
 
@@ -123,7 +123,7 @@ namespace Monopoly.Console.GUI
                 var selectedProperty = AvailableBuyHouseList[index];
 
                 if (selectedProperty.Houses < 5) canBuy = true;
-                else errorMessage = ($"Cannot buy more Houses or Hotels on {selectedProperty.Name}. It already has {selectedProperty.GetHouseCountAsString()}.");
+                else errorMessage = ($"Cannot buy more Houses or Hotels on {CurrentGame.Presentation.ResolveDisplayText(selectedProperty.PresentationToken)}. It already has {selectedProperty.GetHouseCountAsString()}.");
 
             } while (!canBuy);
             CurrentGame.TryBuyHouse(Player, AvailableBuyHouseList[index]);
@@ -134,7 +134,7 @@ namespace Monopoly.Console.GUI
         private void SellHouse()
         {
             int index = 0;
-            int spacingPerLine = AvailableSellHouseList.Max(x => x.Name.Length);
+            int spacingPerLine = AvailableSellHouseList.Max(x => CurrentGame.Presentation.ResolveDisplayText(x.PresentationToken).Length);
             int optionsPerLine = AvailableSellHouseList.Count / 2;
             string errorMessage = "";
 
@@ -148,7 +148,7 @@ namespace Monopoly.Console.GUI
                 var selectedProperty = AvailableSellHouseList[index];
 
                 if (selectedProperty.Houses > 0) canSell = true;
-                else errorMessage = ($"Cannot sell Houses or Hotels on {selectedProperty.Name}. It has {selectedProperty.GetHouseCountAsString()}.");
+                else errorMessage = ($"Cannot sell Houses or Hotels on {CurrentGame.Presentation.ResolveDisplayText(selectedProperty.PresentationToken)}. It has {selectedProperty.GetHouseCountAsString()}.");
 
             } while (!canSell);
             CurrentGame.TrySellHouse(Player, AvailableSellHouseList[index]);

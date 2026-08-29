@@ -27,7 +27,7 @@ public sealed class ConsolePendingDecisionTests
         Assert.Equal(decision.DecisionId, response.DecisionId);
         Assert.Equal(expected, response.Response);
         fixture.Console.Verify(wrapper => wrapper.Write(
-            It.Is<string>(message => message.Contains(game.Board.GetSquareAtPosition(3).Name, StringComparison.Ordinal) &&
+            It.Is<string>(message => message.Contains(game.Presentation.ResolveDisplayText(game.Board.GetSquareAtPosition(3).PresentationToken), StringComparison.Ordinal) &&
                                      message.Contains(decision.Price.ToString(), StringComparison.Ordinal))), Times.Once);
     }
 

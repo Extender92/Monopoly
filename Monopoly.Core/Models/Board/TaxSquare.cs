@@ -1,19 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Models.Board
 {
     public class TaxSquare : Square
     {
-        public TaxSquare(int position, int tax, string name, string info)
+        public TaxSquare(int position, int tax, PresentationMetadata presentation)
+            : base(position, presentation)
         {
-            Position = position;
-            Name = name;
-            Info = info;
             Price = tax;
+        }
+
+        internal TaxSquare(int position, int tax, string name, string info)
+            : this(position, tax, LegacyPresentationFactory.Space(position, name, info))
+        {
         }
 
         internal override void LandOn(Player player, Game game)

@@ -5,8 +5,8 @@
 > **Target-boundary notice:** The positive publication target is now defined in
 > [Public engine scope](public-engine-scope.md). Product-shaped types, profiles
 > and rule lists below describe the current legacy implementation or migration
-> context unless they are compatible with that scope. Issues #32, #37 and
-> #71–#77 own the corresponding neutral contracts and documentation updates.
+> context unless they are compatible with that scope. Issues #37 and #72–#77
+> own the remaining neutral contracts and documentation updates.
 
 Monopoly is split into a reusable game Core, a console frontend, a persistence
 infrastructure implementation and automated tests.
@@ -394,24 +394,40 @@ Console-only models include `TablePiece`, `SquareCard` and the different printer
 
 `Program` is the Console composition root. It creates the Core game, Console services and decision provider, then connects them. Each future frontend should have its own equivalent composition root outside Core.
 
-## Colors and frontend presentation
+## Authoritative identity and profile presentation
 
-Property color groups are part of the Monopoly domain and are represented in Core by `PropertyGroup`.
+Authoritative identity is separate from rendering. A property group is
+identified by `GroupId`; ownership and fee rules compare that ID and never a
+color, label or layout hint. Spaces, current decks and cards, statuses,
+resources, pending decisions and notifications expose stable semantic
+`PresentationToken` references.
 
-Visual color values are frontend-specific:
+Each `Game` owns exactly one immutable `ProfilePresentation` catalog. A catalog
+entry may provide display text, short text, description, symbol, semantic color
+and layout tokens. Missing display text falls back to short text and then the
+token value. Missing optional description or symbol is omitted. A missing
+referenced catalog entry is invalid configuration and prevents the match from
+being returned.
+
+Tokens contain at most 128 characters and use lowercase ASCII segments joined
+by a period or hyphen. Catalog entries are unique and stored in ordinal order.
+The current legacy composition builds this catalog internally; issue #74 will
+embed the same contract in `ValidatedGameProfile` and include its canonical
+content in the profile fingerprint. No fingerprint is calculated by the
+presentation contract itself.
+
+Visual values remain frontend-specific:
 
 ```text
-PropertyGroup.Red
-    Console frontend: ConsoleColor.DarkRed
-    Web frontend: CSS or RGB color
-    Game frontend: material or sprite color
+semantic color token
+    Console frontend: ConsoleColor
+    Web frontend: CSS or RGB
+    Game frontend: material or sprite
 ```
 
-`ConsoleColor` should not be part of the reusable Core model. Removing the remaining Core dependency on `ConsoleColor` is tracked in issue [#32](https://github.com/Extender92/Monopoly/issues/32).
-
-After that refactor, this document should describe only the permanent
-`PropertyGroup` boundary and should no longer need the temporary issue
-reference.
+Core exposes no terminal color, CSS, brush, image or other frontend-framework
+type. Text logs remain non-authoritative runtime messages and resolve profile
+names and the primary resource symbol through the match catalog.
 
 ## Testing architecture
 

@@ -156,7 +156,7 @@ public static class GameStateV1Mapper
             (square.OwnerId is not null && boardSquare is not PropertySquare and not RailroadSquare and not UtilitySquare)))
             throw new GameStateValidationException("Saved square state is incompatible with the board.");
 
-        int jailPosition = board.Squares.Single(square => square.Name == "Jail").Position;
+        int jailPosition = board.Squares.OfType<JailSquare>().Single().Position;
         Dictionary<int, PlayerState> playersById = state.Players.ToDictionary(player => player.Id);
         if (state.Jail.Any(jail => playersById[jail.PlayerId].IsBankrupt || playersById[jail.PlayerId].Position != jailPosition))
             throw new GameStateValidationException("Saved jail players must be active and positioned in jail.");

@@ -3,6 +3,7 @@ using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
 using Monopoly.Core.Models.Board;
 using Monopoly.Core.Notifications;
+using Monopoly.Core.Presentation;
 using System.Collections.ObjectModel;
 
 namespace Monopoly.Core;
@@ -30,6 +31,7 @@ public sealed class Game : IGame
     public IReadOnlyList<IDieView> Dice => _diceView;
     internal IReadOnlyList<IDie> DiceControllers => _dice;
     public GameRules Rules { get; }
+    public ProfilePresentation Presentation { get; }
     internal Transaction Transactions { get; }
     public Jail TheJail { get; }
     public FortuneCardHandler FortuneCard { get; }
@@ -50,8 +52,9 @@ public sealed class Game : IGame
         IEnumerable<Player> players,
         Player currentPlayer,
         GameRules rules,
-        IPlayerDecisionProvider? decisions = null)
-        : this(players, currentPlayer, CreateDice(rules), rules, new LogHandler(), decisions)
+        IPlayerDecisionProvider? decisions = null,
+        ProfilePresentation? presentation = null)
+        : this(players, currentPlayer, CreateDice(rules), rules, new LogHandler(), decisions, presentation)
     {
     }
 
@@ -60,8 +63,9 @@ public sealed class Game : IGame
         Player currentPlayer,
         IEnumerable<IDie> dice,
         GameRules rules,
-        IPlayerDecisionProvider? decisions = null)
-        : this(players, currentPlayer, dice, rules, new LogHandler(), decisions)
+        IPlayerDecisionProvider? decisions = null,
+        ProfilePresentation? presentation = null)
+        : this(players, currentPlayer, dice, rules, new LogHandler(), decisions, presentation)
     {
     }
 
@@ -71,7 +75,8 @@ public sealed class Game : IGame
         IEnumerable<IDie> dice,
         GameRules rules,
         ILogHandler logs,
-        IPlayerDecisionProvider? decisions = null)
+        IPlayerDecisionProvider? decisions = null,
+        ProfilePresentation? presentation = null)
     {
         ArgumentNullException.ThrowIfNull(players);
         ArgumentNullException.ThrowIfNull(currentPlayer);
@@ -112,12 +117,23 @@ public sealed class Game : IGame
         Phase = GamePhase.ReadyForTurn;
         Board = new GameBoard(rules);
         FortuneCard = new FortuneCardHandler(rules);
-        TheJail = new Jail(this, Board.Squares.First(s => s.Name == "Jail").Position);
+        ProfilePresentation defaultPresentation = LegacyPresentationFactory.Create(rules, Board, FortuneCard);
+        Presentation = presentation ?? defaultPresentation;
+        Presentation.EnsureReferences(LegacyPresentationFactory.RequiredReferences(Board, FortuneCard));
+        TheJail = new Jail(this, Board.Squares.OfType<JailSquare>().Single().Position);
         Handler = new GameHandler(this);
         Transactions = new Transaction(this);
 
         if (_logs is LogHandler logHandler)
             logHandler.OwnerGame = this;
+    }
+
+    internal string ResolveDisplayText(PresentationToken token) => Presentation.ResolveDisplayText(token);
+
+    internal string FormatAmount(int amount)
+    {
+        string? symbol = Presentation.Resolve(Rules.PrimaryResourcePresentationToken).Symbol;
+        return symbol is null ? amount.ToString() : $"{amount}{symbol}";
     }
 
     public void SetDecisionProvider(IPlayerDecisionProvider decisions)

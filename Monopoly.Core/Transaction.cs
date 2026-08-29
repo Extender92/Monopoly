@@ -25,7 +25,7 @@ namespace Monopoly.Core
         {
             ValidatePlayer(player);
             player.Credit(CurrentGame.Rules.Salary);
-            CurrentGame.LogWriter.CreateLog($"{player.Name} collected salary {CurrentGame.Rules.Salary}{CurrentGame.Rules.CurrencySymbol}.");
+            CurrentGame.LogWriter.CreateLog($"{player.Name} collected salary {CurrentGame.FormatAmount(CurrentGame.Rules.Salary)}.");
             CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
         }
 
@@ -37,7 +37,7 @@ namespace Monopoly.Core
             {
                 player.TryDebit(square.Price);
                 square.AssignOwner(player);
-                CurrentGame.LogWriter.CreateLog($"{player.Name} bought {square.Name} for {square.Price}{CurrentGame.Rules.CurrencySymbol}.");
+                CurrentGame.LogWriter.CreateLog($"{player.Name} bought {CurrentGame.ResolveDisplayText(square.PresentationToken)} for {CurrentGame.FormatAmount(square.Price)}.");
                 CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
                 return true;
             }
@@ -51,7 +51,7 @@ namespace Monopoly.Core
             {
                 fromPlayer.TryDebit(rent);
                 toPlayer.Credit(rent);
-                CurrentGame.LogWriter.CreateLog($"{fromPlayer.Name} payed rent {rent}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
+                CurrentGame.LogWriter.CreateLog($"{fromPlayer.Name} payed rent {CurrentGame.FormatAmount(rent)} to {toPlayer.Name}.");
                 CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
                 return true;
             }
@@ -65,7 +65,7 @@ namespace Monopoly.Core
             {
                 fromPlayer.TryDebit(sumToPay);
                 toPlayer.Credit(sumToPay);
-                CurrentGame.LogWriter.CreateLog($"{fromPlayer.Name} payed {sumToPay}{CurrentGame.Rules.CurrencySymbol} to {toPlayer.Name}.");
+                CurrentGame.LogWriter.CreateLog($"{fromPlayer.Name} payed {CurrentGame.FormatAmount(sumToPay)} to {toPlayer.Name}.");
                 CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
                 return true;
             }
@@ -85,9 +85,9 @@ namespace Monopoly.Core
 
             player.Credit(square.MortgageValue);
             square.PlaceMortgage();
-            CurrentGame.LogWriter.CreateLog($"{player.Name} collected money from bank {square.MortgageValue}{CurrentGame.Rules.CurrencySymbol}.");
+            CurrentGame.LogWriter.CreateLog($"{player.Name} collected money from bank {CurrentGame.FormatAmount(square.MortgageValue)}.");
             CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
-            CurrentGame.LogWriter.CreateLog($"{player.Name} mortgage {square.Name} for {square.MortgageValue}{CurrentGame.Rules.CurrencySymbol}.");
+            CurrentGame.LogWriter.CreateLog($"{player.Name} mortgage {CurrentGame.ResolveDisplayText(square.PresentationToken)} for {CurrentGame.FormatAmount(square.MortgageValue)}.");
             CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
             return true;
         }
@@ -105,7 +105,7 @@ namespace Monopoly.Core
             {
                 player.TryDebit(sumToPay);
                 square.RepayMortgage();
-                CurrentGame.LogWriter.CreateLog($"{player.Name} repayed mortgage {sumToPay}{CurrentGame.Rules.CurrencySymbol} for {square.Name}.");
+                CurrentGame.LogWriter.CreateLog($"{player.Name} repayed mortgage {CurrentGame.FormatAmount(sumToPay)} for {CurrentGame.ResolveDisplayText(square.PresentationToken)}.");
                 CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
                 return true;
             }
@@ -128,7 +128,7 @@ namespace Monopoly.Core
 
             string purchasedItem = property.Houses == 5 ? "Hotel" : "House";
             string houseCountStr = property.GetHouseCountAsString();
-            CurrentGame.LogWriter.CreateLog($"{player.Name} bought a {purchasedItem} for {sumToPay}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
+            CurrentGame.LogWriter.CreateLog($"{player.Name} bought a {purchasedItem} for {CurrentGame.FormatAmount(sumToPay)} and now has {houseCountStr} on {CurrentGame.ResolveDisplayText(property.PresentationToken)}.");
             CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
             return true;
         }
@@ -149,7 +149,7 @@ namespace Monopoly.Core
             property.RemoveBuilding();
 
             string houseCountStr = property.GetHouseCountAsString();
-            CurrentGame.LogWriter.CreateLog($"{player.Name} sold a {soldItem} for {sumToGet}{CurrentGame.Rules.CurrencySymbol} and now has {houseCountStr} on {property.Name}.");
+            CurrentGame.LogWriter.CreateLog($"{player.Name} sold a {soldItem} for {CurrentGame.FormatAmount(sumToGet)} and now has {houseCountStr} on {CurrentGame.ResolveDisplayText(property.PresentationToken)}.");
             CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
             return true;
         }
@@ -186,7 +186,7 @@ namespace Monopoly.Core
             ValidatePlayer(player);
             if (sum < 0) throw new ArgumentOutOfRangeException(nameof(sum));
             player.Credit(sum);
-            CurrentGame.LogWriter.CreateLog($"{player.Name} collected money from bank {sum}{CurrentGame.Rules.CurrencySymbol}.");
+            CurrentGame.LogWriter.CreateLog($"{player.Name} collected money from bank {CurrentGame.FormatAmount(sum)}.");
             CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
         }
 
@@ -195,7 +195,7 @@ namespace Monopoly.Core
             ValidatePlayer(player);
             if (sum < 0) throw new ArgumentOutOfRangeException(nameof(sum));
             if (!player.TryDebit(sum)) return;
-            CurrentGame.LogWriter.CreateLog($"{player.Name} payed {sum}{CurrentGame.Rules.CurrencySymbol} to the Bank.");
+            CurrentGame.LogWriter.CreateLog($"{player.Name} payed {CurrentGame.FormatAmount(sum)} to the Bank.");
             CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
         }
 
@@ -222,7 +222,7 @@ namespace Monopoly.Core
                     CurrentGame.AddFines(fines);
                 }
                 player.TryDebit(fines);
-                CurrentGame.LogWriter.CreateLog($"{player.Name} payed fines of {fines}{CurrentGame.Rules.CurrencySymbol}.");
+                CurrentGame.LogWriter.CreateLog($"{player.Name} payed fines of {CurrentGame.FormatAmount(fines)}.");
                 CurrentGame.PublishNotification(new PlayerInformationChangedNotification());
                 return true;
             }
