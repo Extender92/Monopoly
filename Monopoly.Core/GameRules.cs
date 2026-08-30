@@ -1,71 +1,55 @@
-﻿using Monopoly.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Monopoly.Core.Presentation;
 
-namespace Monopoly.Core
+namespace Monopoly.Core;
+
+internal sealed class GameRules
 {
-    public sealed class GameRules
+    internal GameRules(
+        int numberOfPlayers,
+        int numberOfDice,
+        int dieSides,
+        int salary = 12,
+        bool doubleOnGo = false,
+        Parking freeParking = Parking.None,
+        int mortgageInterestRate = 10,
+        int jailFine = 8,
+        int maxTurnsInJail = 3)
     {
-        public int NumberOfPlayers { get; }
-        public int NumberOfDice { get; }
-        public int DieSides { get; }
-        public Language GameLanguage { get; }
-        public Presentation.PresentationToken PrimaryResourcePresentationToken => Presentation.PresentationTokens.PrimaryResource;
-        public int Salary { get; }
-        public bool DoubleOnGo { get; }
-        public Parking FreeParking { get; }
-        public int MortgageInterestRate { get; }
-        public int JailFine { get; }
-        public int MaxTurnsInJail { get; }
+        if (numberOfPlayers <= 0) throw new ArgumentOutOfRangeException(nameof(numberOfPlayers));
+        if (numberOfDice <= 0) throw new ArgumentOutOfRangeException(nameof(numberOfDice));
+        if (dieSides <= 0) throw new ArgumentOutOfRangeException(nameof(dieSides));
+        if (!Enum.IsDefined(freeParking)) throw new ArgumentOutOfRangeException(nameof(freeParking));
+        if (salary < 0) throw new ArgumentOutOfRangeException(nameof(salary));
+        if (mortgageInterestRate < 0) throw new ArgumentOutOfRangeException(nameof(mortgageInterestRate));
+        if (jailFine < 0) throw new ArgumentOutOfRangeException(nameof(jailFine));
+        if (maxTurnsInJail <= 0) throw new ArgumentOutOfRangeException(nameof(maxTurnsInJail));
 
-        public GameRules(
-            int numberOfPlayers,
-            int numberOfDice,
-            int dieSides,
-            Language gameLanguage = Language.UK,
-            int salary = 200,
-            bool doubleOnGo = false,
-            Parking freeParking = Parking.Classic,
-            int mortgageInterestRate = 10,
-            int jailFine = 50,
-            int maxTurnsInJail = 3)
-        {
-            if (numberOfPlayers <= 0) throw new ArgumentOutOfRangeException(nameof(numberOfPlayers));
-            if (numberOfDice <= 0) throw new ArgumentOutOfRangeException(nameof(numberOfDice));
-            if (dieSides <= 0) throw new ArgumentOutOfRangeException(nameof(dieSides));
-            if (!Enum.IsDefined(gameLanguage)) throw new ArgumentOutOfRangeException(nameof(gameLanguage));
-            if (!Enum.IsDefined(freeParking)) throw new ArgumentOutOfRangeException(nameof(freeParking));
-            if (salary < 0) throw new ArgumentOutOfRangeException(nameof(salary));
-            if (mortgageInterestRate < 0) throw new ArgumentOutOfRangeException(nameof(mortgageInterestRate));
-            if (jailFine < 0) throw new ArgumentOutOfRangeException(nameof(jailFine));
-            if (maxTurnsInJail <= 0) throw new ArgumentOutOfRangeException(nameof(maxTurnsInJail));
+        NumberOfPlayers = numberOfPlayers;
+        NumberOfDice = numberOfDice;
+        DieSides = dieSides;
+        Salary = salary;
+        DoubleOnGo = doubleOnGo;
+        FreeParking = freeParking;
+        MortgageInterestRate = mortgageInterestRate;
+        JailFine = jailFine;
+        MaxTurnsInJail = maxTurnsInJail;
+    }
 
-            NumberOfPlayers = numberOfPlayers;
-            NumberOfDice = numberOfDice;
-            DieSides = dieSides;
-            GameLanguage = gameLanguage;
-            Salary = salary;
-            DoubleOnGo = doubleOnGo;
-            FreeParking = freeParking;
-            MortgageInterestRate = mortgageInterestRate;
-            JailFine = jailFine;
-            MaxTurnsInJail = maxTurnsInJail;
-        }
+    internal int NumberOfPlayers { get; }
+    internal int NumberOfDice { get; }
+    internal int DieSides { get; }
+    internal PresentationToken PrimaryResourcePresentationToken => PresentationTokens.PrimaryResource;
+    internal int Salary { get; }
+    internal bool DoubleOnGo { get; }
+    internal Parking FreeParking { get; }
+    internal int MortgageInterestRate { get; }
+    internal int JailFine { get; }
+    internal int MaxTurnsInJail { get; }
 
-        public enum Language
-        {
-            UK,
-            US
-        }
-
-        public enum Parking
-        {
-            Classic = 0,
-            SetFee = 100,
-            Fines
-        }
+    internal enum Parking
+    {
+        None = 0,
+        SetFee = 100,
+        Fines
     }
 }

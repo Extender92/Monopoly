@@ -13,7 +13,7 @@ name remain subject to the neutral-name and independent-review gates in issues
 
 ## Structural design constraints
 
-The schema-v1 Demo produced by issue #4 must satisfy all of these constraints:
+The schema-version 1 Demo delivered by issue #4 satisfies these constraints:
 
 - 27 ordered spaces, with visual sides treated only as optional presentation
   metadata;
@@ -26,9 +26,12 @@ The schema-v1 Demo produced by issue #4 must satisfy all of these constraints:
 - a twelve-round limit followed by profile-defined score evaluation; and
 - values and group sizes designed for this Demo and tested for internal balance.
 
-The final JSON may refine names and values while preserving these distinguishing
-constraints. A review must compare the complete result, not only individual
-names.
+The reviewed data is stored in
+[`profiles/demo/lantern-vale-v1.json`](../profiles/demo/lantern-vale-v1.json).
+Revision 1 has canonical fingerprint
+`7ba140a86da1a20222f2580b7419ca7e3f52d7a392bcadf9269ed1fe5a456c7d`.
+A semantic change requires a new revision and an intentionally updated locked
+fingerprint.
 
 ## First capability baseline
 
@@ -70,8 +73,8 @@ complete product dataset.
 
 ## Validation and evidence
 
-Issue #4 owns the final JSON and content replacement. The reusable structural
-contracts and strict schema validator are defined in
+Issue #4 delivered the final JSON and content replacement. The reusable
+structural contracts and strict schema validator are defined in
 [profile-format.md](profile-format.md). Issue #54 proves the complete Demo flow,
 and #78 checks structural variation and publication leakage.
 

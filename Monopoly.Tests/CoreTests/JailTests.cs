@@ -173,7 +173,7 @@ public class JailTests
         Assert.True(player.IsBankrupt);
         Assert.DoesNotContain(player, game.Players);
         Assert.Contains(game.Logs.LogList, log =>
-            log.Info == $"{player.Name} has been bankrupt, {player.Name} Could not afford to pay Jail Fine of 50£.");
+            log.Info == $"{player.Name} has been bankrupt, {player.Name} Could not afford to pay Jail Fine of 8C.");
     }
 
     [Fact]
@@ -198,10 +198,10 @@ public class JailTests
 
         game.TheJail.HandleMaxTurnsInJail(player);
 
-        Assert.Equal(150, player.Money);
+        Assert.Equal(192, player.Money);
         Assert.Contains(game.Logs.LogList, log =>
             log.Info == $"JailTurn 3: {player.Name} has been released from jail, {player.Name} paid the fine to get out of jail.");
-        Assert.Contains(game.Logs.LogList, log => log.Info == $"{player.Name} payed fines of 50£.");
+        Assert.Contains(game.Logs.LogList, log => log.Info == $"{player.Name} payed fines of 8C.");
     }
 
     [Fact]
@@ -225,8 +225,8 @@ public class JailTests
         string reason = game.TheJail.BuyOutPlayerFromJail(player);
 
         Assert.Equal($", {player.Name} paid the fine to get out of jail", reason);
-        Assert.Equal(150, player.Money);
-        Assert.Contains(game.Logs.LogList, log => log.Info == $"{player.Name} payed fines of 50£.");
+        Assert.Equal(192, player.Money);
+        Assert.Contains(game.Logs.LogList, log => log.Info == $"{player.Name} payed fines of 8C.");
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class JailTests
             provider => provider.ResolveInsufficientFunds(game, player, game.Rules.JailFine),
             Times.Once);
         Assert.Equal(0, player.Money);
-        Assert.Contains(game.Logs.LogList, log => log.Info == $"{player.Name} payed fines of 50£.");
+        Assert.Contains(game.Logs.LogList, log => log.Info == $"{player.Name} payed fines of 8C.");
     }
 
     [Fact]

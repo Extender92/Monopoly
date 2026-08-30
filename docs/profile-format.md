@@ -115,9 +115,9 @@ unordered catalogs do not change the fingerprint. Any semantic change to
 identity, revision, presentation, setup, structure, rules, cards, effects,
 statuses or policies does change it.
 
-Save Format Version 2 records profile ID, revision and this fingerprint. It can
-therefore reject a missing or changed profile before reconstructing a match.
-Version 1 saves remain unchanged and contain none of the profile JSON.
+Save Format Version 2 will record profile ID, revision and this fingerprint. It
+can therefore reject a missing or changed profile before reconstructing a
+match. The retired Version 1 format is rejected during the transition.
 
 ## Authoring and testing
 
@@ -127,7 +127,7 @@ prove that referenced IDs exist or that capability combinations are legal.
 
 The repository contains small original schema-conformance fixtures with
 different track and deck structures. The bundled original Demo profile is
-introduced separately by issue #4. Builds, tests and default application use
+validated through the same parser. Builds, tests and default application use
 must never depend on an external or private profile.
 
 ## Related documentation

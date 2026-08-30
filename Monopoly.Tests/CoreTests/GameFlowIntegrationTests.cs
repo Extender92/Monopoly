@@ -11,7 +11,7 @@ public sealed class GameFlowIntegrationTests
     public void ExactMoneyPaysRentWithoutBankruptcy()
     {
         GameRules rules = new(2, 2, 6);
-        int rent = ((PropertySquare)new GameBoard(rules).GetSquareAtPosition(1)).Rent;
+        int rent = ((PropertySquare)new GameTestBuilder(rules).Build().Board.GetSquareAtPosition(1)).Rent;
         TestDecisionProvider decisions = new();
         Game game = new GameTestBuilder(rules)
             .WithSquare(1, ownerId: 0)
@@ -56,7 +56,7 @@ public sealed class GameFlowIntegrationTests
     public void ExactMoneyPaysTax()
     {
         GameRules rules = new(2, 2, 6);
-        int taxAmount = ((TaxSquare)new GameBoard(rules).GetSquareAtPosition(4)).Price;
+        int taxAmount = ((TaxSquare)new GameTestBuilder(rules).Build().Board.GetSquareAtPosition(4)).Price;
         Game game = new GameTestBuilder(rules).WithPlayer(1, money: taxAmount).Build();
         Player debtor = game.Players[1];
         TaxSquare tax = (TaxSquare)game.Board.GetSquareAtPosition(4);
@@ -94,7 +94,7 @@ public sealed class GameFlowIntegrationTests
     public void PlayTurnWrapsAroundGoAndPaysSalary()
     {
         Game game = new GameTestBuilder()
-            .WithPlayer(0, money: 1000, position: 39)
+            .WithPlayer(0, money: 1000, position: 16)
             .WithRandomValues(2, 2)
             .Build();
         Player player = game.Players[0];
@@ -102,7 +102,7 @@ public sealed class GameFlowIntegrationTests
         TurnResult result = game.PlayTurnToCompletion();
 
         Assert.Equal(3, player.Position);
-        Assert.Equal(1200, player.Money);
+        Assert.Equal(1012, player.Money);
         Assert.Equal(game.Board.GetSpace(game.Board.Track.GetSpaceIdAt(3)), result.LandedSpace);
     }
 
@@ -119,8 +119,8 @@ public sealed class GameFlowIntegrationTests
         TurnResult result = game.PlayTurnToCompletion();
 
         Assert.False(game.TheJail.IsPlayerInJail(player));
-        Assert.Equal(12, player.Position);
-        Assert.Equal(game.Board.GetSpace(game.Board.Track.GetSpaceIdAt(12)), result.LandedSpace);
+        Assert.Equal(1, player.Position);
+        Assert.Equal(game.Board.GetSpace(game.Board.Track.GetSpaceIdAt(1)), result.LandedSpace);
         Assert.True(result.WasReleasedFromJailByDouble);
         Assert.Equal(StatusTransitionKind.Removed, Assert.Single(result.StatusTransitions).Kind);
         Assert.False(result.ExtraTurn);
@@ -148,7 +148,7 @@ public sealed class GameFlowIntegrationTests
         Assert.NotNull(result);
         Assert.Equal(new[] { 1, 4 }, result.DiceResults);
         Assert.False(result.WasDouble);
-        Assert.Equal(50, player.Money);
+        Assert.Equal(92, player.Money);
         Assert.False(game.TheJail.TryGetJailInfo(player, out _));
         Assert.Same(next, game.CurrentPlayer);
     }
@@ -176,7 +176,7 @@ public sealed class GameFlowIntegrationTests
         Assert.True(result.WasDouble);
         Assert.False(result.WasReleasedFromJailByDouble);
         Assert.Equal(StatusTransitionKind.Removed, Assert.Single(result.StatusTransitions).Kind);
-        Assert.Equal(50, player.Money);
+        Assert.Equal(92, player.Money);
         Assert.False(game.TheJail.TryGetJailInfo(player, out _));
         Assert.Same(next, game.CurrentPlayer);
     }

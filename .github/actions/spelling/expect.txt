@@ -16,9 +16,7 @@ notnull
 pdb
 pscustomobject
 pwsh
-roundtrip
 scriptblock
-tmp
 Unicode
 Utc
 utf

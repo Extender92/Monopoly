@@ -156,11 +156,13 @@
       "id": "public-engine-boundary-documents",
       "patterns": [
         "docs/public-engine-scope.md",
-        "docs/demo-profile-design.md"
+        "docs/demo-profile-design.md",
+        "docs/game-rules.md",
+        "profiles/demo/lantern-vale-v1.json"
       ],
       "ownership": "project-owned",
       "classification": "allow",
-      "ownerIssues": [71]
+      "ownerIssues": [4, 71]
     },
     {
       "id": "raw-publication-audit",
@@ -189,7 +191,6 @@
     {
       "id": "regional-rule-documents",
       "patterns": [
-        "docs/game-rules.md",
         "docs/rules/uk-classic.md",
         "docs/rules/us-classic.md",
         "docs/rules/custom.md"
@@ -203,9 +204,7 @@
       "patterns": [
         "Monopoly.Tests/CoreTests/CardTests.cs",
         "Monopoly.Tests/CoreTests/DataTests.cs",
-        "Monopoly.Tests/CoreTests/FortuneCardHandlerTests.cs",
-        "Monopoly.Tests/CoreTests/GameBoardTests.cs",
-        "Monopoly.Tests/CoreTests/GameFlowIntegrationTests.cs"
+        "Monopoly.Tests/CoreTests/FortuneCardHandlerTests.cs"
       ],
       "ownership": "project-owned-with-third-party-fixtures",
       "classification": "replace",
@@ -280,7 +279,7 @@
         "content"
       ],
       "classification": "replace",
-      "ownerIssues": [4, 37, 52]
+      "ownerIssues": [4]
     },
     {
       "id": "official-board-and-square-names",
@@ -433,7 +432,7 @@
         "content"
       ],
       "classification": "replace",
-      "ownerIssues": [4, 37, 52]
+      "ownerIssues": [75]
     },
     {
       "id": "legacy-save-symbols",

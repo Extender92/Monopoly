@@ -9,20 +9,19 @@ issues are implemented.
 
 ## Current-state categories to remove or replace
 
-The legacy tree still contains product-shaped material in several independent
-categories:
+The audit tracks the following independent categories and their disposition:
 
 | Category | Required disposition | Owner |
 | --- | --- | --- |
-| Regional board, card and destination data | Replace with original Demo JSON and generic IDs | #4 |
+| Regional board, card and destination data | Replaced with original Demo JSON and generic IDs | #4 complete |
 | Fixed board/deck and concrete square/card/status types | Replace with structural and capability contracts | #72, #73 |
 | Profile parsing and validation assumptions | Replace with bounded schema v1 | #74 |
 | Product-shaped rule and setup behavior | Restrict to the supported public baseline | #40, #75 |
-| Frontend-specific presentation values in Core | Semantic profile metadata boundary implemented; final content/projections remain separate gates | #4, #77 |
-| Regional Version 1 save fields | Remove and replace with exact-profile Save V2 | #52 |
+| Frontend-specific presentation values in Core | Semantic profile metadata and original content implemented; generic projections remain | #77 |
+| Regional Version 1 save fields | Removed; replace persistence with exact-profile Save V2 | #52 |
 | Legacy solution, package, namespace, command and URL identity | Replace before clean export | #56 |
 | Legacy Console type branches | Replace with generic projections | #77 |
-| Legacy documentation and tests | Replace with public scope, Demo and synthetic fixtures | #4, #54, #78 |
+| Legacy documentation and tests | Product data removed; complete Demo execution and leakage coverage remain | #54, #78 |
 
 The detailed denylist and per-file inventory remain in
 `docs/clean-publication-audit.md` and `eng/publication/`. Those files, including

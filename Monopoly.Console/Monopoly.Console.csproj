@@ -13,6 +13,13 @@
 		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
 		<InternalsVisibleTo Include="Monopoly.Tests" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\profiles\demo\lantern-vale-v1.json"
+			  Link="profiles\demo\lantern-vale-v1.json"
+			  CopyToOutputDirectory="PreserveNewest"
+			  CopyToPublishDirectory="PreserveNewest" />
+	</ItemGroup>
 	
 
 

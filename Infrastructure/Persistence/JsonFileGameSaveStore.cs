@@ -7,14 +7,12 @@ using Monopoly.Core.Randomness;
 
 namespace Infrastructure.Persistence;
 
+/// <summary>
+/// Transitional persistence boundary while the regional Version 1 format has
+/// been retired and Version 2 is not yet available.
+/// </summary>
 public sealed class JsonFileGameSaveStore : IGameSaveStore
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNameCaseInsensitive = true
-    };
-
     private readonly string _filePath;
     private readonly IFileOperations _files;
 
@@ -35,50 +33,7 @@ public sealed class JsonFileGameSaveStore : IGameSaveStore
     public void Save(Game game)
     {
         ArgumentNullException.ThrowIfNull(game);
-
-        GameStateV1 state;
-        try
-        {
-            state = GameStateV1Mapper.ToState(game);
-        }
-        catch (GameStateValidationException exception)
-        {
-            throw InvalidData(exception.Message, exception);
-        }
-        string serializedState = JsonSerializer.Serialize(state, JsonOptions);
-        string directory = Path.GetDirectoryName(_filePath)
-            ?? throw new ArgumentException("The configured save path has no parent directory.", nameof(_filePath));
-        string temporaryPath = Path.Combine(
-            directory,
-            $".{Path.GetFileName(_filePath)}.{Guid.NewGuid():N}.tmp");
-
-        try
-        {
-            using (IFileWriteSession session = _files.CreateNewWriteSession(temporaryPath))
-            {
-                session.Write(serializedState);
-                session.FlushToDisk();
-            }
-
-            if (_files.Exists(_filePath))
-                _files.Replace(temporaryPath, _filePath);
-            else
-                _files.Move(temporaryPath, _filePath);
-
-            temporaryPath = string.Empty;
-        }
-        catch (Exception exception) when (IsStorageException(exception))
-        {
-            throw new SaveStoreException(
-                SaveStoreErrorKind.StorageFailure,
-                $"The save file '{_filePath}' could not be written.",
-                exception);
-        }
-        finally
-        {
-            if (temporaryPath.Length > 0)
-                TryDeleteTemporaryFile(temporaryPath);
-        }
+        throw CompatibilityGap("Saving is unavailable until Save Format Version 2 is implemented.");
     }
 
     public Game Load(
@@ -101,70 +56,49 @@ public sealed class JsonFileGameSaveStore : IGameSaveStore
         {
             throw new SaveStoreException(
                 SaveStoreErrorKind.StorageFailure,
-                $"The save file '{_filePath}' could not be read.",
+                $"Save file '{_filePath}' could not be read.",
                 exception);
         }
 
-        VersionEnvelope? envelope;
         try
         {
-            envelope = JsonSerializer.Deserialize<VersionEnvelope>(serializedState, JsonOptions);
+            using JsonDocument document = JsonDocument.Parse(serializedState);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+                throw InvalidData("The save file must contain a JSON object.");
+
+            JsonProperty? versionProperty = document.RootElement
+                .EnumerateObject()
+                .Cast<JsonProperty?>()
+                .FirstOrDefault(property => property is not null &&
+                    property.Value.Name.Equals("Version", StringComparison.OrdinalIgnoreCase));
+            if (versionProperty is null)
+                throw CompatibilityGap("The save file has no supported format version.");
+
+            if (versionProperty.Value.Value.ValueKind != JsonValueKind.Number ||
+                !versionProperty.Value.Value.TryGetInt32(out int version))
+                throw InvalidData("The save format version must be an integer.");
+
+            string message = version == 1
+                ? "Save Format Version 1 is no longer supported. Version 2 is not available yet."
+                : $"Save format version '{version}' is not supported. Version 2 is not available yet.";
+            throw CompatibilityGap(message);
+        }
+        catch (SaveStoreException)
+        {
+            throw;
         }
         catch (JsonException exception)
         {
             throw InvalidData("The save file contains malformed JSON.", exception);
         }
-
-        if (envelope?.Version != GameStateV1Mapper.CurrentVersion)
-        {
-            throw new SaveStoreException(
-                SaveStoreErrorKind.IncompatibleVersion,
-                $"Unsupported or missing save version. Expected version {GameStateV1Mapper.CurrentVersion}.");
-        }
-
-        GameStateV1? state;
-        try
-        {
-            state = JsonSerializer.Deserialize<GameStateV1>(serializedState, JsonOptions);
-        }
-        catch (JsonException exception)
-        {
-            throw InvalidData("The save file contains invalid Version 1 data.", exception);
-        }
-
-        if (state is null)
-            throw InvalidData("The save file does not contain Version 1 game state.");
-
-        try
-        {
-            return GameStateV1Mapper.FromState(state, decisions, randomSource);
-        }
-        catch (GameStateValidationException exception)
-        {
-            throw InvalidData(exception.Message, exception);
-        }
     }
+
+    private static SaveStoreException CompatibilityGap(string message) =>
+        new(SaveStoreErrorKind.IncompatibleVersion, message);
 
     private static SaveStoreException InvalidData(string message, Exception? innerException = null) =>
         new(SaveStoreErrorKind.InvalidData, message, innerException);
 
     private static bool IsStorageException(Exception exception) =>
         exception is IOException or UnauthorizedAccessException or SecurityException or PlatformNotSupportedException;
-
-    private void TryDeleteTemporaryFile(string temporaryPath)
-    {
-        try
-        {
-            _files.Delete(temporaryPath);
-        }
-        catch (Exception exception) when (IsStorageException(exception))
-        {
-            // Preserve the primary write failure. A later save can ignore stale temporary files.
-        }
-    }
-
-    private sealed class VersionEnvelope
-    {
-        public int? Version { get; set; }
-    }
 }

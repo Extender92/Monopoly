@@ -5,7 +5,7 @@ namespace Monopoly.Core.Models.Board;
 internal abstract class Square
 {
     protected Square(int position, PresentationMetadata presentation)
-        : this(LegacyStructureIds.Space(position), position, presentation)
+        : this(new SpaceId($"runtime.space-{position}"), position, presentation)
     {
     }
 

@@ -31,11 +31,6 @@ namespace Monopoly.Console.GUI
             GetAllSquareCards(game);
         }
 
-        internal ConsoleCardPrinter(IConsoleWrapper consoleWrapper, IReadOnlyList<Square> squares, GameRules rules)
-            : this(consoleWrapper, CoreGameSetup.Setup(rules))
-        {
-        }
-
         internal void SetCardPosition()
         {
             CardPosX = ConsolePositions.CardPosX;
@@ -162,59 +157,5 @@ namespace Monopoly.Console.GUI
 
             PrintCard(header, cardHorizontalLength, maxInfoVerticalLength, info, borderColor);
         }
-
-        //internal void PrepareAndPrintFortuneCard(FortuneCard fortuneCard)
-        //{
-        //    int cardHorizontalLength = 30;
-        //    int maxInfoVerticalLength = 9;
-
-        //    var borderColor = ConsoleColor.White;
-
-        //    List<string> infoLines = new List<string>();
-        //    List<string> rents = new List<string>();
-        //    int infoTextLength = 0;
-
-        //    if (fortuneCard is Chance chance)
-        //    {
-        //        borderColor = ConsoleColor.Red;
-        //    }
-        //    else if (fortuneCard is CommunityChest communityChest)
-        //    {
-        //        borderColor = ConsoleColor.Blue;
-        //    }
-
-        //        infoLines.AddRange(fortuneCard.Prop);
-        //        rents.AddRange(fortuneCard.Rent);
-        //        infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
-
-        //        infoLines.AddRange(fortuneCard.Prop);
-        //        infoTextLength = infoLines.Select((line, i) => line.Length + rents[i].Length + 4).Max();
-
-
-
-        //    string header = squareCard.Name;
-
-        //    cardHorizontalLength = Math.Max(cardHorizontalLength, Math.Max(header.Length + 2, infoTextLength));
-
-        //    List<string> info = new List<string>();
-
-        //    for (int i = 0; i < infoLines.Count; i++)
-        //    {
-        //        int space = cardHorizontalLength - (infoLines[i].Length + rents[i].Length + 2);
-        //        info.Add($"{infoLines[i]}:{new string(' ', space)}{rents[i]}");
-        //    }
-        //    info.Add("");
-
-        //    string infoText = squareCard.Info;
-        //    int length = cardHorizontalLength - 1;
-
-        //    List<string> stringList = Utilities.StringHelper.CenterStringInList(Utilities.StringHelper.GetListOfStringsFromString(infoText, length), length);
-        //    info.AddRange(stringList);
-        //    header = Utilities.StringHelper.CenterString(header, cardHorizontalLength);
-
-        //    if (maxInfoVerticalLength < info.Count) maxInfoVerticalLength = info.Count;
-
-        //    PrintCard(header, cardHorizontalLength, maxInfoVerticalLength, info, borderColor);
-        //}
     }
 }

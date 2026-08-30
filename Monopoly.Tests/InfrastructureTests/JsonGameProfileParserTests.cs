@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Infrastructure.Profiles;
 using Monopoly.Core.Persistence;
+using Monopoly.Tests.CoreTests;
 
 namespace Monopoly.Tests.InfrastructureTests;
 
@@ -180,9 +181,9 @@ public sealed class JsonGameProfileParserTests
         Assert.Equal(ProfileValidationErrorKind.LimitExceeded, excessive.Kind);
 
         Game game = new Monopoly.Tests.CoreTests.GameTestBuilder().Build();
-        string before = JsonSerializer.Serialize(GameStateV1Mapper.ToState(game));
+        string before = GameTestSnapshot.Capture(game);
         Assert.Throws<ProfileValidationException>(() => _parser.Parse(Utf8(brokenReference)));
-        Assert.Equal(before, JsonSerializer.Serialize(GameStateV1Mapper.ToState(game)));
+        Assert.Equal(before, GameTestSnapshot.Capture(game));
     }
 
     [Fact]

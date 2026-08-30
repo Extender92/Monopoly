@@ -41,19 +41,6 @@ namespace Monopoly.Console.GUI
             InitializePositions();
         }
 
-        internal ConsolePrinter(IConsoleWrapper consoleWrapper, IReadOnlyList<Square> squares, GameRules rules)
-        {
-            ArgumentNullException.ThrowIfNull(consoleWrapper);
-            ArgumentNullException.ThrowIfNull(squares);
-            ArgumentNullException.ThrowIfNull(rules);
-            Game presentationGame = CoreGameSetup.Setup(rules);
-            Console = consoleWrapper;
-            _squares = squares;
-            _rules = rules;
-            _presentation = new ConsolePresentationResolver(presentationGame.Presentation);
-            InitializePositions();
-        }
-
         private int BoardPosX { get; set; }
         private int BoardPosY { get; set; }
         private int TextPosX { get; set; }
@@ -109,7 +96,9 @@ namespace Monopoly.Console.GUI
 
             for (int i = 0; i < SideLength; i++)
             {
-                var currentSquare = _squares.First(s => s.Position == startSidePosition + i);
+                var currentSquare = _squares.FirstOrDefault(s => s.Position == startSidePosition + i);
+                if (currentSquare is null)
+                    continue;
                 var playersOnCurrentPosition = players.Where(player => player.Position == currentSquare.Position).ToList();
 
                 ConsoleColor ownerColor = currentSquare.Owner?.Id != null

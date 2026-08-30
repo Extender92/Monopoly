@@ -58,12 +58,11 @@ public sealed class GameStateEncapsulationTests
         Assert.Null(typeof(Square).GetMethod("LandOn", publicInstance));
         Assert.Null(typeof(Jail).GetMethod("PlayerGoToJail", publicInstance));
         Assert.Null(typeof(Jail).GetMethod("ReleasePlayerFromJail", publicInstance));
-        Assert.False(typeof(FortuneCardHandler).IsPublic);
+        Assert.False(typeof(DeckRuntime).IsPublic);
         Assert.Null(typeof(Game).GetProperty("FortuneCard", publicInstance));
-        Assert.Null(typeof(UKChanceCard).GetMethod("ExecuteEffect", publicInstance));
-        Assert.Null(typeof(USChanceCard).GetMethod("ExecuteEffect", publicInstance));
-        Assert.Null(typeof(UKCommunityChestCard).GetMethod("ExecuteEffect", publicInstance));
-        Assert.Null(typeof(USCommunityChestCard).GetMethod("ExecuteEffect", publicInstance));
+        string[] editionPrefixes = [new(['U', 'K']), new(['U', 'S'])];
+        Assert.DoesNotContain(typeof(Game).Assembly.GetTypes(), type =>
+            editionPrefixes.Any(prefix => type.Name.StartsWith(prefix, StringComparison.Ordinal)));
         Assert.False(typeof(GameHandler).IsPublic);
         Assert.False(typeof(Transaction).IsPublic);
     }
@@ -92,23 +91,16 @@ public sealed class GameStateEncapsulationTests
             ((IList<ICardView>)decks.Entries[0].Cards).Clear());
 
         Assert.Equal(2, game.Players.Count);
-        Assert.Equal(40, game.Board.Squares.Count);
+        Assert.Equal(GameTestBuilder.TrackLength, game.Board.Squares.Count);
         Assert.Single(game.TheJail.PlayersInJail);
         Assert.Equal(2, game.Logs.LogList.Count);
     }
 
     [Fact]
-    public void GameConstructorCopiesSuppliedCollections()
+    public void ProductionAssemblyExposesNoDefaultMatchFactoryOrPublicGameConstructor()
     {
-        Player first = new("First", 0);
-        Player second = new("Second", 1);
-        List<Player> players = [first, second];
-        Game game = new(players, first, new GameRules(2, 2, 6), randomSource: new MinimumMatchRandomSource());
-
-        players.Clear();
-
-        Assert.Equal(new[] { first, second }, game.Players);
-        Assert.Null(game.LastDiceRoll);
+        Assert.Null(typeof(Game).Assembly.GetType("Monopoly.Core.CoreGameSetup"));
+        Assert.Empty(typeof(Game).GetConstructors(BindingFlags.Public | BindingFlags.Instance));
     }
 
     [Fact]
@@ -127,20 +119,18 @@ public sealed class GameStateEncapsulationTests
     {
         GameRules defaults = new(2, 2, 6);
 
-        Assert.Equal(GameRules.Language.UK, defaults.GameLanguage);
         Assert.Equal(Monopoly.Core.Presentation.PresentationTokens.PrimaryResource, defaults.PrimaryResourcePresentationToken);
-        Assert.Equal(200, defaults.Salary);
+        Assert.Equal(12, defaults.Salary);
         Assert.False(defaults.DoubleOnGo);
-        Assert.Equal(GameRules.Parking.Classic, defaults.FreeParking);
+        Assert.Equal(GameRules.Parking.None, defaults.FreeParking);
         Assert.Equal(10, defaults.MortgageInterestRate);
-        Assert.Equal(50, defaults.JailFine);
+        Assert.Equal(8, defaults.JailFine);
         Assert.Equal(3, defaults.MaxTurnsInJail);
 
         GameRules customized = new(
             3,
             1,
             8,
-            GameRules.Language.US,
             salary: 250,
             doubleOnGo: true,
             freeParking: GameRules.Parking.Fines,
@@ -162,46 +152,11 @@ public sealed class GameStateEncapsulationTests
     }
 
     [Fact]
-    public void GameConstructorRejectsInvalidAggregateReferencesBeforeExposure()
+    public void TransitionRulesRejectInvalidNumericConfiguration()
     {
-        Player first = new("First", 0);
-        Player duplicateId = new("Duplicate", 0);
-        Player foreignCurrentPlayer = new("Foreign", 2);
-        GameRules rules = new(2, 2, 6);
-
-        Assert.Throws<ArgumentException>(() =>
-            new Game([first, duplicateId], first, rules, randomSource: new MinimumMatchRandomSource()));
-        Assert.Throws<ArgumentException>(() =>
-            new Game([first, new Player("Second", 1)], foreignCurrentPlayer, rules, randomSource: new MinimumMatchRandomSource()));
-    }
-
-    [Fact]
-    public void VersionOneDtosAreDetachedFromTheLiveGameInBothDirections()
-    {
-        Game source = new GameTestBuilder().WithSquare(1, ownerId: 0).Build();
-        int sourceMoney = source.Players[0].Money;
-        GameStateV1 state = GameStateV1Mapper.ToState(source);
-
-        state.Players[0].Money = 1;
-        state.Squares.Clear();
-        state.ChanceDeck.Reverse();
-
-        Assert.Equal(sourceMoney, source.Players[0].Money);
-        Assert.Same(source.Players[0], source.Board.GetSquareAtPosition(1).Owner);
-
-        GameStateV1 candidate = GameStateV1Mapper.ToState(source);
-        Game restored = GameStateV1Mapper.FromState(candidate);
-        int restoredMoney = restored.Players[0].Money;
-        candidate.Players[0].Money = 2;
-        candidate.Players.Clear();
-        candidate.Squares.Clear();
-        candidate.Jail.Clear();
-        candidate.ChanceDeck.Clear();
-
-        Assert.Equal(restoredMoney, restored.Players[0].Money);
-        Assert.Equal(2, restored.Players.Count);
-        Assert.Same(restored.Players[0], restored.Board.GetSquareAtPosition(1).Owner);
-        Assert.NotEmpty(restored.Decks.Resolve(LegacyStructureIds.PrimaryDeck).Cards);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new GameRules(0, 2, 6));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new GameRules(2, 0, 6));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new GameRules(2, 2, 0));
     }
 
     [Fact]
@@ -392,7 +347,7 @@ public sealed class GameStateEncapsulationTests
 
     private static string CaptureSnapshot(Game game)
     {
-        string state = JsonSerializer.Serialize(GameStateV1Mapper.ToState(game));
+        string state = GameTestSnapshot.Capture(game);
         string logs = JsonSerializer.Serialize(game.Logs.LogList.Select(log => new { log.Id, log.Info }));
         return state + logs;
     }

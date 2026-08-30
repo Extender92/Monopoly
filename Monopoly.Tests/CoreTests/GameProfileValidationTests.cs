@@ -100,11 +100,11 @@ public sealed class GameProfileValidationTests
         Assert.Equal(new SpaceId("space.synthetic-0"), valid.RuleGraph.Spaces[0].Id);
 
         Game game = new GameTestBuilder().Build();
-        string before = JsonSerializer.Serialize(Monopoly.Core.Persistence.GameStateV1Mapper.ToState(game));
+        string before = GameTestSnapshot.Capture(game);
         GameProfileDefinition invalid = ProfileTestFactory.Create(spaceCount: GameProfileSchema.MaximumSpaces + 1);
 
         Assert.Throws<ProfileValidationException>(() => GameProfileValidator.Validate(invalid));
-        Assert.Equal(before, JsonSerializer.Serialize(Monopoly.Core.Persistence.GameStateV1Mapper.ToState(game)));
+        Assert.Equal(before, GameTestSnapshot.Capture(game));
     }
 
     [Fact]

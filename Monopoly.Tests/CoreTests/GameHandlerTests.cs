@@ -20,24 +20,24 @@ public class GameHandlerTests
     {
         Game game = new GameTestBuilder().WithPlayer(0, money: 3000).Build();
 
-        game.Handler.MovePlayerAndInvokeEvent(game.Players[0], 41);
+        game.Handler.MovePlayerAndInvokeEvent(game.Players[0], 18);
 
         Assert.Equal(1, game.Players[0].Position);
-        Assert.Equal(3200, game.Players[0].Money);
+        Assert.Equal(3012, game.Players[0].Money);
     }
 
     [Fact]
     public void CheckIfPlayerGoPastGoAfterRollingDice_ShouldAdjustPlayerPositionAndGrantSalary()
     {
         Game game = new GameTestBuilder(new GameRules(2, 1, 6))
-            .WithPlayer(0, money: 3000, position: 37)
-            .WithRandomValues(4)
+            .WithPlayer(0, money: 3000, position: 16)
+            .WithRandomValues(2)
             .Build();
 
         game.Handler.RoleDiceAndMovePlayer(game.Players[0]);
 
         Assert.Equal(1, game.Players[0].Position);
-        Assert.Equal(3200, game.Players[0].Money);
+        Assert.Equal(3012, game.Players[0].Money);
     }
 
     [Fact]

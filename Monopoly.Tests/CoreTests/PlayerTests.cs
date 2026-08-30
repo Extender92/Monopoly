@@ -19,7 +19,7 @@ namespace Monopoly.Tests.CoreTests
             var playerId = 1;
             var expectedPlayerName = playerName;
             var expectedPlayerId = 1;
-            var expectedMoney = 3000;
+            var expectedMoney = 0;
             var expectedPosition = 0;
             var expectedNumberOfPlayers = 1;
 

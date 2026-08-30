@@ -9,9 +9,9 @@ public sealed class DeckCollectionTests
     [Fact]
     public void RuntimeSupportsZeroOneAndMultipleDecksWithoutNamedRoles()
     {
-        FortuneCardHandler empty = CreateHandler([]);
-        FortuneCardHandler single = CreateHandler([Registration("deck.alpha", "card.alpha")]);
-        FortuneCardHandler multiple = CreateHandler(
+        DeckRuntime empty = CreateHandler([]);
+        DeckRuntime single = CreateHandler([Registration("deck.alpha", "card.alpha")]);
+        DeckRuntime multiple = CreateHandler(
         [
             Registration("deck.zeta", "card.zeta"),
             Registration("deck.alpha", "card.alpha")
@@ -29,7 +29,7 @@ public sealed class DeckCollectionTests
     {
         DeckId selectedId = new("deck.selected");
         DeckId otherId = new("deck.other");
-        FortuneCardHandler handler = CreateHandler(
+        DeckRuntime handler = CreateHandler(
         [
             Registration("deck.selected", "card.one", "card.two"),
             Registration("deck.other", "card.other")
@@ -54,7 +54,7 @@ public sealed class DeckCollectionTests
     [Fact]
     public void PublicSnapshotsCannotMutateRuntimeState()
     {
-        FortuneCardHandler handler = CreateHandler([Registration("deck.alpha", "card.alpha")]);
+        DeckRuntime handler = CreateHandler([Registration("deck.alpha", "card.alpha")]);
         DeckCollection snapshot = handler.CreateSnapshot();
 
         Assert.Throws<NotSupportedException>(() =>
@@ -94,7 +94,7 @@ public sealed class DeckCollectionTests
     public void MultipleDecksUseDeterministicOrdinalShuffleOrder()
     {
         ScriptedMatchRandomSource random = new(0, 0, 0, 0);
-        FortuneCardHandler handler = new(
+        DeckRuntime handler = new(
         [
             Registration("deck.zeta", "card.zeta-one", "card.zeta-two", "card.zeta-three"),
             Registration("deck.alpha", "card.alpha-one", "card.alpha-two", "card.alpha-three")
@@ -113,7 +113,7 @@ public sealed class DeckCollectionTests
             handler.CreateSnapshot().Resolve(new DeckId("deck.zeta")).Cards.Select(card => card.Id));
     }
 
-    private static FortuneCardHandler CreateHandler(IEnumerable<RuntimeDeckRegistration> registrations) =>
+    private static DeckRuntime CreateHandler(IEnumerable<RuntimeDeckRegistration> registrations) =>
         new(registrations, new MatchRandomizer(new MinimumMatchRandomSource()), shuffleDecks: false);
 
     private static RuntimeDeckRegistration Registration(string deckId, params string[] cardIds) =>

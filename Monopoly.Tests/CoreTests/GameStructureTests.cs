@@ -114,7 +114,7 @@ public sealed class GameStructureTests
                 0,
                 new DeckId("deck.missing"))
         ]);
-        FortuneCardHandler noDecks = new(
+        DeckRuntime noDecks = new(
             [],
             new MatchRandomizer(new MinimumMatchRandomSource()),
             shuffleDecks: false);
@@ -133,14 +133,16 @@ public sealed class GameStructureTests
         Assert.Equal(typeof(GameTrack), typeof(GameBoard).GetProperty(nameof(GameBoard.Track))!.PropertyType);
         Assert.Null(typeof(Game).GetProperty("FortuneCard"));
         Assert.Null(typeof(IGame).GetProperty("FortuneCard"));
-        Assert.False(typeof(FortuneCardHandler).IsPublic);
+        Assert.False(typeof(DeckRuntime).IsPublic);
         Assert.Null(core.GetType("Monopoly.Core.Models.FortuneCard.IFortuneCardView"));
         Assert.DoesNotContain(
             typeof(PresentationTokens).GetProperties(BindingFlags.Public | BindingFlags.Static),
             property => property.Name is "PrimaryDeck" or "SecondaryDeck");
 
-        Assert.NotNull(typeof(GameStateV1).GetProperty(nameof(GameStateV1.ChanceDeck)));
-        Assert.NotNull(typeof(GameStateV1).GetProperty(nameof(GameStateV1.CommunityChestDeck)));
+        Assert.DoesNotContain(core.GetTypes(), type =>
+            type.Namespace == "Monopoly.Core.Persistence" &&
+            (type.Name.EndsWith("V1", StringComparison.Ordinal) ||
+             type.Name.EndsWith("V1Mapper", StringComparison.Ordinal)));
     }
 
     private sealed class SyntheticSquare : Square

@@ -73,27 +73,24 @@ public sealed class PresentationContractTests
     [Fact]
     public void GameRejectsMissingReferencedPresentationBeforeItIsReturned()
     {
-        Game baseline = CoreGameSetup.Setup(new GameRules(2, 2, 6));
+        Game baseline = SyntheticGameFactory.Setup(new GameRules(2, 2, 6));
         ProfilePresentation incomplete = new(
-            baseline.Presentation.Entries.Where(entry => entry.Token != new PresentationToken("space.0")));
-        Player first = new("First", 0);
-        Player second = new("Second", 1);
-
+            baseline.Presentation.Entries.Where(entry => entry.Token != baseline.Board.Squares[0].PresentationToken));
         Assert.Throws<ArgumentException>(() =>
-            new Game([first, second], first, new GameRules(2, 2, 6), presentation: incomplete));
+            new GameTestBuilder().WithPresentation(incomplete).Build());
     }
 
     [Fact]
-    public void PresentationChangesDoNotChangeMovementPurchasesFeesDecisionsOrV1State()
+    public void PresentationChangesDoNotChangeMovementPurchasesFeesDecisionsOrRuntimeState()
     {
         GameRules rules = new(2, 2, 6);
         Game baseline = CreateGame(rules);
         ProfilePresentation variantPresentation = CreateVariant(baseline.Presentation);
         Game variant = CreateGame(rules, variantPresentation);
 
-        GameStateV1 initial = GameStateV1Mapper.ToState(baseline);
-        variant.CardHandler.RestoreLegacyDeckOrder(initial.ChanceDeck, initial.CommunityChestDeck);
-        AssertEquivalentV1(baseline, variant);
+        Assert.Equal(
+            GameTestSnapshot.CaptureAuthoritative(baseline),
+            GameTestSnapshot.CaptureAuthoritative(variant));
 
         PurchaseDecision baselineDecision = Assert.IsType<PurchaseDecision>(baseline.PlayTurn().PendingDecision);
         PurchaseDecision variantDecision = Assert.IsType<PurchaseDecision>(variant.PlayTurn().PendingDecision);
@@ -108,7 +105,6 @@ public sealed class PresentationContractTests
 
         Assert.Equal(baseline.Players.Select(player => (player.Position, player.Money)), variant.Players.Select(player => (player.Position, player.Money)));
         Assert.Equal(baseline.Board.Squares.Select(square => square.Owner?.Id), variant.Board.Squares.Select(square => square.Owner?.Id));
-        AssertEquivalentV1(baseline, variant);
     }
 
     [Fact]
@@ -151,22 +147,19 @@ public sealed class PresentationContractTests
         notificationGame.PlayTurn();
         Assert.Contains(notifications, notification => notification is SpaceReachedNotification);
         CardDrawnNotification drawn = Assert.Single(notifications.OfType<CardDrawnNotification>());
-        Assert.Equal(LegacyStructureIds.PrimaryDeck, drawn.DeckId);
+        Assert.Equal(new DeckId("deck.test-events"), drawn.DeckId);
         Assert.Contains(drawn.Card.Id,
             notificationGame.Decks.Resolve(drawn.DeckId).Cards.Select(card => card.Id));
         Assert.All(notifications, notification => Assert.NotNull(notificationGame.Presentation.Resolve(notification.PresentationToken)));
     }
 
     [Fact]
-    public void VersionOneStateContainsNoPresentationMetadata()
+    public void VersionOnePersistenceContractsAreRemoved()
     {
-        string json = JsonSerializer.Serialize(GameStateV1Mapper.ToState(CoreGameSetup.Setup(new GameRules(2, 2, 6))));
-
-        Assert.DoesNotContain("Presentation", json, StringComparison.Ordinal);
-        Assert.DoesNotContain("DisplayText", json, StringComparison.Ordinal);
-        Assert.DoesNotContain("ColorToken", json, StringComparison.Ordinal);
-        Assert.DoesNotContain("LayoutToken", json, StringComparison.Ordinal);
-        Assert.DoesNotContain("Symbol", json, StringComparison.Ordinal);
+        Assembly core = typeof(Game).Assembly;
+        Assert.DoesNotContain(core.GetTypes(), type =>
+            type.Namespace == "Monopoly.Core.Persistence" &&
+            type.Name.EndsWith("V1", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -203,13 +196,11 @@ public sealed class PresentationContractTests
 
     private static Game CreateGame(GameRules rules, ProfilePresentation? presentation = null)
     {
-        Player first = new("First", 0);
-        Player second = new("Second", 1);
-        return new Game(
-            [first, second], first, rules,
-            decisions: null,
-            presentation: presentation,
-            randomSource: ScriptedMatchRandomSource.ForDice(1, 2, 1, 2));
+        GameTestBuilder builder = new GameTestBuilder(rules)
+            .WithRandomSource(ScriptedMatchRandomSource.ForDice(1, 2, 1, 2));
+        if (presentation is not null)
+            builder.WithPresentation(presentation);
+        return builder.Build();
     }
 
     private static ProfilePresentation CreateVariant(ProfilePresentation source)
@@ -238,11 +229,6 @@ public sealed class PresentationContractTests
             groupPresentation,
             new PresentationMetadata(new PresentationToken($"space.synthetic-{position}"), displayText: $"Synthetic {position}"),
             2, 4, 10, 30, 90, 160, 250, 50, 50, 60, 30, position);
-
-    private static void AssertEquivalentV1(Game expected, Game actual) =>
-        Assert.Equal(
-            JsonSerializer.Serialize(GameStateV1Mapper.ToState(expected)),
-            JsonSerializer.Serialize(GameStateV1Mapper.ToState(actual)));
 
     private static void AssertFrontendNeutral(Type? candidate, Type owner)
     {

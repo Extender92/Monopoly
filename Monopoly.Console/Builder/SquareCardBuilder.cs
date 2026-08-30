@@ -24,8 +24,7 @@ internal sealed class SquareCardBuilder
             cards.Add(square switch
             {
                 PropertySquare property => BuildProperty(property),
-                ChanceSquare chance => Basic<ChanceSquareCard>(chance),
-                CommunityChestSquare community => Basic<CommunityChestSquareCard>(community),
+                DrawSquare draw => Basic<DrawSquareCard>(draw),
                 GoSquare go => BuildGo(go),
                 GoToJailSquare goToJail => BuildGoToJail(goToJail),
                 JailSquare jail => Basic<JailSquareCard>(jail),

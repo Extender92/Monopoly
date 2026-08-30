@@ -115,9 +115,22 @@ For example, an entry in `.github/actions/spelling/allow.txt` only suppresses a
 spelling warning; the publication verifier still scans that file, classifies
 denylisted content and blocks it in Publication mode.
 
-Original Demo presentation does not become allowed until #4 records its review.
+Original Demo presentation is allowed after the #4 review recorded below.
 Dependency code or notices do not become allowed until #57 records authoritative
 license evidence and the required notice decision.
+
+## Issue #4 outcome
+
+Issue #4 removed the tracked regional board/card dataset, regional card
+classes, edition selection, regional rule documents and Version 1 DTO/fixture.
+The replacement is the project-owned Lantern Vale JSON profile, validated by
+the schema-version 1 parser and locked to its reviewed revision fingerprint.
+
+The remaining product-shaped executor and detention terminology is internal,
+data-free migration code owned by #75. Version 1 appears only in compatibility
+detection and audit evidence owned by #52. The Demo profile, its original
+presentation and its focused contract tests are allowed source content. Final
+artifact and snapshot confirmation remains #58's responsibility.
 
 ## Verification contract
 

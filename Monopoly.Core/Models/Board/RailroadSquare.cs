@@ -21,11 +21,6 @@ namespace Monopoly.Core.Models.Board
             MortgageValue = mortgageValue;
         }
 
-        internal RailroadSquare(int position, string name, int price, int rentOneStation, int rentTwoStation, int rentThreeStation, int rentFourStation, int mortgageValue)
-            : this(position, LegacyPresentationFactory.Space(position, name), price, rentOneStation, rentTwoStation, rentThreeStation, rentFourStation, mortgageValue)
-        {
-        }
-
         internal override void LandOn(Player player, Game game)
         {
             LandOn(player, game, false);

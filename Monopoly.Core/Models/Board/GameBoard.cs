@@ -1,5 +1,4 @@
-﻿using Monopoly.Core.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,11 +17,6 @@ namespace Monopoly.Core.Models.Board
         public GameTrack Track { get; }
 
         public SpaceView GetSpace(SpaceId id) => GetSquare(id).CreateView();
-
-        internal GameBoard(GameRules gameRules)
-            : this(SquareBuilder.GetBoardSquares(gameRules ?? throw new ArgumentNullException(nameof(gameRules))))
-        {
-        }
 
         internal GameBoard(IEnumerable<Square> squares)
         {
