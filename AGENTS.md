@@ -50,6 +50,21 @@ These instructions apply to every agent working in this repository.
 - Do not use destructive Git or filesystem operations that could remove user
   work.
 
+## Temporary verification cleanup
+
+- Temporary files and directories created by the agent solely for verification
+  may be removed when they are no longer needed. This is standing owner
+  approval only for those exact agent-created targets, not for general cleanup.
+- Before removal, resolve and inspect the absolute target. For a system-temp
+  target, verify that it is inside the system temporary directory and has the
+  task-specific name created during the current work. For a workspace target,
+  verify that it is untracked, agent-created and unrelated to user changes.
+- Never use a workspace root, system-temp root, home directory, unresolved
+  variable, wildcard or broad recursive target for this cleanup. Perform path
+  verification and removal in the same shell with literal paths.
+- Report what was removed. If a higher-level tool or safety policy blocks the
+  operation, leave the target untouched and report its exact path to the owner.
+
 ## Git and GitHub actions
 
 - Follow `docs/development-workflow.md` for branches, commits, pull requests,
