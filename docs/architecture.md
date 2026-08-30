@@ -304,10 +304,12 @@ belongs in [game-rules.md](game-rules.md) and the documents under
 ### Generic profile rule contract
 
 Profile identity uses separate `ProfileId`, positive `ProfileRevision` and
-canonical lowercase `ProfileFingerprint` values. The fingerprint is a strict
-SHA-256 representation, but its calculation and JSON canonicalization belong
-to #74. `CapabilityId`, `EffectKindId`, `ResourceId` and `StatusId` cannot be
-interchanged even when their textual values match.
+canonical lowercase `ProfileFingerprint` values. Infrastructure parses the
+strict version 1 wire format into transport-neutral definitions. Core validates
+the complete definition and computes its semantic SHA-256 fingerprint before
+returning an immutable `ValidatedGameProfile`. `CapabilityId`, `EffectKindId`,
+`ResourceId` and `StatusId` cannot be interchanged even when their textual
+values match.
 
 `ProfileRuleGraph` is the immutable semantic boundary assembled from:
 
@@ -326,9 +328,10 @@ assembly reference, `object` payload or free-form parameter map.
 Graph construction rejects unknown components, duplicate definitions, broken
 space/deck/card/resource/status references and invalid combinations such as a
 purchasable space without `Ownable`. Construction is detached from a live
-`Game`, so a validation failure cannot mutate an active match. Issue #74 maps
-bounded JSON into these same definitions; it must not introduce another
-capability representation. Issue #75 owns registration and execution.
+`Game`, so a validation failure cannot mutate an active match. The bounded JSON
+mapper uses these same definitions and does not introduce another capability
+representation. Issue #75 owns registration and execution. The complete wire
+contract and limits are documented in [profile-format.md](profile-format.md).
 
 ## Core integration points
 
@@ -499,10 +502,10 @@ being returned.
 
 Tokens contain at most 128 characters and use lowercase ASCII segments joined
 by a period or hyphen. Catalog entries are unique and stored in ordinal order.
-The current legacy composition builds this catalog internally; issue #74 will
-embed the same contract in `ValidatedGameProfile` and include its canonical
-content in the profile fingerprint. No fingerprint is calculated by the
-presentation contract itself.
+The current legacy composition builds this catalog internally. Validated JSON
+profiles embed the same contract in `ValidatedGameProfile`, and Core includes
+its canonical content in the profile fingerprint. No fingerprint is calculated
+by the presentation contract itself.
 
 Visual values remain frontend-specific:
 

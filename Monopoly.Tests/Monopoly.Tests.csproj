@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <None Update="TestData\game-state-v1.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="TestData\Profiles\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -47,12 +47,12 @@ there is no public two-deck runtime contract. Save Format Version 1 retains its
 old named fields only as a temporary compatibility exception.
 
 Profile rules now have closed, immutable contracts for capabilities, card
-effects, resources and statuses. `ProfileRuleGraph` validates their structural
-references and combinations before they can become profile data. Public match
-state exposes generic `SpaceView`, status and decision IDs; concrete legacy
-spaces, regional cards and detention payloads remain internal migration code.
-Issue #74 owns JSON parsing and canonical profile fingerprints, while #75 owns
-registration and execution of the new declarations.
+effects, resources and statuses. Strict version 1 JSON is parsed by
+Infrastructure and semantically validated by Core into an immutable
+`ValidatedGameProfile` with a canonical SHA-256 fingerprint. Public match state
+exposes generic `SpaceView`, status and decision IDs; concrete legacy spaces,
+regional cards and detention payloads remain internal migration code. Issue
+#75 owns registration and execution of the validated declarations.
 
 ```text
 Monopoly.Console ──> Monopoly.Core
@@ -128,6 +128,8 @@ smoke testing and the boundary between UI and game logic.
   boundary and non-goals.
 - [Original Demo design](docs/demo-profile-design.md) – independently designed
   reference-profile constraints.
+- [JSON profile format](docs/profile-format.md) – versioned schema, validation,
+  safety limits and canonical fingerprinting.
 - [Architecture](docs/architecture.md) – project boundaries and target design.
 - [Game flow](docs/game-flow.md) – setup, turns, decisions and match completion.
 - [Game rules](docs/game-rules.md) – legacy rule specification being replaced
