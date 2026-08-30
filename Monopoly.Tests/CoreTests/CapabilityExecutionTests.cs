@@ -505,7 +505,7 @@ public sealed class CapabilityExecutionTests
     }
 
     [Fact]
-    public void AcceptRevalidatesAffordabilityWithoutConsumingTheDecision()
+    public void AcceptRejectsChangedAffordabilityWithoutConsumingTheDecision()
     {
         Game game = GameSetup.Create(
             PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
@@ -529,7 +529,7 @@ public sealed class CapabilityExecutionTests
     }
 
     [Fact]
-    public void AcceptRevalidatesTheDecisionPositionWithoutConsumingTheDecision()
+    public void AcceptRejectsChangedDecisionPositionWithoutConsumingTheDecision()
     {
         Game game = GameSetup.Create(
             PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
@@ -579,7 +579,7 @@ public sealed class CapabilityExecutionTests
     }
 
     [Fact]
-    public void SetupRejectsADeclaredPolicyCapabilityWithoutATrustedRegistration()
+    public void SetupRejectsDeclaredPolicyCapabilityWithoutTrustedRegistration()
     {
         CapabilityId requested = new("capability.policy-follow-up");
         PurchasePolicyRegistration policy = RequestingPolicy(requested, [requested]);

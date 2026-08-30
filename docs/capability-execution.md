@@ -48,7 +48,7 @@ Landing handlers run in the fixed registry order `Ownable`, `Purchasable`,
   primitive continuation. No resource or ownership change occurs yet.
 - A participant who cannot afford the complete price receives no decision. The
   same registered non-purchase policy used by an explicit decline runs instead.
-- A response revalidates the phase, opaque decision ID, participant,
+- A response validates the phase, opaque decision ID, participant,
   continuation, current space, capability, price, ownership and affordability.
 - Accept uses an exact debit and assigns the participant in one detached
   transition. Decline uses the registered `leave-unowned` policy and performs
