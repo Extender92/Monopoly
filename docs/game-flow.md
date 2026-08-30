@@ -66,8 +66,16 @@ turn in schema version 1.
 Movement card effects can use a relative offset or absolute SpaceId. They
 declare whether the destination resolves and whether crossing the origin
 applies the profile reward. Backward Demo movement ignores that reward.
-Nested draw destinations and complex movement cycles remain rejected until
-#36 defines their complete semantics.
+Cards may mix ordered resource changes and non-resolving moves, followed by at
+most one final destination-resolving move. Acyclic Draw-to-Move-to-Draw chains
+are supported, including reuse of the same rotated deck. Setup conservatively
+rejects every possible cycle without relying on the initial deck order.
+
+A destination purchase can pause a chain. Its primitive continuation resumes
+the destination capability pipeline without replaying the triggering card. If
+that resumed pipeline later reaches another purchase, Core commits a new
+decision boundary with the original turn roll. A completed result always uses
+the actor's final committed SpaceId.
 
 Mandatory debits stop at zero. A usage fee transfers only the amount actually
 available. Optional purchases require the full configured price. Positive

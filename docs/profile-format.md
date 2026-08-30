@@ -97,6 +97,13 @@ every resource and valid space, deck, card, resource and status references.
 `Purchasable` and `UsageFee` require `Ownable`, and only `move` is valid at
 profile scope.
 
+The execution baseline permits ordered resource changes and any number of
+non-resolving moves on a card. A card may have at most one resolving move and it
+must be the final effect. Before setup returns a match, Core simulates these
+movements from every Draw space and rejects any possible resolving Draw cycle,
+including self-loops, regardless of current deck order. Relative offsets use
+the full non-zero signed 32-bit range and are normalized against track order.
+
 Infrastructure reports technical failures as `ProfileJsonException` with a
 `ProfileJsonErrorKind` and path. Core reports semantic failures as
 `ProfileValidationException` with a `ProfileValidationErrorKind` and path.
@@ -137,7 +144,8 @@ match. The retired Version 1 format is rejected during the transition.
 
 Profile authors should validate against the tracked schema and then use the
 runtime parser to perform semantic validation. Schema validation alone cannot
-prove that referenced IDs exist or that capability combinations are legal.
+prove that referenced IDs exist, that capability combinations are legal or that
+the registered runtime effect graph is acyclic.
 
 The repository contains small original schema-conformance fixtures with
 different track and deck structures. The bundled original Demo profile is

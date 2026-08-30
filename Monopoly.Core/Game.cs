@@ -200,7 +200,11 @@ public sealed class Game : IGame
         context.ResolveLanding(continuation.SpaceId, continuation.NextCapabilityIndex);
 
         if (transition.PendingDecision is not null)
-            throw new ProfileExecutionException(ProfileExecutionErrorKind.InvalidRuntimeState, "decision.continuation", "The baseline cannot request a second purchase while resuming one landing.");
+        {
+            transition.Phase = GamePhase.AwaitingDecision;
+            Commit(transition);
+            return GameActionResult.DecisionRequired(PendingDecision!);
+        }
 
         context.CompleteTurn();
         Commit(transition);

@@ -58,6 +58,12 @@ It covers tracks of 1, 2, 3, 4, 27 and 53 spaces; zero, one and multiple decks;
 movement, purchases, bounded fees, resource effects, resumable decisions,
 rounds, terminal scoring, atomic failures and match isolation.
 
+Effect-chain fixtures cover multiple ordered moves and resource changes,
+acyclic nested draws across one or more decks, exact deck rotation, final
+landing capabilities and sequential purchase boundaries. Self-loops and longer
+possible Draw cycles are rejected before setup. Late overflow tests compare the
+entire match snapshot and notification stream to prove atomic rollback.
+
 Purchase tests distinguish initially unaffordable landings from accept
 responses that become unaffordable after a decision was created. They also
 cover exact one-time acceptance, Demo decline, malformed, disallowed, stale,

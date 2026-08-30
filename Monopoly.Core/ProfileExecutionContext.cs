@@ -8,6 +8,8 @@ internal sealed class ProfileExecutionContext
 {
     private readonly Game _game;
     private readonly ExecutionTransition _transition;
+    private readonly HashSet<SpaceId> _visitedDrawSpaces = [];
+    private readonly int _maximumDrawSpaces;
     private SpaceDefinition _currentSpace;
 
     internal ProfileExecutionContext(Game game, ExecutionTransition transition, int actorPlayerId, DiceRoll roll)
@@ -17,6 +19,8 @@ internal sealed class ProfileExecutionContext
         ActorPlayerId = actorPlayerId;
         Roll = roll ?? throw new ArgumentNullException(nameof(roll));
         _currentSpace = _game.Board.GetDefinition(CurrentSpaceId);
+        _maximumDrawSpaces = _game.Profile.RuleGraph.Spaces.Count(space =>
+            space.Capabilities.Contains(CapabilityKinds.Draw));
     }
 
     internal int ActorPlayerId { get; }
@@ -112,6 +116,14 @@ internal sealed class ProfileExecutionContext
 
     internal void ApplyDraw(DrawCapabilityDefinition capability)
     {
+        if (!_visitedDrawSpaces.Add(_currentSpace.Id) || _visitedDrawSpaces.Count > _maximumDrawSpaces)
+        {
+            throw ExecutionError(
+                ProfileExecutionErrorKind.InvalidRuntimeState,
+                $"effect-chain.draw[{_currentSpace.Id}]",
+                "The runtime event chain repeated a Draw space that the validated profile graph declared acyclic.");
+        }
+
         List<CardDefinition> cards = _transition.DeckOrders[capability.DeckId];
         CardDefinition card = cards[0];
         cards.RemoveAt(0);
@@ -142,7 +154,17 @@ internal sealed class ProfileExecutionContext
                 long rawTarget = (long)originIndex + relative.Offset;
                 targetIndex = _game.Board.Track.NormalizeIndex(rawTarget);
                 if (relative.Offset > 0)
-                    passes = checked((int)(rawTarget / _game.Board.Track.Count));
+                {
+                    long calculatedPasses = rawTarget / _game.Board.Track.Count;
+                    if (calculatedPasses > int.MaxValue)
+                    {
+                        throw ExecutionError(
+                            ProfileExecutionErrorKind.UnsupportedExecutionShape,
+                            $"{path}.target.offset",
+                            "The relative movement offset produces an unrepresentable origin-pass count.");
+                    }
+                    passes = (int)calculatedPasses;
+                }
                 break;
             case AbsoluteMoveTarget absolute:
                 targetIndex = _game.Board.Track.GetIndex(absolute.SpaceId);

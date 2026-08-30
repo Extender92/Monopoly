@@ -33,6 +33,13 @@ duplicate and stale-response protection. These are authoritative runtime/read-
 model contracts, not a temporary wire format; persistence remains unavailable
 until Version 2 can validate and reconstruct the whole match.
 
+The supported effect-chain shape needs no continuation stack. A resolving Move
+is always the final card effect and Draw is the final landing capability, so a
+decision stores only the destination SpaceId and next capability index. A
+resumed chain can replace that completed boundary with a later purchase
+decision while retaining the original dice outcome; already committed cards
+and effects are never replayed.
+
 ## Version 2 target
 
 Issue #52 owns the replacement. Version 2 must include:
