@@ -37,7 +37,7 @@ public sealed class JsonGameProfileParserTests
         }
 
         byte[] compact = Encoding.UTF8.GetBytes(reordered.ToJsonString());
-        byte[] withBom = [0xef, 0xbb, 0xbf, .. compact];
+        byte[] withBom = [239, 187, 191, .. compact];
 
         Assert.Equal(_parser.Parse(FixtureBytes("synthetic-multi-decks-v1.json")).Fingerprint, _parser.Parse(withBom).Fingerprint);
     }

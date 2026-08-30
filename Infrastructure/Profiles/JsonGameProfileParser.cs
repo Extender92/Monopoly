@@ -28,8 +28,8 @@ public sealed class JsonGameProfileParser
             throw JsonError(ProfileJsonErrorKind.MalformedJson, "$", "Profile input is empty.");
 
         ReadOnlySpan<byte> json = input.Span;
-        if (json.StartsWith(new byte[] { 0xef, 0xbb, 0xbf })) json = json[3..];
-        if (json.StartsWith(new byte[] { 0xff, 0xfe }) || json.StartsWith(new byte[] { 0xfe, 0xff }))
+        if (json.StartsWith(new byte[] { 239, 187, 191 })) json = json[3..];
+        if (json.StartsWith(new byte[] { 255, 254 }) || json.StartsWith(new byte[] { 254, 255 }))
             throw JsonError(ProfileJsonErrorKind.InvalidEncoding, "$", "Profile input must use UTF-8.");
         if (json.Length >= 4 &&
             ((json[0] != 0 && json[1] == 0 && json[3] == 0) ||
