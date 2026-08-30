@@ -61,11 +61,12 @@ the transitional legacy catalog from the saved `GameLanguage`; the exact JSON
 shape remains unchanged. Rendered values are never authoritative persistence
 references.
 
-The closed profile definitions introduced by #73 are also absent from Version
-1. `ProfileId`, revision, fingerprint, generic resources, statuses,
+The closed profile definitions and validated JSON profile are also absent from
+Version 1. `ProfileId`, revision, fingerprint, generic resources, statuses,
 capabilities and effects become persistent only through Save Format Version 2.
-Issue #74 owns JSON canonicalization and fingerprint calculation, while #75
-owns execution; persistence does not define either contract again.
+Core calculates the canonical profile fingerprint before match setup, while
+#75 owns execution; persistence does not define either contract again. The
+profile wire format is documented in [profile-format.md](profile-format.md).
 
 ## Save consistency
 
@@ -412,8 +413,8 @@ queue order but are not stable domain card identities.
 
 Issue #52 replaces these transitional fields in Save Format Version 2. V2 uses
 generic profile, space, deck and card IDs plus profile revision and canonical
-fingerprint. Issue #74 defines how the presentation catalog contributes to that
-fingerprint; this presentation refactor does not add fields to Version 1.
+fingerprint. The presentation catalog contributes to the canonical profile
+fingerprint; it still adds no fields to Version 1.
 
 ### Version 1 reconstruction
 

@@ -663,10 +663,12 @@ Core signatures contain no concrete legacy spaces, regional cards, detention
 enums or Console types. Legacy integration and Version 1 fixture tests run
 alongside those contract tests.
 
-Issue #74 adds bounded JSON validation, canonicalization and fingerprint tests
-by constructing the definitions introduced by #73. Issue #75 adds executor
-coverage for the supported public capability set, while #77 owns full generic
-Console projection coverage.
+The profile-format suite covers bounded strict JSON, schema-version selection,
+unknown and duplicate fields, varied track/deck fixtures, semantic references,
+immutable validated profiles and canonical fingerprints. It exercises the
+exact safety limits and verifies that failures do not mutate an active match.
+Issue #75 adds executor coverage for the supported public capability set, while
+#77 owns full generic Console projection coverage.
 
 The current GitHub build workflow:
 
@@ -683,7 +685,6 @@ currently collected or published by CI.
 
 The current suite does not yet fully provide:
 
-- Validated JSON profiles and canonical fingerprints.
 - Stable card-identity and held-card round trips.
 - Complete auction, rent-claim, trade, building and mortgage flow coverage.
 - Complete multi-player debt and bankruptcy settlement scenarios.

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "profileId": "profile.multi-decks",
+  "revision": 1,
+  "profilePresentationToken": "profile.multi-decks",
+  "presentation": [
+    { "token": "profile.multi-decks", "displayText": "Twin Currents" },
+    { "token": "resource.points", "displayText": "Points" },
+    { "token": "space.alpha", "displayText": "Alpha" },
+    { "token": "space.beta", "displayText": "Beta" },
+    { "token": "space.gamma", "displayText": "Gamma" },
+    { "token": "space.delta", "displayText": "Delta" },
+    { "token": "deck.first", "displayText": "First Set" },
+    { "token": "deck.second", "displayText": "Second Set" },
+    { "token": "card.first", "shortText": "Gain one point." },
+    { "token": "card.second", "shortText": "Move to Alpha." }
+  ],
+  "resources": [
+    { "id": "resource.points", "presentationToken": "resource.points" }
+  ],
+  "setup": {
+    "minimumPlayers": 2,
+    "maximumPlayers": 6,
+    "diceCount": 3,
+    "dieSides": 8,
+    "startSpaceId": "space.alpha",
+    "startingResources": [
+      { "resourceId": "resource.points", "value": 5 }
+    ],
+    "startingPlayerPolicy": "highest-roll"
+  },
+  "track": ["space.alpha", "space.beta", "space.gamma", "space.delta"],
+  "profileCapabilities": [
+    { "kind": "move" }
+  ],
+  "spaces": [
+    { "id": "space.alpha", "presentationToken": "space.alpha", "capabilities": [] },
+    { "id": "space.beta", "presentationToken": "space.beta", "capabilities": [{ "kind": "draw", "deckId": "deck.first" }] },
+    { "id": "space.gamma", "presentationToken": "space.gamma", "capabilities": [] },
+    { "id": "space.delta", "presentationToken": "space.delta", "capabilities": [{ "kind": "draw", "deckId": "deck.second" }] }
+  ],
+  "decks": [
+    {
+      "id": "deck.second",
+      "presentationToken": "deck.second",
+      "cards": [
+        {
+          "id": "card.second",
+          "presentationToken": "card.second",
+          "effects": [
+            {
+              "kind": "move",
+              "target": { "kind": "absolute", "spaceId": "space.alpha" },
+              "passOriginPolicy": "ignore",
+              "resolveDestination": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deck.first",
+      "presentationToken": "deck.first",
+      "cards": [
+        {
+          "id": "card.first",
+          "presentationToken": "card.first",
+          "effects": [
+            { "kind": "resource-change", "resourceId": "resource.points", "delta": 1 }
+          ]
+        }
+      ]
+    }
+  ],
+  "statuses": [],
+  "policies": {
+    "purchaseDecline": "leave-unowned",
+    "matchEnd": {
+      "kind": "highest-resource-after-rounds",
+      "roundLimit": 6,
+      "resourceId": "resource.points",
+      "tieBreak": "lowest-player-id"
+    }
+  }
+}

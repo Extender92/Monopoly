@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "profileId": "profile.schema-conformance",
+  "revision": 1,
+  "profilePresentationToken": "profile.schema-conformance",
+  "presentation": [
+    { "token": "profile.schema-conformance", "displayText": "Harbor Circuit" },
+    { "token": "resource.credits", "displayText": "Credits", "symbol": "C" },
+    { "token": "resource.score", "displayText": "Score" },
+    { "token": "space.start", "displayText": "Workshop" },
+    { "token": "space.market", "displayText": "Glass Market" },
+    { "token": "space.event", "displayText": "Signal Pier" },
+    { "token": "deck.signals", "displayText": "Signals" },
+    { "token": "card.tailwind", "shortText": "A tailwind moves you onward." },
+    { "token": "status.focused", "displayText": "Focused" }
+  ],
+  "resources": [
+    { "id": "resource.credits", "presentationToken": "resource.credits" },
+    { "id": "resource.score", "presentationToken": "resource.score" }
+  ],
+  "setup": {
+    "minimumPlayers": 2,
+    "maximumPlayers": 5,
+    "diceCount": 2,
+    "dieSides": 6,
+    "startSpaceId": "space.start",
+    "startingResources": [
+      { "resourceId": "resource.credits", "value": 40 },
+      { "resourceId": "resource.score", "value": 0 }
+    ],
+    "startingPlayerPolicy": "fixed-order"
+  },
+  "track": ["space.start", "space.market", "space.event"],
+  "profileCapabilities": [
+    { "kind": "move" }
+  ],
+  "spaces": [
+    {
+      "id": "space.start",
+      "presentationToken": "space.start",
+      "capabilities": []
+    },
+    {
+      "id": "space.market",
+      "presentationToken": "space.market",
+      "capabilities": [
+        { "kind": "ownable", "groupId": "group.glass" },
+        { "kind": "purchasable", "price": { "resourceId": "resource.credits", "value": 12 } },
+        { "kind": "usage-fee", "amount": { "resourceId": "resource.credits", "value": 3 } }
+      ]
+    },
+    {
+      "id": "space.event",
+      "presentationToken": "space.event",
+      "capabilities": [
+        { "kind": "draw", "deckId": "deck.signals" }
+      ]
+    }
+  ],
+  "decks": [
+    {
+      "id": "deck.signals",
+      "presentationToken": "deck.signals",
+      "cards": [
+        {
+          "id": "card.tailwind",
+          "presentationToken": "card.tailwind",
+          "effects": [
+            { "kind": "resource-change", "resourceId": "resource.score", "delta": 2 },
+            {
+              "kind": "move",
+              "target": { "kind": "relative", "offset": 1 },
+              "passOriginPolicy": "apply-profile-reward",
+              "resolveDestination": true
+            },
+            { "kind": "status", "statusId": "status.focused", "operation": "apply", "value": 1 }
+          ]
+        }
+      ]
+    }
+  ],
+  "statuses": [
+    { "id": "status.focused", "presentationToken": "status.focused", "maximumValue": 2 }
+  ],
+  "policies": {
+    "passOriginReward": { "resourceId": "resource.credits", "value": 2 },
+    "purchaseDecline": "leave-unowned",
+    "matchEnd": {
+      "kind": "highest-resource-after-rounds",
+      "roundLimit": 8,
+      "resourceId": "resource.score",
+      "tieBreak": "lowest-player-id"
+    }
+  }
+}

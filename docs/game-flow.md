@@ -55,6 +55,14 @@ The current legacy composition still supplies its transitional setup values.
 Issue #40 replaces that path with setup values and starting-player policy from
 one validated profile.
 
+The JSON boundary is completed before setup begins. Infrastructure accepts
+only bounded UTF-8 schema version 1 input and maps it to Core definitions. Core
+validates presentation, resources, track, spaces, decks, cards, statuses,
+capabilities and policies as one unit and returns `ValidatedGameProfile` only
+after calculating its canonical fingerprint. A parser or validation failure
+therefore has no `Game` instance to mutate. See
+[profile-format.md](profile-format.md) for the format and error contract.
+
 Frontend setup screens collect names and allowed profile choices. Core validates the choices, creates the match and determines the first player.
 
 ## Frontend interaction

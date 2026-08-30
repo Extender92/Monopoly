@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "game-profile-v1.schema.json",
+  "title": "Property-trading game profile version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "profileId",
+    "revision",
+    "profilePresentationToken",
+    "presentation",
+    "resources",
+    "setup",
+    "track",
+    "profileCapabilities",
+    "spaces",
+    "decks",
+    "statuses",
+    "policies"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "profileId": { "$ref": "#/$defs/identifier" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "profilePresentationToken": { "$ref": "#/$defs/identifier" },
+    "presentation": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/presentation" }
+    },
+    "resources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/resource" }
+    },
+    "setup": { "$ref": "#/$defs/setup" },
+    "track": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/identifier" }
+    },
+    "profileCapabilities": {
+      "type": "array",
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/capability" }
+    },
+    "spaces": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/space" }
+    },
+    "decks": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/deck" }
+    },
+    "statuses": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/status" }
+    },
+    "policies": { "$ref": "#/$defs/policies" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+    },
+    "presentationText": {
+      "type": "string",
+      "maxLength": 4096
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["token"],
+      "properties": {
+        "token": { "$ref": "#/$defs/identifier" },
+        "displayText": { "$ref": "#/$defs/presentationText" },
+        "shortText": { "$ref": "#/$defs/presentationText" },
+        "description": { "$ref": "#/$defs/presentationText" },
+        "symbol": { "$ref": "#/$defs/presentationText" },
+        "colorToken": { "$ref": "#/$defs/identifier" },
+        "layoutToken": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "presentationToken"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "presentationToken": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "resourceAmount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceId", "value"],
+      "properties": {
+        "resourceId": { "$ref": "#/$defs/identifier" },
+        "value": { "type": "integer", "minimum": 0, "maximum": 2147483647 }
+      }
+    },
+    "setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimumPlayers",
+        "maximumPlayers",
+        "diceCount",
+        "dieSides",
+        "startSpaceId",
+        "startingResources",
+        "startingPlayerPolicy"
+      ],
+      "properties": {
+        "minimumPlayers": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+        "maximumPlayers": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+        "diceCount": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+        "dieSides": { "type": "integer", "minimum": 2, "maximum": 2147483647 },
+        "startSpaceId": { "$ref": "#/$defs/identifier" },
+        "startingResources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/resourceAmount" }
+        },
+        "startingPlayerPolicy": {
+          "enum": ["fixed-order", "random", "highest-roll"]
+        }
+      }
+    },
+    "capability": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": { "kind": { "const": "move" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": { "const": "ownable" },
+            "groupId": { "$ref": "#/$defs/identifier" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "price"],
+          "properties": {
+            "kind": { "const": "purchasable" },
+            "price": { "$ref": "#/$defs/resourceAmount" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "amount"],
+          "properties": {
+            "kind": { "const": "usage-fee" },
+            "amount": { "$ref": "#/$defs/resourceAmount" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "deckId"],
+          "properties": {
+            "kind": { "const": "draw" },
+            "deckId": { "$ref": "#/$defs/identifier" }
+          }
+        }
+      ]
+    },
+    "space": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "presentationToken", "capabilities"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "presentationToken": { "$ref": "#/$defs/identifier" },
+        "capabilities": {
+          "type": "array",
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/capability" }
+        }
+      }
+    },
+    "deck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "presentationToken", "cards"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "presentationToken": { "$ref": "#/$defs/identifier" },
+        "cards": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2048,
+          "items": { "$ref": "#/$defs/card" }
+        }
+      }
+    },
+    "card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "presentationToken", "effects"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "presentationToken": { "$ref": "#/$defs/identifier" },
+        "effects": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/effect" }
+        }
+      }
+    },
+    "moveTarget": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "offset"],
+          "properties": {
+            "kind": { "const": "relative" },
+            "offset": {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647,
+              "not": { "const": 0 }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "spaceId"],
+          "properties": {
+            "kind": { "const": "absolute" },
+            "spaceId": { "$ref": "#/$defs/identifier" }
+          }
+        }
+      ]
+    },
+    "effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "target", "passOriginPolicy", "resolveDestination"],
+          "properties": {
+            "kind": { "const": "move" },
+            "target": { "$ref": "#/$defs/moveTarget" },
+            "passOriginPolicy": { "enum": ["ignore", "apply-profile-reward"] },
+            "resolveDestination": { "type": "boolean" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "resourceId", "delta"],
+          "properties": {
+            "kind": { "const": "resource-change" },
+            "resourceId": { "$ref": "#/$defs/identifier" },
+            "delta": {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647,
+              "not": { "const": 0 }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "statusId", "operation", "value"],
+          "properties": {
+            "kind": { "const": "status" },
+            "statusId": { "$ref": "#/$defs/identifier" },
+            "operation": { "enum": ["apply", "remove"] },
+            "value": { "type": "integer", "minimum": 0, "maximum": 2147483647 }
+          }
+        }
+      ]
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "presentationToken", "maximumValue"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifier" },
+        "presentationToken": { "$ref": "#/$defs/identifier" },
+        "maximumValue": { "type": "integer", "minimum": 0, "maximum": 2147483647 }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["purchaseDecline", "matchEnd"],
+      "properties": {
+        "passOriginReward": { "$ref": "#/$defs/resourceAmount" },
+        "purchaseDecline": { "const": "leave-unowned" },
+        "matchEnd": { "$ref": "#/$defs/matchEnd" }
+      }
+    },
+    "matchEnd": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "roundLimit", "resourceId", "tieBreak"],
+      "properties": {
+        "kind": { "const": "highest-resource-after-rounds" },
+        "roundLimit": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+        "resourceId": { "$ref": "#/$defs/identifier" },
+        "tieBreak": { "const": "lowest-player-id" }
+      }
+    }
+  }
+}

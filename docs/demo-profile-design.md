@@ -70,9 +70,10 @@ complete product dataset.
 
 ## Validation and evidence
 
-Issue #4 owns the final JSON and content replacement. Issues #72–#74 own the
-structural contracts, schema and validator. Issue #54 proves the complete Demo
-flow, and #78 checks structural variation and publication leakage.
+Issue #4 owns the final JSON and content replacement. The reusable structural
+contracts and strict schema validator are defined in
+[profile-format.md](profile-format.md). Issue #54 proves the complete Demo flow,
+and #78 checks structural variation and publication leakage.
 
 Before publication, the Demo source and rendered/build artifacts must pass the
 issue #55 manifest, dependency/license review in #57 and the independent review

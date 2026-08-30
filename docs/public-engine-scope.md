@@ -74,6 +74,9 @@ before a match is created. Validation rejects unknown fields and capabilities,
 duplicate identifiers, broken references, incompatible policies and values
 outside the published limits. Profiles cannot request code execution.
 
+The versioned wire contract, parser boundary, limits and canonical fingerprint
+are documented in [profile-format.md](profile-format.md).
+
 An optional profile selected by a user is local input, not a repository
 dependency. Clone, restore, Release build, tests, default Console use and clean
 publication must all succeed with only the bundled Demo and synthetic fixtures.

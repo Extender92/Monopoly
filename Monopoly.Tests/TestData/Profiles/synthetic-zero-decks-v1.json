@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "profileId": "profile.zero-decks",
+  "revision": 2,
+  "profilePresentationToken": "profile.zero-decks",
+  "presentation": [
+    { "token": "profile.zero-decks", "displayText": "Quiet Loop" },
+    { "token": "resource.points", "displayText": "Points" },
+    { "token": "space.only", "displayText": "Only Space" }
+  ],
+  "resources": [
+    { "id": "resource.points", "presentationToken": "resource.points" }
+  ],
+  "setup": {
+    "minimumPlayers": 1,
+    "maximumPlayers": 3,
+    "diceCount": 1,
+    "dieSides": 4,
+    "startSpaceId": "space.only",
+    "startingResources": [
+      { "resourceId": "resource.points", "value": 0 }
+    ],
+    "startingPlayerPolicy": "random"
+  },
+  "track": ["space.only"],
+  "profileCapabilities": [
+    { "kind": "move" }
+  ],
+  "spaces": [
+    { "id": "space.only", "presentationToken": "space.only", "capabilities": [] }
+  ],
+  "decks": [],
+  "statuses": [],
+  "policies": {
+    "purchaseDecline": "leave-unowned",
+    "matchEnd": {
+      "kind": "highest-resource-after-rounds",
+      "roundLimit": 3,
+      "resourceId": "resource.points",
+      "tieBreak": "lowest-player-id"
+    }
+  }
+}
