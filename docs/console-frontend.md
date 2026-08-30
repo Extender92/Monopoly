@@ -15,14 +15,14 @@ The application starts and displays its menu.
 
 Selecting a new match displays:
 
-> Match play is temporarily unavailable while validated Demo capability
-> execution is being completed.
+> Demo capability execution is available in Core. Interactive match play is
+> temporarily unavailable while generic Console projections are being
+> completed.
 
 The user acknowledges the message and returns to the menu. Core setup from a
-validated profile is complete, but Console intentionally does not create or
-enter a session until issue #75 executes the Demo capabilities. Application
-composition explicitly selects and validates the bundled Demo; Core has no
-default profile.
+validated profile and the Demo execution baseline are complete, but Console
+intentionally does not enter a session until #77. Application composition
+explicitly selects and validates the bundled Demo; Core has no default profile.
 
 Loading delegates to the injected IGameSaveStore. During the persistence gap,
 the retired format produces the stable unsupported-version message and returns
@@ -37,9 +37,10 @@ Core exposes semantic presentation tokens and immutable metadata. Console maps
 known color hints locally and uses safe fallbacks for unknown hints. Text
 labels remain available so color is never the only information carrier.
 
-The remaining type-based internal card projection protects old regression
-tests only. Issue #77 replaces it with generic space and card projections from
-the validated profile.
+Legacy Console session, action-menu and board-model sources are temporarily
+excluded from compilation because their Core compatibility types no longer
+exist. Issue #77 deletes those sources and replaces them with generic space,
+card, decision and match projections.
 
 ## Future composition
 

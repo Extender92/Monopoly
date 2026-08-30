@@ -1,7 +1,6 @@
 using System.Security;
 using System.Text.Json;
 using Monopoly.Core;
-using Monopoly.Core.Interface;
 using Monopoly.Core.Persistence;
 using Monopoly.Core.Randomness;
 
@@ -36,9 +35,7 @@ public sealed class JsonFileGameSaveStore : IGameSaveStore
         throw CompatibilityGap("Saving is unavailable until Save Format Version 2 is implemented.");
     }
 
-    public Game Load(
-        IPlayerDecisionProvider? decisions = null,
-        IMatchRandomSource? randomSource = null)
+    public Game Load(IMatchRandomSource? randomSource = null)
     {
         string serializedState;
         try

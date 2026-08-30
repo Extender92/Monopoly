@@ -1,14 +1,36 @@
 using Monopoly.Core.Logs;
-using Monopoly.Core.Models.Board;
 using Monopoly.Core.Presentation;
 
 namespace Monopoly.Core.Notifications;
 
-/// <summary>A non-authoritative presentation hint emitted by one match.</summary>
+/// <summary>A non-authoritative presentation hint emitted by one match after commit.</summary>
 public abstract record GameNotification(PresentationToken PresentationToken);
 
-public sealed record LogAddedNotification(Log Log)
-    : GameNotification(PresentationTokens.LogNotification);
+public sealed record LogAddedNotification(Log Log, PresentationToken Token)
+    : GameNotification(Token);
+
+public sealed record PlayerMovedNotification(
+    int PlayerId,
+    SpaceId FromSpaceId,
+    SpaceId ToSpaceId,
+    int OriginPasses,
+    PresentationToken Token)
+    : GameNotification(Token);
+
+public sealed record ResourceChangedNotification(
+    int PlayerId,
+    ResourceId ResourceId,
+    int PreviousValue,
+    int CurrentValue,
+    PresentationToken Token)
+    : GameNotification(Token);
+
+public sealed record OwnershipChangedNotification(
+    SpaceId SpaceId,
+    int? PreviousOwnerPlayerId,
+    int? CurrentOwnerPlayerId,
+    PresentationToken Token)
+    : GameNotification(Token);
 
 public sealed record CardDrawnNotification(
     ICardView Card,
@@ -16,11 +38,12 @@ public sealed record CardDrawnNotification(
     PresentationToken DeckPresentationToken)
     : GameNotification(DeckPresentationToken);
 
-public sealed record SpaceReachedNotification(SpaceView Space)
-    : GameNotification(Space.PresentationToken);
+public sealed record TurnAdvancedNotification(int CurrentPlayerId, int RoundNumber, PresentationToken Token)
+    : GameNotification(Token);
 
-public sealed record BoardChangedNotification()
-    : GameNotification(PresentationTokens.BoardNotification);
-
-public sealed record PlayerInformationChangedNotification()
-    : GameNotification(PresentationTokens.PlayerInformationNotification);
+public sealed record MatchEndedNotification(
+    int WinnerPlayerId,
+    int RoundNumber,
+    ResourceId ScoreResourceId,
+    PresentationToken Token)
+    : GameNotification(Token);

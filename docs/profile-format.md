@@ -53,7 +53,8 @@ The supported starting-player values are `fixed-order`, `random` and
 `highest-roll`. The version 1 public baseline declares `leave-unowned` for a
 declined purchase and `highest-resource-after-rounds` with
 `lowest-player-id` as its deterministic tie-break. These values are data;
-`GameSetup` applies setup policy and issue #75 owns turn execution.
+`GameSetup` applies setup policy and the same trusted registry owns turn
+execution.
 
 Capabilities use an explicit `kind`:
 
@@ -111,7 +112,8 @@ There is no default profile or file path in Core.
 
 The returned match records exact profile identity and exposes immutable read
 models for track, decks, resources, ownership, statuses and initial module
-state. Capability execution remains a separate gate owned by issue #75.
+state. Capability execution uses the validated definitions but remains
+transport-neutral and never reads JSON directly.
 
 ## Canonical fingerprint
 

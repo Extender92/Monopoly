@@ -31,7 +31,6 @@ public sealed class DiceRoll
 
     internal static bool IsDicePurpose(RandomPurpose purpose) =>
         purpose is RandomPurpose.TurnDice or
-            RandomPurpose.DetentionDice or
             RandomPurpose.DedicatedRuleDice or
             RandomPurpose.SetupDice;
 }

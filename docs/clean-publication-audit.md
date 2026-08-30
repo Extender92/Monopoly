@@ -126,11 +126,13 @@ classes, edition selection, regional rule documents and Version 1 DTO/fixture.
 The replacement is the project-owned Lantern Vale JSON profile, validated by
 the schema-version 1 parser and locked to its reviewed revision fingerprint.
 
-The remaining product-shaped executor and detention terminology is internal,
-data-free migration code owned by #75. Version 1 appears only in compatibility
-detection and audit evidence owned by #52. The Demo profile, its original
-presentation and its focused contract tests are allowed source content. Final
-artifact and snapshot confirmation remains #58's responsibility.
+Issue #75 removed the product-shaped Core executor, concrete legacy runtime
+types and their regression fixtures. The supported runtime now executes only
+validated Demo/synthetic capabilities through one registry. Product-shaped
+Console session sources remain tracked but excluded from compilation and are
+owned by #77. Version 1 appears only in compatibility detection and audit
+evidence owned by #52. Final artifact and snapshot confirmation remains #58's
+responsibility.
 
 ## Verification contract
 
@@ -168,6 +170,8 @@ found and `2` means the manifest, input or verifier execution was invalid.
 ## Completion handoff
 
 - #4 and #37 consume the board, card, test-data and capability findings.
+- #75 removed the legacy Core runtime; #77 removes the temporarily excluded
+  Console compatibility sources and supplies generic projections.
 - #52 replaces legacy persistence identifiers and fields.
 - #56 consumes the identity and URL findings.
 - #57 resolves every dependency and notice row without publishing private

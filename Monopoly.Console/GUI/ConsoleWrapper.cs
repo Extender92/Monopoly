@@ -21,7 +21,7 @@ namespace Monopoly.Console.GUI
         public void Write(string s) => System.Console.Write(s);
 
         public void SetTextColor(ConsoleColor color) => System.Console.ForegroundColor = color;
-        
+
         public void ResetColor() => System.Console.ResetColor();
 
         public void SetPosition(int x, int y) => System.Console.SetCursorPosition(x, y);

@@ -31,8 +31,8 @@ validated before the profile can be used.
 - resource-change: a signed delta to one declared resource.
 - status: apply or remove a declared generic status.
 
-Effects run in declared order. Issue #75 defines the supported execution
-semantics and rejects declarations outside that capability set.
+Effects run in declared order through the trusted handler registry. Unknown
+handlers and baseline-incompatible effect shapes are rejected before setup.
 
 ## Setup registry
 
@@ -43,8 +43,8 @@ policies; leave-unowned purchase decline; and the round-limited resource
 result. Status definitions and effects are rejected until explicitly
 supported.
 
-Issue #75 attaches executable handlers to this same trusted registry. It does
-not create a second capability vocabulary or accept arbitrary profile code.
+Executable handlers use this same trusted registry. They do not create a
+second capability vocabulary or accept arbitrary profile code.
 
 ## Lantern Vale Demo
 
@@ -63,6 +63,11 @@ are not silently enabled by the engine.
 
 Declining a Demo purchase leaves the space unowned. After round 12, the
 participant with the highest Renown wins; the lowest player ID resolves a tie.
+
+Purchases require the full price. Mandatory fees and negative effects are
+bounded by the available balance, and positive overflow fails before commit.
+Doubles are presentation data only. Detailed handler semantics are in
+[Capability execution](capability-execution.md).
 
 ## Data ownership
 

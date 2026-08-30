@@ -17,16 +17,17 @@ The tracked Demo profile is
 strict JSON and Core validates it into an immutable ValidatedGameProfile with a
 canonical SHA-256 fingerprint.
 
-The profile transition currently has a deliberate execution gap:
+The profile transition now has an executable Core baseline and two deliberate
+application gaps:
 
-- Core can create a complete read-only initial match from an explicitly
-  supplied validated profile through `GameSetup`.
-- Console starts, but match play remains unavailable until issue #75 executes
-  the registered capabilities.
+- Core creates and runs matches from an explicitly supplied validated profile.
+  Movement, purchase decisions, fixed usage fees, generic draws, bounded
+  effects, rounds and terminal scoring use one registered execution path.
+- Console starts and validates the Demo, but interactive match play remains
+  unavailable until #77 supplies generic projections.
 - Save Format Version 1 has been retired. Save and load return typed
   compatibility errors until issue #52 supplies Version 2.
-- The remaining internal rule executor exists only for focused regression
-  tests and is replaced by #75.
+- No legacy Core rule executor or product-shaped runtime state remains.
 
 No external or private profile is required by clone, build, tests or Console.
 
@@ -72,6 +73,7 @@ dotnet run --project Monopoly.Console
 - [Architecture](docs/architecture.md)
 - [Game flow](docs/game-flow.md)
 - [Capability baseline](docs/game-rules.md)
+- [Capability execution](docs/capability-execution.md)
 - [Save and load](docs/save-format.md)
 - [Console frontend](docs/console-frontend.md)
 - [Testing](docs/testing.md)
