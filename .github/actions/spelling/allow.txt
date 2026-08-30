@@ -43,6 +43,7 @@ IEnumerable
 sut
 ILog
 IGame
+IProfile
 IPlayer
 IRead
 exeption

@@ -55,7 +55,7 @@ public sealed class JsonFileGameProfileSourceTests
     }
 
     [Fact]
-    public void BlankPathIsASelectedSourceError()
+    public void BlankPathReturnsInvalidPathSourceError()
     {
         ProfileSourceException exception = Assert.Throws<ProfileSourceException>(() =>
             new JsonFileGameProfileSource(" "));
