@@ -25,9 +25,13 @@ match.
 
 The runtime records the exact validated profile identity, revision and
 fingerprint, resource balances and SpaceIds, deck order, ownership, round,
-winner, phase and primitive purchase continuation. These are authoritative
-runtime/read-model contracts, not a temporary wire format; persistence remains
-unavailable until Version 2 can validate and reconstruct the whole match.
+winner, phase and primitive purchase continuation. A pending purchase projects
+its opaque decision ID, kind, participant, allowed responses, SpaceId,
+profile-derived resource price and original dice/landing continuation. A
+committed response clears the pending state and retains its consumed ID for
+duplicate and stale-response protection. These are authoritative runtime/read-
+model contracts, not a temporary wire format; persistence remains unavailable
+until Version 2 can validate and reconstruct the whole match.
 
 ## Version 2 target
 
@@ -45,7 +49,9 @@ changed profile is rejected before an active match is replaced. The complete
 candidate is reconstructed and validated as one unit.
 
 Runtime services such as random-source state, subscribers and frontend input
-are never serialized.
+are never serialized. Internal policy handlers and capability registrations are
+runtime code and are likewise never persisted; only any resulting authoritative
+match state or pending decision belongs in Version 2.
 
 ## Ownership boundaries
 

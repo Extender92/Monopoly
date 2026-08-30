@@ -38,6 +38,8 @@ public enum GameActionRejectionReason
     DuplicateDecision,
     ResponseNotAllowed,
     WrongPlayer,
+    InsufficientResources,
+    DecisionPreconditionFailed,
     OperationInProgress
 }
 

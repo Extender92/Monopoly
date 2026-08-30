@@ -156,22 +156,26 @@ public sealed class Game : IGame
         if (!PendingDecision.AllowedResponses.Contains(response.Response))
             return GameActionResult.Rejected(GameActionRejectionReason.ResponseNotAllowed, PendingDecision);
         if (PendingDecision is not PurchaseDecision purchase || _turnContinuation is null)
-            return GameActionResult.Rejected(GameActionRejectionReason.ResponseNotAllowed, PendingDecision);
-
-        SpaceDefinition space = Board.GetDefinition(purchase.SpaceId);
-        PurchasableCapabilityDefinition? currentPurchase = space.Capabilities.Find<PurchasableCapabilityDefinition>();
-        if (currentPurchase is null || currentPurchase.Price != purchase.Price ||
-            !_ownership.TryGetValue(purchase.SpaceId, out int? owner) || owner is not null)
-        {
-            return GameActionResult.Rejected(GameActionRejectionReason.ResponseNotAllowed, PendingDecision);
-        }
-        if (response.Response == DecisionOptions.Accept &&
-            CurrentPlayer.Resources[purchase.Price.ResourceId] < purchase.Price.Value)
-        {
-            return GameActionResult.Rejected(GameActionRejectionReason.ResponseNotAllowed, PendingDecision);
-        }
+            return GameActionResult.Rejected(GameActionRejectionReason.DecisionPreconditionFailed, PendingDecision);
 
         TurnContinuation continuation = _turnContinuation;
+        SpaceDefinition space = Board.GetDefinition(purchase.SpaceId);
+        PurchasableCapabilityDefinition? currentPurchase = space.Capabilities.Find<PurchasableCapabilityDefinition>();
+        if (Phase != GamePhase.AwaitingDecision || CurrentPlayer.Id != purchase.PlayerId ||
+            CurrentPlayer.CurrentSpaceId != purchase.SpaceId || continuation.PlayerId != purchase.PlayerId ||
+            continuation.SpaceId != purchase.SpaceId || currentPurchase is null || currentPurchase.Price != purchase.Price ||
+            !space.Capabilities.Contains(CapabilityKinds.Ownable) ||
+            !_ownership.TryGetValue(purchase.SpaceId, out int? owner) || owner is not null)
+        {
+            return GameActionResult.Rejected(GameActionRejectionReason.DecisionPreconditionFailed, PendingDecision);
+        }
+        if (!CurrentPlayer.Resources.TryGetValue(purchase.Price.ResourceId, out int available))
+        {
+            return GameActionResult.Rejected(GameActionRejectionReason.DecisionPreconditionFailed, PendingDecision);
+        }
+        if (response.Response == DecisionOptions.Accept && available < purchase.Price.Value)
+            return GameActionResult.Rejected(GameActionRejectionReason.InsufficientResources, PendingDecision);
+
         ExecutionTransition transition = new(this);
         transition.PendingDecision = null;
         transition.Continuation = null;
@@ -183,7 +187,16 @@ public sealed class Game : IGame
         if (response.Response == DecisionOptions.Accept)
             context.ApplyPurchase(purchase);
         else
-            _registry.ExecutePurchaseDecline(context, Profile.Policies.PurchaseDecline);
+            _registry.ExecutePurchaseNonPurchase(
+                context,
+                Profile.Policies.PurchaseDecline,
+                PurchaseNonPurchaseReason.Declined);
+        transition.Notifications.Add(new DecisionResolvedNotification(
+            purchase.DecisionId,
+            purchase.PlayerId,
+            purchase.Kind,
+            response.Response,
+            purchase.PresentationToken));
         context.ResolveLanding(continuation.SpaceId, continuation.NextCapabilityIndex);
 
         if (transition.PendingDecision is not null)

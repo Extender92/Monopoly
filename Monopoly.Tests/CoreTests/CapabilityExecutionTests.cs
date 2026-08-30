@@ -57,8 +57,15 @@ public sealed class CapabilityExecutionTests
         Assert.Equal(GameActionStatus.DecisionRequired, pending.Status);
         Assert.Equal(new SpaceId("space.execution-1"), decision.SpaceId);
         Assert.Equal(game.Board.GetSpace(decision.SpaceId).PresentationToken, decision.PresentationToken);
+        Assert.NotEqual(Guid.Empty, decision.DecisionId);
+        Assert.Same(decision, game.PendingDecision);
+        Assert.Equal([DecisionOptions.Accept, DecisionOptions.Decline], decision.AllowedResponses);
+        Assert.Equal(new ResourceAmount(ExecutionProfileFactory.Credits, 5), decision.Price);
         Assert.Equal(20, game.CurrentPlayer.Resources[ExecutionProfileFactory.Credits]);
         Assert.Null(game.Ownership.BySpaceId[decision.SpaceId].OwnerPlayerId);
+        Assert.Empty(notifications.OfType<ResourceChangedNotification>());
+        Assert.Empty(notifications.OfType<OwnershipChangedNotification>());
+        Assert.Empty(notifications.OfType<DecisionResolvedNotification>());
 
         GameActionResult completed = game.SubmitDecision(new DecisionResponse(
             decision.DecisionId,
@@ -73,6 +80,60 @@ public sealed class CapabilityExecutionTests
         Assert.Single(notifications.OfType<TurnAdvancedNotification>());
         Assert.Equal(accept ? 1 : 0, notifications.OfType<OwnershipChangedNotification>().Count());
         Assert.Equal(accept ? 1 : 0, notifications.OfType<ResourceChangedNotification>().Count());
+        DecisionResolvedNotification resolved = Assert.Single(notifications.OfType<DecisionResolvedNotification>());
+        Assert.Equal(decision.DecisionId, resolved.DecisionId);
+        Assert.Equal(decision.PlayerId, resolved.PlayerId);
+        Assert.Equal(DecisionKinds.Purchase, resolved.DecisionKind);
+        Assert.Equal(accept ? DecisionOptions.Accept : DecisionOptions.Decline, resolved.Response);
+    }
+
+    [Fact]
+    public void InitiallyUnaffordablePurchaseRunsTheRegisteredNonPurchasePolicy()
+    {
+        List<PurchaseNonPurchaseReason> reasons = [];
+        PurchasePolicyRegistration policy = new(
+            PurchaseDeclinePolicyKind.LeaveUnowned,
+            (_, reason) =>
+            {
+                reasons.Add(reason);
+                return ProfilePolicyResult.Continue;
+            },
+            []);
+        Game game = GameSetup.Create(
+            PurchasableProfile(price: 5, fee: 2, startingCredits: 3),
+            [new PlayerSetup(1, "Unaffordable")],
+            new ScriptedMatchRandomSource(1),
+            ExecutionRegistry(policy));
+
+        GameActionResult result = game.PlayTurn();
+
+        Assert.Equal(GameActionStatus.TurnCompleted, result.Status);
+        Assert.Equal([PurchaseNonPurchaseReason.InsufficientResources], reasons);
+        Assert.Null(game.PendingDecision);
+        Assert.Equal(3, game.CurrentPlayer.Resources[ExecutionProfileFactory.Credits]);
+        Assert.Null(game.Ownership.BySpaceId[new SpaceId("space.execution-1")].OwnerPlayerId);
+    }
+
+    [Fact]
+    public void BundledDemoDeclineLeavesTheSpaceUnownedWithoutRequestingAnotherCapability()
+    {
+        ValidatedGameProfile profile = new JsonGameProfileParser().Parse(File.ReadAllBytes(DemoPath));
+        Game game = GameSetup.Create(
+            profile,
+            [new PlayerSetup(1, "Aster"), new PlayerSetup(2, "Bramble")],
+            ScriptedMatchRandomSource.ForDice(1, 2));
+        int lumenBefore = game.CurrentPlayer.Resources[new ResourceId("resource.lumen")];
+
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
+        GameActionResult result = game.SubmitDecision(new DecisionResponse(
+            decision.DecisionId,
+            decision.PlayerId,
+            DecisionOptions.Decline));
+
+        Assert.Equal(GameActionStatus.TurnCompleted, result.Status);
+        Assert.Equal(new SpaceId("space.s004"), decision.SpaceId);
+        Assert.Equal(lumenBefore, game.Players.Single(player => player.Id == 1).Resources[new ResourceId("resource.lumen")]);
+        Assert.Null(game.Ownership.BySpaceId[decision.SpaceId].OwnerPlayerId);
     }
 
     [Theory]
@@ -413,8 +474,177 @@ public sealed class CapabilityExecutionTests
 
         Assert.Equal(GameActionStatus.TurnCompleted, game.SubmitDecision(
             new DecisionResponse(decision.DecisionId, 1, DecisionOptions.Decline)).Status);
+        string completed = GameTestSnapshot.Capture(game);
         GameActionResult duplicate = game.SubmitDecision(new DecisionResponse(decision.DecisionId, 1, DecisionOptions.Decline));
         Assert.Equal(GameActionRejectionReason.DuplicateDecision, duplicate.RejectionReason);
+        Assert.Equal(completed, GameTestSnapshot.Capture(game));
+    }
+
+    [Fact]
+    public void MalformedAndDisallowedResponsesLeaveThePendingDecisionUnchanged()
+    {
+        Game game = GameSetup.Create(
+            PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
+            [new PlayerSetup(1, "One")],
+            new ScriptedMatchRandomSource(1));
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
+        List<GameNotification> notifications = [];
+        using IDisposable subscription = game.Notifications.Subscribe(notifications.Add);
+        string before = GameTestSnapshot.Capture(game);
+
+        GameActionResult malformed = game.SubmitDecision(new DecisionResponse(Guid.Empty, 1, DecisionOptions.Accept));
+        GameActionResult disallowed = game.SubmitDecision(new DecisionResponse(
+            decision.DecisionId,
+            1,
+            new DecisionOptionId("unsupported")));
+
+        Assert.Equal(GameActionRejectionReason.MalformedResponse, malformed.RejectionReason);
+        Assert.Equal(GameActionRejectionReason.ResponseNotAllowed, disallowed.RejectionReason);
+        Assert.Equal(before, GameTestSnapshot.Capture(game));
+        Assert.Empty(notifications);
+    }
+
+    [Fact]
+    public void AcceptRejectsChangedAffordabilityWithoutConsumingTheDecision()
+    {
+        Game game = GameSetup.Create(
+            PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
+            [new PlayerSetup(1, "One")],
+            new ScriptedMatchRandomSource(1));
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
+        SetCredits(game.CurrentPlayer, 4);
+        List<GameNotification> notifications = [];
+        using IDisposable subscription = game.Notifications.Subscribe(notifications.Add);
+        string before = GameTestSnapshot.Capture(game);
+
+        GameActionResult result = game.SubmitDecision(new DecisionResponse(
+            decision.DecisionId,
+            decision.PlayerId,
+            DecisionOptions.Accept));
+
+        Assert.Equal(GameActionRejectionReason.InsufficientResources, result.RejectionReason);
+        Assert.Same(decision, game.PendingDecision);
+        Assert.Equal(before, GameTestSnapshot.Capture(game));
+        Assert.Empty(notifications);
+    }
+
+    [Fact]
+    public void AcceptRejectsChangedDecisionPositionWithoutConsumingTheDecision()
+    {
+        Game game = GameSetup.Create(
+            PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
+            [new PlayerSetup(1, "One")],
+            new ScriptedMatchRandomSource(1));
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
+        game.CurrentPlayer.ApplyState(
+            game.CurrentPlayer.Resources.ToDictionary(entry => entry.Key, entry => entry.Value),
+            new SpaceId("space.execution-0"),
+            0);
+        List<GameNotification> notifications = [];
+        using IDisposable subscription = game.Notifications.Subscribe(notifications.Add);
+        string before = GameTestSnapshot.Capture(game);
+
+        GameActionResult result = game.SubmitDecision(new DecisionResponse(
+            decision.DecisionId,
+            decision.PlayerId,
+            DecisionOptions.Accept));
+
+        Assert.Equal(GameActionRejectionReason.DecisionPreconditionFailed, result.RejectionReason);
+        Assert.Same(decision, game.PendingDecision);
+        Assert.Equal(before, GameTestSnapshot.Capture(game));
+        Assert.Empty(notifications);
+    }
+
+    [Fact]
+    public void DeclineDispatchesAnIndependentlyRegisteredPolicyCapability()
+    {
+        CapabilityId requested = new("capability.policy-follow-up");
+        int calls = 0;
+        PurchasePolicyRegistration policy = RequestingPolicy(requested, [requested]);
+        PolicyCapabilityRegistration capability = new(requested, _ => calls++);
+        Game game = GameSetup.Create(
+            PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
+            [new PlayerSetup(1, "One")],
+            new ScriptedMatchRandomSource(1),
+            ExecutionRegistry(policy, capability));
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
+
+        GameActionResult result = game.SubmitDecision(new DecisionResponse(
+            decision.DecisionId,
+            decision.PlayerId,
+            DecisionOptions.Decline));
+
+        Assert.Equal(GameActionStatus.TurnCompleted, result.Status);
+        Assert.Equal(1, calls);
+    }
+
+    [Fact]
+    public void SetupRejectsDeclaredPolicyCapabilityWithoutTrustedRegistration()
+    {
+        CapabilityId requested = new("capability.policy-follow-up");
+        PurchasePolicyRegistration policy = RequestingPolicy(requested, [requested]);
+
+        GameSetupException exception = Assert.Throws<GameSetupException>(() => GameSetup.Create(
+            PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
+            [new PlayerSetup(1, "One")],
+            new ScriptedMatchRandomSource(1),
+            ExecutionRegistry(policy)));
+
+        Assert.Equal(GameSetupErrorKind.UnsupportedComponent, exception.Kind);
+        Assert.Equal("profile.policies.purchaseDecline", exception.Path);
+    }
+
+    [Fact]
+    public void UnexpectedPolicyCapabilityRequestLeavesThePendingMatchUnchanged()
+    {
+        CapabilityId requested = new("capability.policy-follow-up");
+        PurchasePolicyRegistration policy = RequestingPolicy(requested, []);
+        Game game = GameSetup.Create(
+            PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
+            [new PlayerSetup(1, "One")],
+            new ScriptedMatchRandomSource(1),
+            ExecutionRegistry(policy));
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
+        List<GameNotification> notifications = [];
+        using IDisposable subscription = game.Notifications.Subscribe(notifications.Add);
+        string before = GameTestSnapshot.Capture(game);
+
+        ProfileExecutionException exception = Assert.Throws<ProfileExecutionException>(() => game.SubmitDecision(
+            new DecisionResponse(decision.DecisionId, decision.PlayerId, DecisionOptions.Decline)));
+
+        Assert.Equal(ProfileExecutionErrorKind.UnsupportedExecutionShape, exception.Kind);
+        Assert.Equal("policy.purchase-decline.result", exception.Path);
+        Assert.Equal(before, GameTestSnapshot.Capture(game));
+        Assert.Empty(notifications);
+    }
+
+    [Fact]
+    public void FailingPolicyCapabilityLeavesThePendingMatchUnchanged()
+    {
+        CapabilityId requested = new("capability.policy-follow-up");
+        PurchasePolicyRegistration policy = RequestingPolicy(requested, [requested]);
+        PolicyCapabilityRegistration capability = new(
+            requested,
+            _ => throw new ProfileExecutionException(
+                ProfileExecutionErrorKind.InvalidRuntimeState,
+                "capability.policy-follow-up",
+                "Synthetic policy capability failure."));
+        Game game = GameSetup.Create(
+            PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
+            [new PlayerSetup(1, "One")],
+            new ScriptedMatchRandomSource(1),
+            ExecutionRegistry(policy, capability));
+        PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
+        List<GameNotification> notifications = [];
+        using IDisposable subscription = game.Notifications.Subscribe(notifications.Add);
+        string before = GameTestSnapshot.Capture(game);
+
+        ProfileExecutionException exception = Assert.Throws<ProfileExecutionException>(() => game.SubmitDecision(
+            new DecisionResponse(decision.DecisionId, decision.PlayerId, DecisionOptions.Decline)));
+
+        Assert.Equal(ProfileExecutionErrorKind.InvalidRuntimeState, exception.Kind);
+        Assert.Equal(before, GameTestSnapshot.Capture(game));
+        Assert.Empty(notifications);
     }
 
     [Fact]
@@ -437,6 +667,22 @@ public sealed class CapabilityExecutionTests
         Assert.Equal([1], state.Continuation.DiceResults);
         Assert.Equal(decision.SpaceId, state.Continuation.SpaceId);
         Assert.Equal(2, state.Continuation.NextCapabilityIndex);
+
+        state.PendingDecision.AllowedResponses.Clear();
+        Assert.Equal([DecisionOptions.Accept, DecisionOptions.Decline], decision.AllowedResponses);
+
+        Assert.Equal(GameActionStatus.TurnCompleted, game.SubmitDecision(new DecisionResponse(
+            decision.DecisionId,
+            decision.PlayerId,
+            DecisionOptions.Accept)).Status);
+        GameProgressState committed = GameProgressStateMapper.ToState(game);
+        Assert.Equal(GamePhase.ReadyForTurn, committed.Phase);
+        Assert.Null(committed.PendingDecision);
+        Assert.Null(committed.Continuation);
+        Assert.Equal(decision.DecisionId, committed.LastConsumedDecisionId);
+        Assert.Contains(decision.DecisionId, committed.ConsumedDecisionIds);
+        Assert.Equal(5, game.Players[0].Resources[ExecutionProfileFactory.Credits]);
+        Assert.Equal(decision.PlayerId, game.Ownership.BySpaceId[decision.SpaceId].OwnerPlayerId);
     }
 
     [Fact]
@@ -528,4 +774,30 @@ public sealed class CapabilityExecutionTests
                 ]
             },
             startingCredits: startingCredits);
+
+    private static void SetCredits(Monopoly.Core.Models.Player player, int value)
+    {
+        Dictionary<ResourceId, int> resources = player.Resources.ToDictionary(entry => entry.Key, entry => entry.Value);
+        resources[ExecutionProfileFactory.Credits] = value;
+        player.ApplyState(resources, player.CurrentSpaceId, player.Position);
+    }
+
+    private static PurchasePolicyRegistration RequestingPolicy(
+        CapabilityId requested,
+        IEnumerable<CapabilityId> declaredRequests) => new(
+            PurchaseDeclinePolicyKind.LeaveUnowned,
+            (_, _) => ProfilePolicyResult.RequestCapability(requested),
+            declaredRequests);
+
+    private static ProfileComponentRegistry ExecutionRegistry(
+        PurchasePolicyRegistration purchasePolicy,
+        params PolicyCapabilityRegistration[] policyCapabilities) => new(
+            [CapabilityKinds.Move, CapabilityKinds.Ownable, CapabilityKinds.Purchasable, CapabilityKinds.UsageFee, CapabilityKinds.Draw],
+            [EffectKinds.Move, EffectKinds.ResourceChange],
+            [],
+            [StartingPlayerPolicyKind.FixedOrder, StartingPlayerPolicyKind.Random, StartingPlayerPolicyKind.HighestRoll],
+            [purchasePolicy],
+            policyCapabilities,
+            [MatchTieBreakPolicy.LowestPlayerId],
+            supportsRoundLimitedScore: true);
 }
