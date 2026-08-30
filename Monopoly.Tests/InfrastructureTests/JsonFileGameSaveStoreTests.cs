@@ -8,7 +8,7 @@ namespace Monopoly.Tests.InfrastructureTests;
 public sealed class JsonFileGameSaveStoreTests
 {
     [Fact]
-    public void SaveRejectsTheTransitionGapWithoutCreatingAFile()
+    public void SaveRejectsTheTransitionGapWithoutCreatingFile()
     {
         using TemporaryDirectory directory = new();
         string path = directory.GetPath("game.json");

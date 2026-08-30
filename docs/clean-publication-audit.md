@@ -127,7 +127,7 @@ The replacement is the project-owned Lantern Vale JSON profile, validated by
 the schema-version 1 parser and locked to its reviewed revision fingerprint.
 
 The remaining product-shaped executor and detention terminology is internal,
-dataless migration code owned by #75. Version 1 appears only in compatibility
+data-free migration code owned by #75. Version 1 appears only in compatibility
 detection and audit evidence owned by #52. The Demo profile, its original
 presentation and its focused contract tests are allowed source content. Final
 artifact and snapshot confirmation remains #58's responsibility.
