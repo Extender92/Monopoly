@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Monopoly.Core.Persistence;
 using Monopoly.Tests.TestDoubles;
 
 namespace Monopoly.Tests.CoreTests;
@@ -32,6 +33,7 @@ internal static class GameTestSnapshot
         game.LastDiceRoll,
         Ownership = game.Ownership.Entries,
         Decks = game.Decks.Entries.Select(deck => new { deck.Id, Cards = deck.Cards.Select(card => card.Id) }),
+        Progress = GameProgressStateMapper.ToState(game),
         Winner = game.Winner?.Id
     });
 }

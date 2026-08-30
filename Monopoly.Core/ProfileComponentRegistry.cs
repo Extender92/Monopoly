@@ -1,7 +1,92 @@
 namespace Monopoly.Core;
 
+using System.Collections.ObjectModel;
+
 internal delegate void CapabilityExecutionHandler(ProfileExecutionContext context, CapabilityDefinition definition, int capabilityIndex);
 internal delegate void EffectExecutionHandler(ProfileExecutionContext context, EffectDefinition definition, string path);
+internal delegate ProfilePolicyResult PurchasePolicyExecutionHandler(ProfileExecutionContext context, PurchaseNonPurchaseReason reason);
+internal delegate void PolicyCapabilityExecutionHandler(ProfileExecutionContext context);
+
+internal enum PurchaseNonPurchaseReason
+{
+    Declined,
+    InsufficientResources
+}
+
+internal enum ProfilePolicyResultKind
+{
+    Continue,
+    RequestCapability
+}
+
+internal readonly record struct ProfilePolicyResult
+{
+    private ProfilePolicyResult(ProfilePolicyResultKind kind, CapabilityId requestedCapabilityId)
+    {
+        Kind = kind;
+        RequestedCapabilityId = requestedCapabilityId;
+    }
+
+    internal static ProfilePolicyResult Continue { get; } = new(ProfilePolicyResultKind.Continue, default);
+
+    internal static ProfilePolicyResult RequestCapability(CapabilityId capabilityId)
+    {
+        if (!capabilityId.IsValid)
+            throw new ArgumentException("The requested capability ID is invalid.", nameof(capabilityId));
+        return new ProfilePolicyResult(ProfilePolicyResultKind.RequestCapability, capabilityId);
+    }
+
+    internal ProfilePolicyResultKind Kind { get; }
+    internal CapabilityId RequestedCapabilityId { get; }
+}
+
+internal sealed class PurchasePolicyRegistration
+{
+    private readonly ReadOnlyCollection<CapabilityId> _possibleCapabilityRequests;
+
+    internal PurchasePolicyRegistration(
+        PurchaseDeclinePolicyKind policy,
+        PurchasePolicyExecutionHandler handler,
+        IEnumerable<CapabilityId> possibleCapabilityRequests)
+    {
+        if (!Enum.IsDefined(policy)) throw new ArgumentOutOfRangeException(nameof(policy));
+        Handler = handler ?? throw new ArgumentNullException(nameof(handler));
+        ArgumentNullException.ThrowIfNull(possibleCapabilityRequests);
+
+        CapabilityId[] requests = possibleCapabilityRequests.ToArray();
+        if (requests.Any(id => !id.IsValid) || requests.Distinct().Count() != requests.Length)
+            throw new ArgumentException("Possible policy capability requests must contain unique valid IDs.", nameof(possibleCapabilityRequests));
+
+        Policy = policy;
+        _possibleCapabilityRequests = Array.AsReadOnly(requests.OrderBy(id => id).ToArray());
+    }
+
+    internal PurchaseDeclinePolicyKind Policy { get; }
+    internal PurchasePolicyExecutionHandler Handler { get; }
+    internal IReadOnlyList<CapabilityId> PossibleCapabilityRequests => _possibleCapabilityRequests;
+
+    internal static PurchasePolicyRegistration LeaveUnowned() => new(
+        PurchaseDeclinePolicyKind.LeaveUnowned,
+        static (context, _) =>
+        {
+            context.LeaveCurrentSpaceUnowned();
+            return ProfilePolicyResult.Continue;
+        },
+        []);
+}
+
+internal sealed class PolicyCapabilityRegistration
+{
+    internal PolicyCapabilityRegistration(CapabilityId id, PolicyCapabilityExecutionHandler handler)
+    {
+        if (!id.IsValid) throw new ArgumentException("The policy capability ID is invalid.", nameof(id));
+        Id = id;
+        Handler = handler ?? throw new ArgumentNullException(nameof(handler));
+    }
+
+    internal CapabilityId Id { get; }
+    internal PolicyCapabilityExecutionHandler Handler { get; }
+}
 
 /// <summary>The single trusted setup and execution registry for the public baseline.</summary>
 internal sealed class ProfileComponentRegistry
@@ -18,7 +103,8 @@ internal sealed class ProfileComponentRegistry
     private readonly Dictionary<EffectKindId, EffectExecutionHandler> _effects;
     private readonly HashSet<StatusId> _statuses;
     private readonly HashSet<StartingPlayerPolicyKind> _startingPlayerPolicies;
-    private readonly Dictionary<PurchaseDeclinePolicyKind, Action<ProfileExecutionContext>> _purchaseDeclinePolicies;
+    private readonly Dictionary<PurchaseDeclinePolicyKind, PurchasePolicyRegistration> _purchaseDeclinePolicies;
+    private readonly Dictionary<CapabilityId, PolicyCapabilityExecutionHandler> _policyCapabilities;
     private readonly Dictionary<MatchTieBreakPolicy, Func<ProfileExecutionContext, ResourceId, int>> _matchTieBreakPolicies;
     private readonly bool _supportsRoundLimitedScore;
 
@@ -27,7 +113,8 @@ internal sealed class ProfileComponentRegistry
         IEnumerable<EffectKindId> effects,
         IEnumerable<StatusId> statuses,
         IEnumerable<StartingPlayerPolicyKind> startingPlayerPolicies,
-        IEnumerable<PurchaseDeclinePolicyKind> purchaseDeclinePolicies,
+        IEnumerable<PurchasePolicyRegistration> purchaseDeclinePolicies,
+        IEnumerable<PolicyCapabilityRegistration> policyCapabilities,
         IEnumerable<MatchTieBreakPolicy> matchTieBreakPolicies,
         bool supportsRoundLimitedScore)
     {
@@ -40,8 +127,9 @@ internal sealed class ProfileComponentRegistry
         _statuses = new HashSet<StatusId>(statuses ?? throw new ArgumentNullException(nameof(statuses)));
         _startingPlayerPolicies = new HashSet<StartingPlayerPolicyKind>(startingPlayerPolicies ?? throw new ArgumentNullException(nameof(startingPlayerPolicies)));
         _purchaseDeclinePolicies = (purchaseDeclinePolicies ?? throw new ArgumentNullException(nameof(purchaseDeclinePolicies)))
-            .Distinct()
-            .ToDictionary(policy => policy, CreatePurchaseDeclineHandler);
+            .ToDictionary(registration => registration.Policy);
+        _policyCapabilities = (policyCapabilities ?? throw new ArgumentNullException(nameof(policyCapabilities)))
+            .ToDictionary(registration => registration.Id, registration => registration.Handler);
         _matchTieBreakPolicies = (matchTieBreakPolicies ?? throw new ArgumentNullException(nameof(matchTieBreakPolicies)))
             .Distinct()
             .ToDictionary(policy => policy, CreateTieBreakHandler);
@@ -53,7 +141,8 @@ internal sealed class ProfileComponentRegistry
         [EffectKinds.Move, EffectKinds.ResourceChange],
         [],
         [StartingPlayerPolicyKind.FixedOrder, StartingPlayerPolicyKind.Random, StartingPlayerPolicyKind.HighestRoll],
-        [PurchaseDeclinePolicyKind.LeaveUnowned],
+        [PurchasePolicyRegistration.LeaveUnowned()],
+        [],
         [MatchTieBreakPolicy.LowestPlayerId],
         supportsRoundLimitedScore: true);
 
@@ -73,8 +162,34 @@ internal sealed class ProfileComponentRegistry
     internal void ExecutePassOriginReward(ProfileExecutionContext context, int originPasses, string path) =>
         context.ApplyConfiguredOriginReward(originPasses, path);
 
-    internal void ExecutePurchaseDecline(ProfileExecutionContext context, PurchaseDeclinePolicyKind policy) =>
-        _purchaseDeclinePolicies[policy](context);
+    internal void ExecutePurchaseNonPurchase(
+        ProfileExecutionContext context,
+        PurchaseDeclinePolicyKind policy,
+        PurchaseNonPurchaseReason reason)
+    {
+        PurchasePolicyRegistration registration = _purchaseDeclinePolicies[policy];
+        ProfilePolicyResult result = registration.Handler(context, reason);
+        if (result.Kind == ProfilePolicyResultKind.Continue)
+            return;
+
+        CapabilityId request = result.RequestedCapabilityId;
+        if (!request.IsValid || !registration.PossibleCapabilityRequests.Contains(request))
+        {
+            throw new ProfileExecutionException(
+                ProfileExecutionErrorKind.UnsupportedExecutionShape,
+                "policy.purchase-decline.result",
+                $"Purchase policy '{policy}' returned undeclared capability request '{request}'.");
+        }
+        if (!_policyCapabilities.TryGetValue(request, out PolicyCapabilityExecutionHandler? handler))
+        {
+            throw new ProfileExecutionException(
+                ProfileExecutionErrorKind.UnsupportedExecutionShape,
+                "policy.purchase-decline.result.capabilityId",
+                $"Requested capability '{request}' is not registered for policy execution.");
+        }
+
+        handler(context);
+    }
 
     internal int SelectRoundLimitedWinner(ProfileExecutionContext context, RoundLimitedScorePolicy policy)
     {
@@ -127,6 +242,15 @@ internal sealed class ProfileComponentRegistry
             throw UnsupportedPolicy("profile.setup.startingPlayerPolicy", profile.Setup.StartingPlayerPolicy);
         if (!_purchaseDeclinePolicies.ContainsKey(profile.Policies.PurchaseDecline))
             throw UnsupportedPolicy("profile.policies.purchaseDecline", profile.Policies.PurchaseDecline);
+        foreach (CapabilityId request in _purchaseDeclinePolicies[profile.Policies.PurchaseDecline].PossibleCapabilityRequests)
+        {
+            if (!_policyCapabilities.ContainsKey(request))
+            {
+                throw Unsupported(
+                    "profile.policies.purchaseDecline",
+                    $"Purchase policy '{profile.Policies.PurchaseDecline}' can request capability '{request}', but it is not registered for policy execution.");
+            }
+        }
         if (!_supportsRoundLimitedScore)
             throw new GameSetupException(GameSetupErrorKind.UnsupportedPolicy, "profile.policies.matchEnd", "The round-limited score policy is not registered for execution.");
         if (!_matchTieBreakPolicies.ContainsKey(profile.Policies.MatchEnd.TieBreak))
@@ -188,11 +312,6 @@ internal sealed class ProfileComponentRegistry
             return static (context, definition, path) => context.ApplyResourceChange((ResourceChangeEffectDefinition)definition, path);
         throw new ArgumentException($"Effect '{id}' has no trusted handler.", nameof(id));
     }
-
-    private static Action<ProfileExecutionContext> CreatePurchaseDeclineHandler(PurchaseDeclinePolicyKind policy) =>
-        policy == PurchaseDeclinePolicyKind.LeaveUnowned
-            ? static context => context.LeaveCurrentSpaceUnowned()
-            : throw new ArgumentException($"Purchase-decline policy '{policy}' has no trusted handler.", nameof(policy));
 
     private static Func<ProfileExecutionContext, ResourceId, int> CreateTieBreakHandler(MatchTieBreakPolicy policy) =>
         policy == MatchTieBreakPolicy.LowestPlayerId

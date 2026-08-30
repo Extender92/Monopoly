@@ -32,6 +32,14 @@ public sealed record OwnershipChangedNotification(
     PresentationToken Token)
     : GameNotification(Token);
 
+public sealed record DecisionResolvedNotification(
+    Guid DecisionId,
+    int PlayerId,
+    DecisionKindId DecisionKind,
+    DecisionOptionId Response,
+    PresentationToken Token)
+    : GameNotification(Token);
+
 public sealed record CardDrawnNotification(
     ICardView Card,
     DeckId DeckId,

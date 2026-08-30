@@ -41,7 +41,9 @@ immutable pending decision. The frontend later submits a DecisionResponse with
 the same decision ID, participant ID and an allowed response.
 
 Core validates stale, duplicate, unavailable and participant-mismatched
-responses without mutation. Runtime callbacks are never stored in match state.
+responses without mutation. Purchase responses additionally revalidate the
+current participant, space, capability, profile-derived price, ownership and
+available resources. Runtime callbacks are never stored in match state.
 
 The Demo baseline requires:
 
@@ -50,7 +52,7 @@ The Demo baseline requires:
 3. apply the pass-origin reward when policy permits;
 4. resolve the destination;
 5. offer an unowned purchasable space;
-6. leave it unowned when the player declines;
+6. run the selected non-purchase policy when the player declines or cannot pay;
 7. charge a fixed usage fee when another participant owns it;
 8. draw and rotate a card from the referenced generic deck;
 9. apply its ordered declarative effects;
@@ -70,6 +72,12 @@ Nested draw destinations and complex movement cycles remain rejected until
 Mandatory debits stop at zero. A usage fee transfers only the amount actually
 available. Optional purchases require the full configured price. Positive
 overflow rejects the prepared transition before any authoritative mutation.
+
+The Demo's `leave-unowned` policy returns a generic continue result. Core's
+trusted registry can dispatch a future policy result that requests an
+independently registered capability, but the engine does not assume that such
+a capability exists and does not contain an auction flow. Missing, undeclared
+or failing dispatch rejects the detached transition.
 
 ## Match-scoped services
 

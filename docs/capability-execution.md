@@ -42,17 +42,24 @@ Landing handlers run in the fixed registry order `Ownable`, `Purchasable`,
 
 ### Purchasable
 
-- The space must be ownable, currently unowned and the participant must have
-  the complete configured price.
+- The space must be ownable and currently unowned. Price and resource identity
+  come from the validated capability.
 - Core commits movement, pauses at an immutable `PurchaseDecision` and stores a
   primitive continuation. No resource or ownership change occurs yet.
-- Accept debits the exact price and assigns the participant once. Decline uses
-  the registered `leave-unowned` policy and performs no economic mutation.
-- Malformed, stale, duplicate, disallowed or wrong-participant responses are
-  rejected without mutation.
-- Ownership and resource notifications are emitted only after a valid accept.
-
-Issue #35 owns further adversarial purchase-response hardening.
+- A participant who cannot afford the complete price receives no decision. The
+  same registered non-purchase policy used by an explicit decline runs instead.
+- A response revalidates the phase, opaque decision ID, participant,
+  continuation, current space, capability, price, ownership and affordability.
+- Accept uses an exact debit and assigns the participant in one detached
+  transition. Decline uses the registered `leave-unowned` policy and performs
+  no economic mutation.
+- A policy returns either `Continue` or a request for a capability independently
+  registered in the trusted Core registry. Schema version 1 only produces
+  `Continue`; it contains no auction policy or capability.
+- Malformed, stale, duplicate, disallowed, wrong-participant, insufficient-
+  resource and changed-precondition responses are rejected without mutation.
+- Resource, ownership and generic decision-resolution notifications are emitted
+  only after the complete response transition commits.
 
 ### UsageFee
 

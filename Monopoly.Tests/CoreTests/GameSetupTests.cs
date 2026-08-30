@@ -364,7 +364,8 @@ public sealed class GameSetupTests
             effects ?? [EffectKinds.Move, EffectKinds.ResourceChange],
             statuses ?? [],
             startingPolicies ?? [StartingPlayerPolicyKind.FixedOrder, StartingPlayerPolicyKind.Random, StartingPlayerPolicyKind.HighestRoll],
-            [PurchaseDeclinePolicyKind.LeaveUnowned],
+            [PurchasePolicyRegistration.LeaveUnowned()],
+            [],
             [MatchTieBreakPolicy.LowestPlayerId],
             supportsRoundLimitedScore);
 

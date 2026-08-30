@@ -53,7 +53,13 @@ internal sealed class ProfileExecutionContext
         if (!_transition.Ownership.TryGetValue(_currentSpace.Id, out int? ownerId) || ownerId is not null)
             return;
         if (Actor.Resources[capability.Price.ResourceId] < capability.Price.Value)
+        {
+            _game.Registry.ExecutePurchaseNonPurchase(
+                this,
+                _game.Profile.Policies.PurchaseDecline,
+                PurchaseNonPurchaseReason.InsufficientResources);
             return;
+        }
 
         PurchaseDecision decision = new(
             Guid.NewGuid(),
@@ -71,8 +77,13 @@ internal sealed class ProfileExecutionContext
 
     internal void ApplyPurchase(PurchaseDecision decision)
     {
-        DebitBounded(ActorPlayerId, decision.Price.ResourceId, decision.Price.Value);
-        int? previous = _transition.Ownership[decision.SpaceId];
+        if (decision.PlayerId != ActorPlayerId || decision.SpaceId != CurrentSpaceId ||
+            !_transition.Ownership.TryGetValue(decision.SpaceId, out int? previous) || previous is not null)
+        {
+            throw ExecutionError(ProfileExecutionErrorKind.InvalidRuntimeState, "decision.purchase", "The purchase preconditions changed before commit.");
+        }
+
+        DebitExact(ActorPlayerId, decision.Price.ResourceId, decision.Price.Value, "decision.purchase.price");
         _transition.Ownership[decision.SpaceId] = ActorPlayerId;
         _transition.Notifications.Add(new OwnershipChangedNotification(
             decision.SpaceId,
@@ -242,6 +253,23 @@ internal sealed class ProfileExecutionContext
         int debit = (int)Math.Min(previous, requested);
         if (debit == 0) return;
         player.Resources[resourceId] = previous - debit;
+        _transition.Notifications.Add(new ResourceChangedNotification(
+            playerId,
+            resourceId,
+            previous,
+            player.Resources[resourceId],
+            _game.ResourcePresentationToken(resourceId)));
+    }
+
+    private void DebitExact(int playerId, ResourceId resourceId, int requested, string path)
+    {
+        PreparedPlayerState player = _transition.Players[playerId];
+        int previous = player.Resources[resourceId];
+        if (requested < 0 || previous < requested)
+            throw ExecutionError(ProfileExecutionErrorKind.InvalidRuntimeState, path, "The exact resource debit cannot be committed.");
+        if (requested == 0) return;
+
+        player.Resources[resourceId] = previous - requested;
         _transition.Notifications.Add(new ResourceChangedNotification(
             playerId,
             resourceId,

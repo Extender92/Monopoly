@@ -58,6 +58,14 @@ It covers tracks of 1, 2, 3, 4, 27 and 53 spaces; zero, one and multiple decks;
 movement, purchases, bounded fees, resource effects, resumable decisions,
 rounds, terminal scoring, atomic failures and match isolation.
 
+Purchase tests distinguish initially unaffordable landings from accept
+responses that become unaffordable after a decision was created. They also
+cover exact one-time acceptance, Demo decline, malformed, disallowed, stale,
+duplicate and wrong-participant responses, changed decision preconditions and
+post-commit notifications. Synthetic trusted-registry tests prove that a
+decline policy may request only a declared, independently registered capability
+and that missing, unexpected or failing dispatch cannot commit match state.
+
 The pre-#75 baseline contained 289 tests, many of which asserted removed
 detention, building, mortgage, special-property and legacy persistence
 behavior. Test-count comparison is therefore not a compatibility measure;
