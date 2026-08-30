@@ -76,6 +76,9 @@ Landing handlers run in the fixed registry order `Ownable`, `Purchasable`,
 - The referenced deck was validated before setup and is non-empty.
 - The first current card is selected and rotated to the back in the committed
   transition.
+- A destination may resolve another Draw capability. If it references the same
+  deck, that nested draw observes the already prepared rotation and therefore
+  selects the next current card.
 - The card's effects run in declared order. A failed later effect also discards
   the prepared rotation and all earlier effect mutations.
 - The committed draw emits `CardDrawnNotification` with generic card/deck IDs
@@ -99,9 +102,28 @@ Landing handlers run in the fixed registry order `Ownable`, `Purchasable`,
   `ignore` never does.
 - With `resolveDestination=false`, only position changes. With
   `resolveDestination=true`, the target uses the normal landing pipeline once.
-- The baseline permits at most one movement effect per card and requires a
-  destination-resolving move to be last. Nested draw destinations are rejected
-  before setup until #36 defines cycle and chain behavior.
+- A card may contain multiple non-resolving moves mixed with resource changes.
+  It may contain at most one destination-resolving move, which must be its final
+  effect. This terminal rule means no suspended outer effect work remains when
+  a destination pauses for a decision.
+
+## Effect chains and decisions
+
+Setup simulates every card from every space that can draw its deck. Terminal
+resolving moves form a graph between Draw spaces. Any possible self-loop or
+longer cycle is rejected independently of initial deck order; valid chains are
+therefore finite and deterministic.
+
+Each requested destination runs the same ordered landing pipeline exactly
+once. A purchase may pause that pipeline. After its response, the primitive
+continuation resumes at the next capability and may reach another purchase
+decision through a later nested draw. The new decision replaces the completed
+boundary while retaining the original turn roll. Earlier draws, effects and
+landings are not replayed.
+
+Core derives the completed `TurnResult` from the actor's committed SpaceId.
+Notifications for each action segment remain staged until that segment commits;
+a failed chain publishes none of its prepared notifications.
 
 ## Rounds and terminal scoring
 

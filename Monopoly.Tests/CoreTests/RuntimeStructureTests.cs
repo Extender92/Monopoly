@@ -28,7 +28,7 @@ public sealed class RuntimeStructureTests
     }
 
     [Fact]
-    public void UnsupportedNestedDrawShapeFailsBeforeMatchConstruction()
+    public void SelfReferentialNestedDrawCycleFailsBeforeMatchConstruction()
     {
         DeckId deckId = new("deck.execution");
         ValidatedGameProfile profile = ExecutionProfileFactory.Create(
@@ -55,11 +55,13 @@ public sealed class RuntimeStructureTests
             GameSetup.Create(profile, [new PlayerSetup(1, "Blocked")], new MinimumMatchRandomSource()));
 
         Assert.Equal(GameSetupErrorKind.UnsupportedComponent, exception.Kind);
-        Assert.Contains("#36", exception.Message, StringComparison.Ordinal);
+        Assert.Equal("profile.decks[0].cards[0].effects[0]", exception.Path);
+        Assert.Contains("prohibited cycle", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("space.execution-1 -> space.execution-1", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void MultipleMovementEffectsFailBeforeMatchConstruction()
+    public void MultipleNonResolvingMovementEffectsAreAccepted()
     {
         DeckId deckId = new("deck.execution");
         ValidatedGameProfile profile = ExecutionProfileFactory.Create(
@@ -80,11 +82,41 @@ public sealed class RuntimeStructureTests
                 ])
             ]);
 
+        Game game = GameSetup.Create(profile, [new PlayerSetup(1, "Supported")], new MinimumMatchRandomSource());
+        GameActionResult result = game.PlayTurn();
+
+        Assert.Equal(GameActionStatus.TurnCompleted, result.Status);
+        Assert.Equal(new SpaceId("space.execution-0"), result.TurnResult!.LandedSpace.Id);
+    }
+
+    [Fact]
+    public void MultipleDestinationResolvingMovementsFailBeforeMatchConstruction()
+    {
+        DeckId deckId = new("deck.execution");
+        ValidatedGameProfile profile = ExecutionProfileFactory.Create(
+            spaceCount: 4,
+            spaceCapabilities: new Dictionary<int, IReadOnlyList<CapabilityDefinition>>
+            {
+                [1] = [new DrawCapabilityDefinition(deckId)]
+            },
+            decks:
+            [
+                new TestDeckSpec("deck.execution",
+                [
+                    new TestCardSpec("card.execution-multiple-resolving",
+                    [
+                        new MoveEffectDefinition(new RelativeMoveTarget(1), PassOriginPolicy.Ignore, resolveDestination: true),
+                        new MoveEffectDefinition(new RelativeMoveTarget(1), PassOriginPolicy.Ignore, resolveDestination: true)
+                    ])
+                ])
+            ]);
+
         GameSetupException exception = Assert.Throws<GameSetupException>(() =>
             GameSetup.Create(profile, [new PlayerSetup(1, "Blocked")], new MinimumMatchRandomSource()));
 
         Assert.Equal(GameSetupErrorKind.UnsupportedComponent, exception.Kind);
-        Assert.Contains("at most one movement effect", exception.Message, StringComparison.Ordinal);
+        Assert.Equal("profile.decks[0].cards[0].effects", exception.Path);
+        Assert.Contains("at most one destination-resolving", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]

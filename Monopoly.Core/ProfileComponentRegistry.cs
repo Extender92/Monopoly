@@ -216,9 +216,11 @@ internal sealed class ProfileComponentRegistry
             for (int cardIndex = 0; cardIndex < deck.Cards.Count; cardIndex++)
             {
                 CardDefinition card = deck.Cards[cardIndex];
-                MoveEffectDefinition[] moves = card.Effects.Entries.OfType<MoveEffectDefinition>().ToArray();
-                if (moves.Length > 1)
-                    throw Unsupported($"profile.decks[{deckIndex}].cards[{cardIndex}].effects", "The baseline supports at most one movement effect per card.");
+                int resolvingMoves = card.Effects.Entries
+                    .OfType<MoveEffectDefinition>()
+                    .Count(effect => effect.ResolveDestination);
+                if (resolvingMoves > 1)
+                    throw Unsupported($"profile.decks[{deckIndex}].cards[{cardIndex}].effects", "A card can contain at most one destination-resolving movement effect.");
 
                 for (int effectIndex = 0; effectIndex < card.Effects.Entries.Count; effectIndex++)
                 {
@@ -256,32 +258,121 @@ internal sealed class ProfileComponentRegistry
         if (!_matchTieBreakPolicies.ContainsKey(profile.Policies.MatchEnd.TieBreak))
             throw UnsupportedPolicy("profile.policies.matchEnd.tieBreak", profile.Policies.MatchEnd.TieBreak);
 
-        ValidateNoNestedDrawDestinations(profile);
+        ValidateEffectChains(profile);
     }
 
-    private void ValidateNoNestedDrawDestinations(ValidatedGameProfile profile)
+    private static void ValidateEffectChains(ValidatedGameProfile profile)
     {
-        Dictionary<DeckId, DeckDefinition> decks = profile.RuleGraph.Decks.ToDictionary(deck => deck.Id);
-        Dictionary<SpaceId, SpaceDefinition> spaces = profile.RuleGraph.Spaces.ToDictionary(space => space.Id);
-        foreach (SpaceDefinition source in profile.RuleGraph.Spaces)
+        GameTrack track = profile.RuleGraph.Track;
+        Dictionary<DeckId, (DeckDefinition Deck, int Index)> decks = profile.RuleGraph.Decks
+            .Select((deck, index) => (deck, index))
+            .ToDictionary(entry => entry.deck.Id, entry => (entry.deck, entry.index));
+        SpaceDefinition[] drawSpaces = profile.RuleGraph.Spaces
+            .Where(space => space.Capabilities.Contains(CapabilityKinds.Draw))
+            .OrderBy(space => space.Id)
+            .ToArray();
+        HashSet<SpaceId> drawSpaceIds = drawSpaces.Select(space => space.Id).ToHashSet();
+        Dictionary<SpaceId, List<EffectChainEdge>> edges = drawSpaces
+            .ToDictionary(space => space.Id, _ => new List<EffectChainEdge>());
+
+        foreach (SpaceDefinition source in drawSpaces)
         {
-            DrawCapabilityDefinition? draw = source.Capabilities.Find<DrawCapabilityDefinition>();
-            if (draw is null) continue;
-            int sourceIndex = profile.RuleGraph.Track.GetIndex(source.Id);
-            foreach (CardDefinition card in decks[draw.DeckId].Cards)
+            DrawCapabilityDefinition draw = source.Capabilities.Find<DrawCapabilityDefinition>()!;
+            (DeckDefinition deck, int deckIndex) = decks[draw.DeckId];
+            int sourceIndex = track.GetIndex(source.Id);
+            foreach ((CardDefinition card, int cardIndex) in deck.Cards
+                         .Select((card, index) => (card, index))
+                         .OrderBy(entry => entry.card.Id))
             {
-                MoveEffectDefinition? move = card.Effects.Entries.OfType<MoveEffectDefinition>().SingleOrDefault();
-                if (move is not { ResolveDestination: true }) continue;
-                SpaceId target = move.Target switch
+                int currentIndex = sourceIndex;
+                EffectChainEdge? nestedDraw = null;
+                for (int effectIndex = 0; effectIndex < card.Effects.Entries.Count; effectIndex++)
                 {
-                    RelativeMoveTarget relative => profile.RuleGraph.Track.GetSpaceIdAt(
-                        profile.RuleGraph.Track.NormalizeIndex((long)sourceIndex + relative.Offset)),
-                    AbsoluteMoveTarget absolute => absolute.SpaceId,
-                    _ => throw new InvalidOperationException("The validated movement target is unsupported.")
-                };
-                if (spaces[target].Capabilities.Contains(CapabilityKinds.Draw))
-                    throw Unsupported($"profile.decks[{draw.DeckId}].cards[{card.Id}]", "Nested draw destinations are deferred to issue #36.");
+                    if (card.Effects.Entries[effectIndex] is not MoveEffectDefinition move) continue;
+
+                    string path = $"profile.decks[{deckIndex}].cards[{cardIndex}].effects[{effectIndex}]";
+                    currentIndex = ResolveTargetIndex(track, currentIndex, move, path);
+                    SpaceId target = track.GetSpaceIdAt(currentIndex);
+                    if (move.ResolveDestination && drawSpaceIds.Contains(target))
+                        nestedDraw = new EffectChainEdge(target, path);
+                }
+
+                if (nestedDraw is not null)
+                    edges[source.Id].Add(nestedDraw);
             }
+        }
+
+        DetectEffectCycles(edges);
+    }
+
+    private static int ResolveTargetIndex(
+        GameTrack track,
+        int originIndex,
+        MoveEffectDefinition move,
+        string path)
+    {
+        switch (move.Target)
+        {
+            case RelativeMoveTarget relative:
+                long rawTarget = (long)originIndex + relative.Offset;
+                long originPasses = relative.Offset > 0 ? rawTarget / track.Count : 0;
+                if (originPasses > int.MaxValue)
+                    throw Unsupported($"{path}.target.offset", "The relative movement offset produces an unrepresentable origin-pass count.");
+                return track.NormalizeIndex(rawTarget);
+            case AbsoluteMoveTarget absolute:
+                try
+                {
+                    return track.GetIndex(absolute.SpaceId);
+                }
+                catch (KeyNotFoundException exception)
+                {
+                    throw new GameSetupException(
+                        GameSetupErrorKind.UnsupportedComponent,
+                        $"{path}.target.spaceId",
+                        $"The movement target '{absolute.SpaceId}' does not belong to the validated track.",
+                        exception);
+                }
+            default:
+                throw Unsupported($"{path}.target", "The movement target is not registered for execution.");
+        }
+    }
+
+    private static void DetectEffectCycles(Dictionary<SpaceId, List<EffectChainEdge>> edges)
+    {
+        Dictionary<SpaceId, EffectChainVisitState> states = edges.Keys
+            .ToDictionary(id => id, _ => EffectChainVisitState.Unvisited);
+        List<SpaceId> activePath = [];
+
+        foreach (SpaceId source in edges.Keys.OrderBy(id => id))
+            Visit(source);
+
+        return;
+
+        void Visit(SpaceId source)
+        {
+            if (states[source] == EffectChainVisitState.Complete) return;
+
+            states[source] = EffectChainVisitState.Active;
+            activePath.Add(source);
+            foreach (EffectChainEdge edge in edges[source]
+                         .OrderBy(candidate => candidate.Target)
+                         .ThenBy(candidate => candidate.Path, StringComparer.Ordinal))
+            {
+                if (states[edge.Target] == EffectChainVisitState.Active)
+                {
+                    int cycleStart = activePath.IndexOf(edge.Target);
+                    IEnumerable<SpaceId> cycle = activePath.Skip(cycleStart).Append(edge.Target);
+                    throw Unsupported(
+                        edge.Path,
+                        $"The destination-resolving event chain contains a prohibited cycle: {string.Join(" -> ", cycle)}.");
+                }
+
+                if (states[edge.Target] == EffectChainVisitState.Unvisited)
+                    Visit(edge.Target);
+            }
+
+            activePath.RemoveAt(activePath.Count - 1);
+            states[source] = EffectChainVisitState.Complete;
         }
     }
 
@@ -323,4 +414,13 @@ internal sealed class ProfileComponentRegistry
 
     private static GameSetupException UnsupportedPolicy<T>(string path, T policy) where T : struct, Enum =>
         new(GameSetupErrorKind.UnsupportedPolicy, path, $"Policy '{policy}' is not registered for execution.");
+
+    private sealed record EffectChainEdge(SpaceId Target, string Path);
+
+    private enum EffectChainVisitState
+    {
+        Unvisited,
+        Active,
+        Complete
+    }
 }
