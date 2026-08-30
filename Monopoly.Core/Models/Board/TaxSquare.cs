@@ -10,11 +10,6 @@ namespace Monopoly.Core.Models.Board
             Price = tax;
         }
 
-        internal TaxSquare(int position, int tax, string name, string info)
-            : this(position, tax, LegacyPresentationFactory.Space(position, name, info))
-        {
-        }
-
         internal override void LandOn(Player player, Game game)
         {
             game.Handler.TryResolvePayment(player, Price, null, $"Could not afford tax of {Price}");

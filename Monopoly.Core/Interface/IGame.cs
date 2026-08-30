@@ -21,7 +21,6 @@ namespace Monopoly.Core.Interface
         IReadOnlyList<Player> Players { get; }
         Player CurrentPlayer { get; }
         DiceRoll? LastDiceRoll { get; }
-        GameRules Rules { get; }
         ProfilePresentation Presentation { get; }
         StatusCollection Statuses { get; }
         int Fines { get; }

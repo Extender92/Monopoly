@@ -21,7 +21,7 @@ namespace Monopoly.Tests.CoreTests
             var gameRules = new GameRules(numberOfPlayers: 4, numberOfDice: 2, dieSides: 6);
 
             // Act
-            var game = CoreGameSetup.Setup(gameRules, randomSource: new MinimumMatchRandomSource());
+        var game = SyntheticGameFactory.Setup(gameRules, randomSource: new MinimumMatchRandomSource());
 
             // Assert
             Assert.NotNull(game);

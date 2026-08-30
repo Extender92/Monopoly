@@ -103,11 +103,11 @@ public class ConsoleEventHandlerTests
     private static ConsoleSession CreateSession()
     {
         GameRules rules = new(2, 2, 6);
-        Game game = CoreGameSetup.Setup(rules);
+        Game game = SyntheticGameFactory.Setup(rules);
         Mock<IConsoleWrapper> console = new();
-        ConsolePrinter printer = new(console.Object, game.Board.Squares, rules);
+        ConsolePrinter printer = new(console.Object, game);
         ConsoleLogPrinter logPrinter = new(console.Object);
-        ConsoleCardPrinter cardPrinter = new(console.Object, game.Board.Squares, rules);
+        ConsoleCardPrinter cardPrinter = new(console.Object, game);
         Mock<IGameSaveStore> saveStore = new();
         Input input = new(console.Object, new Mock<IMenuOptionSelector>().Object);
         ConsolePlayerDecisionProvider decisions = new(printer, input, game, saveStore.Object);

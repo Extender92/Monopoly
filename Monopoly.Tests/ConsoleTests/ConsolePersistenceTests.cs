@@ -10,6 +10,22 @@ namespace Monopoly.Tests.ConsoleTests;
 
 public sealed class ConsolePersistenceTests
 {
+    [Fact]
+    public void StartNewGameShowsTheValidatedDemoTransitionMessageWithoutUsingStorage()
+    {
+        Mock<IGameSaveStore> saveStore = new();
+        Mock<IConsoleWrapper> console = new();
+        console.Setup(wrapper => wrapper.ReadLine()).Returns(string.Empty);
+
+        Program.StartNewGame(saveStore.Object, console.Object);
+
+        console.Verify(wrapper => wrapper.WriteLine(It.Is<string>(message => message.StartsWith(
+            "Match creation is temporarily unavailable while validated Demo setup is being completed.",
+            StringComparison.Ordinal))), Times.Once);
+        console.Verify(wrapper => wrapper.ReadLine(), Times.Once);
+        saveStore.VerifyNoOtherCalls();
+    }
+
     [Theory]
     [InlineData(SaveStoreErrorKind.NotFound, "No save file was found.")]
     [InlineData(SaveStoreErrorKind.InvalidData, "The save file contains invalid data.")]
@@ -42,7 +58,7 @@ public sealed class ConsolePersistenceTests
     [Fact]
     public void PlayerActionMenuSavesThroughInjectedStoreExactlyOnce()
     {
-        Game game = CoreGameSetup.Setup(new GameRules(2, 2, 6));
+        Game game = SyntheticGameFactory.Setup(new GameRules(2, 2, 6));
         Mock<IGameSaveStore> saveStore = new();
         Mock<IConsoleWrapper> console = new();
         PlayerActionMenu menu = new(game, game.CurrentPlayer, saveStore.Object, console.Object);
@@ -56,7 +72,7 @@ public sealed class ConsolePersistenceTests
     [Fact]
     public void PlayerActionMenuHandlesTypedSaveFailure()
     {
-        Game game = CoreGameSetup.Setup(new GameRules(2, 2, 6));
+        Game game = SyntheticGameFactory.Setup(new GameRules(2, 2, 6));
         Mock<IGameSaveStore> saveStore = new();
         saveStore
             .Setup(store => store.Save(game))
@@ -77,11 +93,11 @@ public sealed class ConsolePersistenceTests
     [Fact]
     public void ConsoleGameCreatesEventAndTurnMenusWithItsInjectedStore()
     {
-        Game game = CoreGameSetup.Setup(new GameRules(2, 2, 6));
+        Game game = SyntheticGameFactory.Setup(new GameRules(2, 2, 6));
         Mock<IConsoleWrapper> console = new();
-        ConsolePrinter printer = new(console.Object, game.Board.Squares, game.Rules);
+        ConsolePrinter printer = new(console.Object, game);
         ConsoleLogPrinter logPrinter = new(console.Object);
-        ConsoleCardPrinter cardPrinter = new(console.Object, game.Board.Squares, game.Rules);
+        ConsoleCardPrinter cardPrinter = new(console.Object, game);
         Mock<IGameSaveStore> saveStore = new();
         Input input = new(console.Object, new Mock<IMenuOptionSelector>().Object);
         ConsolePlayerDecisionProvider decisions = new(printer, input, game, saveStore.Object);

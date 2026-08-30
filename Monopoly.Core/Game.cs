@@ -24,14 +24,14 @@ public sealed class Game : IGame
     public IGameLog Logs => _logs;
     public IGameNotificationSource Notifications => _notifications;
     internal ILogHandler LogWriter => _logs;
-    internal FortuneCardHandler CardHandler { get; }
+    internal DeckRuntime DeckRuntime { get; }
     public GameBoard Board { get; }
-    public DeckCollection Decks => CardHandler.CreateSnapshot();
+    public DeckCollection Decks => DeckRuntime.CreateSnapshot();
     public IReadOnlyList<Player> Players => _playersView;
     public Player CurrentPlayer { get; private set; }
     public DiceRoll? LastDiceRoll { get; private set; }
     internal MatchRandomizer Randomizer { get; }
-    public GameRules Rules { get; }
+    internal GameRules Rules { get; }
     public ProfilePresentation Presentation { get; }
     internal Transaction Transactions { get; }
     internal Jail TheJail { get; }
@@ -49,14 +49,29 @@ public sealed class Game : IGame
     internal IReadOnlyCollection<Guid> ConsumedDecisionIds => _consumedDecisionIds;
     internal int NotificationSubscriberCount => _notifications.SubscriberCount;
 
-    public Game(
+    internal Game(
         IEnumerable<Player> players,
         Player currentPlayer,
         GameRules rules,
+        GameBoard board,
+        IEnumerable<RuntimeDeckRegistration> deckRegistrations,
+        int detentionSpacePosition,
+        ProfilePresentation presentation,
         IPlayerDecisionProvider? decisions = null,
-        ProfilePresentation? presentation = null,
-        IMatchRandomSource? randomSource = null)
-        : this(players, currentPlayer, rules, new LogHandler(), decisions, presentation, randomSource, true)
+        IMatchRandomSource? randomSource = null,
+        bool shuffleDecks = true)
+        : this(
+            players,
+            currentPlayer,
+            rules,
+            board,
+            deckRegistrations,
+            detentionSpacePosition,
+            presentation,
+            new LogHandler(),
+            decisions,
+            randomSource,
+            shuffleDecks)
     {
     }
 
@@ -64,28 +79,24 @@ public sealed class Game : IGame
         IEnumerable<Player> players,
         Player currentPlayer,
         GameRules rules,
-        IPlayerDecisionProvider? decisions,
-        ProfilePresentation? presentation,
-        IMatchRandomSource? randomSource,
-        bool shuffleDecks)
-        : this(players, currentPlayer, rules, new LogHandler(), decisions, presentation, randomSource, shuffleDecks)
-    {
-    }
-
-    internal Game(
-        IEnumerable<Player> players,
-        Player currentPlayer,
-        GameRules rules,
+        GameBoard board,
+        IEnumerable<RuntimeDeckRegistration> deckRegistrations,
+        int detentionSpacePosition,
+        ProfilePresentation presentation,
         ILogHandler logs,
         IPlayerDecisionProvider? decisions = null,
-        ProfilePresentation? presentation = null,
         IMatchRandomSource? randomSource = null,
         bool shuffleDecks = true)
     {
         ArgumentNullException.ThrowIfNull(players);
         ArgumentNullException.ThrowIfNull(currentPlayer);
         ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(board);
+        ArgumentNullException.ThrowIfNull(deckRegistrations);
+        ArgumentNullException.ThrowIfNull(presentation);
         ArgumentNullException.ThrowIfNull(logs);
+        if (detentionSpacePosition < 0 || detentionSpacePosition >= board.Track.Count)
+            throw new ArgumentOutOfRangeException(nameof(detentionSpacePosition));
 
         _players = players.ToList();
         if (_players.Count == 0 || _players.Any(player => player is null))
@@ -109,19 +120,32 @@ public sealed class Game : IGame
         Fines = 0;
         CurrentTurn = 1;
         Phase = GamePhase.ReadyForTurn;
-        Board = new GameBoard(rules);
-        CardHandler = new FortuneCardHandler(rules, Randomizer, shuffleDecks);
-        CardHandler.EnsureReferences(Board.ReferencedDeckIds);
-        ProfilePresentation defaultPresentation = LegacyPresentationFactory.Create(rules, Board, CardHandler);
-        Presentation = presentation ?? defaultPresentation;
-        Presentation.EnsureReferences(LegacyPresentationFactory.RequiredReferences(Board, CardHandler));
-        TheJail = new Jail(this, Board.Squares.OfType<JailSquare>().Single().Position);
+        Board = board;
+        DeckRuntime = new DeckRuntime(deckRegistrations, Randomizer, shuffleDecks);
+        DeckRuntime.EnsureReferences(Board.ReferencedDeckIds);
+        Presentation = presentation;
+        Presentation.EnsureReferences(RequiredPresentationTokens());
+        TheJail = new Jail(this, detentionSpacePosition);
         Handler = new GameHandler(this);
         Transactions = new Transaction(this);
 
         if (_logs is LogHandler logHandler)
             logHandler.OwnerGame = this;
     }
+
+    private IReadOnlyList<PresentationToken> RequiredPresentationTokens() =>
+    [
+        PresentationTokens.PrimaryResource,
+        PresentationTokens.PropertyPurchaseDecision,
+        PresentationTokens.DetentionReleaseDecision,
+        PresentationTokens.DetainedStatus,
+        PresentationTokens.LogNotification,
+        PresentationTokens.BoardNotification,
+        PresentationTokens.PlayerInformationNotification,
+        .. Board.Squares.Select(square => square.PresentationToken),
+        .. Board.Squares.OfType<PropertySquare>().Select(property => property.GroupPresentationToken),
+        .. DeckRuntime.RequiredPresentationTokens
+    ];
 
     internal string ResolveDisplayText(PresentationToken token) => Presentation.ResolveDisplayText(token);
 
@@ -649,7 +673,7 @@ public sealed class Game : IGame
         Phase = winner is null ? GamePhase.ReadyForTurn : GamePhase.GameOver;
     }
 
-    internal void ResetProgressForVersionOne()
+    internal void ResetReconstructedProgress()
     {
         PendingDecision = null;
         _turnContinuation = null;

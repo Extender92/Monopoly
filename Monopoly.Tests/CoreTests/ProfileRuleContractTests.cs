@@ -250,13 +250,21 @@ public sealed class ProfileRuleContractTests
         Type[] hiddenLegacyTypes =
         [
             typeof(Square), typeof(PropertySquare), typeof(RailroadSquare), typeof(UtilitySquare),
-            typeof(TaxSquare), typeof(ChanceSquare), typeof(CommunityChestSquare), typeof(GoSquare),
+            typeof(TaxSquare), typeof(DrawSquare), typeof(GoSquare),
             typeof(GoToJailSquare), typeof(JailSquare), typeof(ParkingSquare), typeof(Jail),
-            typeof(StatusDecision), typeof(UKChanceCard), typeof(USChanceCard),
-            typeof(UKCommunityChestCard), typeof(USCommunityChestCard)
+            typeof(StatusDecision)
         ];
 
         Assert.All(hiddenLegacyTypes, type => Assert.False(type.IsVisible, $"{type.FullName} is publicly visible."));
+        Assembly core = typeof(Game).Assembly;
+        Assert.Equal(
+            [typeof(DrawSquare)],
+            core.GetTypes().Where(type =>
+                type != typeof(IDeckReferenceSpace) &&
+                typeof(IDeckReferenceSpace).IsAssignableFrom(type)));
+        string[] editionPrefixes = [new(['U', 'K']), new(['U', 'S'])];
+        Assert.DoesNotContain(core.GetTypes(), type =>
+            editionPrefixes.Any(prefix => type.Name.StartsWith(prefix, StringComparison.Ordinal)));
         Assert.Null(typeof(Player).GetProperty("NumberOfGetOutOFJailCards"));
         Assert.Null(typeof(IGame).GetProperty("TheJail"));
         Assert.DoesNotContain(typeof(IGame).GetMethods(), method =>
@@ -304,7 +312,7 @@ public sealed class ProfileRuleContractTests
     public void InvalidRuleGraphConstructionCannotMutateAnActiveMatch()
     {
         Game game = new GameTestBuilder().Build();
-        string before = JsonSerializer.Serialize(GameStateV1Mapper.ToState(game));
+        string before = GameTestSnapshot.Capture(game);
         GameTrack track = Track(1);
 
         AssertContractError(ProfileContractErrorKind.InvalidCombination, () => new ProfileRuleGraph(
@@ -315,7 +323,7 @@ public sealed class ProfileRuleContractTests
             [],
             []));
 
-        Assert.Equal(before, JsonSerializer.Serialize(GameStateV1Mapper.ToState(game)));
+        Assert.Equal(before, GameTestSnapshot.Capture(game));
     }
 
     private static ProfileRuleGraph Graph(

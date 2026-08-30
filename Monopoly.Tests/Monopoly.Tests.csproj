@@ -30,8 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestData\game-state-v1.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="TestData\Profiles\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\profiles\demo\lantern-vale-v1.json"
+          Link="TestData\Profiles\Demo\lantern-vale-v1.json"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

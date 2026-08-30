@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "profileId": "profile.demo-001",
+  "revision": 1,
+  "profilePresentationToken": "profile.lantern-vale",
+  "presentation": [
+    {
+      "token": "profile.lantern-vale",
+      "displayText": "Lantern Vale",
+      "description": "Lease workshops, gather renown, and keep the valley's lantern route moving."
+    },
+    { "token": "resource.lumen", "displayText": "Lumen", "symbol": "L" },
+    { "token": "resource.renown", "displayText": "Renown", "symbol": "R" },
+    { "token": "accent.moss" },
+    { "token": "accent.glass" },
+    { "token": "accent.river" },
+    { "token": "accent.copper" },
+    { "token": "accent.lantern" },
+    { "token": "accent.neutral" },
+    { "token": "accent.event" },
+    { "token": "layout.route" },
+    { "token": "layout.workshop" },
+    { "token": "layout.event" },
+    { "token": "space.lantern-dock", "displayText": "Lantern Dock", "colorToken": "accent.neutral", "layoutToken": "layout.route" },
+    { "token": "space.mosslight-studio", "displayText": "Mosslight Studio", "colorToken": "accent.moss", "layoutToken": "layout.workshop" },
+    { "token": "space.courier-bell", "displayText": "Courier Bell", "colorToken": "accent.event", "layoutToken": "layout.event" },
+    { "token": "space.glasswing-atelier", "displayText": "Glasswing Atelier", "colorToken": "accent.glass", "layoutToken": "layout.workshop" },
+    { "token": "space.pebble-rest", "displayText": "Pebble Rest", "colorToken": "accent.neutral", "layoutToken": "layout.route" },
+    { "token": "space.copper-loom", "displayText": "Copper Loom", "colorToken": "accent.moss", "layoutToken": "layout.workshop" },
+    { "token": "space.ember-post", "displayText": "Ember Post", "colorToken": "accent.event", "layoutToken": "layout.event" },
+    { "token": "space.rainwheel-works", "displayText": "Rainwheel Works", "colorToken": "accent.river", "layoutToken": "layout.workshop" },
+    { "token": "space.market-breather", "displayText": "Market Breather", "colorToken": "accent.neutral", "layoutToken": "layout.route" },
+    { "token": "space.reed-bindery", "displayText": "Reed Bindery", "colorToken": "accent.moss", "layoutToken": "layout.workshop" },
+    { "token": "space.moonthread-room", "displayText": "Moonthread Room", "colorToken": "accent.lantern", "layoutToken": "layout.workshop" },
+    { "token": "space.tale-lantern", "displayText": "Tale Lantern", "colorToken": "accent.event", "layoutToken": "layout.event" },
+    { "token": "space.orchard-kiln", "displayText": "Orchard Kiln", "colorToken": "accent.copper", "layoutToken": "layout.workshop" },
+    { "token": "space.windstep-passage", "displayText": "Windstep Passage", "colorToken": "accent.neutral", "layoutToken": "layout.route" },
+    { "token": "space.cloudmill-annex", "displayText": "Cloudmill Annex", "colorToken": "accent.river", "layoutToken": "layout.workshop" },
+    { "token": "space.river-signal", "displayText": "River Signal", "colorToken": "accent.event", "layoutToken": "layout.event" },
+    { "token": "space.fernpress-workshop", "displayText": "Fernpress Workshop", "colorToken": "accent.moss", "layoutToken": "layout.workshop" },
+    { "token": "space.dawnclay-yard", "displayText": "Dawnclay Yard", "colorToken": "accent.copper", "layoutToken": "layout.workshop" },
+    { "token": "space.makers-commons", "displayText": "Makers' Commons", "colorToken": "accent.neutral", "layoutToken": "layout.route" },
+    { "token": "space.starlit-foundry", "displayText": "Starlit Foundry", "colorToken": "accent.lantern", "layoutToken": "layout.workshop" },
+    { "token": "space.ridge-courier", "displayText": "Ridge Courier", "colorToken": "accent.event", "layoutToken": "layout.event" },
+    { "token": "space.hazel-forge", "displayText": "Hazel Forge", "colorToken": "accent.copper", "layoutToken": "layout.workshop" },
+    { "token": "space.bluebell-lab", "displayText": "Bluebell Lab", "colorToken": "accent.glass", "layoutToken": "layout.workshop" },
+    { "token": "space.quiet-overlook", "displayText": "Quiet Overlook", "colorToken": "accent.neutral", "layoutToken": "layout.route" },
+    { "token": "space.beacon-workshop", "displayText": "Beacon Workshop", "colorToken": "accent.lantern", "layoutToken": "layout.workshop" },
+    { "token": "space.lantern-exchange", "displayText": "Lantern Exchange", "colorToken": "accent.event", "layoutToken": "layout.event" },
+    { "token": "space.valley-gate", "displayText": "Valley Gate", "colorToken": "accent.neutral", "layoutToken": "layout.route" },
+    {
+      "token": "deck.vale-messages",
+      "displayText": "Vale Messages",
+      "description": "News and errands shared along the route.",
+      "colorToken": "accent.event",
+      "layoutToken": "layout.event"
+    },
+    { "token": "card.lantern-jury", "shortText": "A lantern jury praises your craft." },
+    { "token": "card.early-crate", "shortText": "A delivery crate arrives ahead of schedule." },
+    { "token": "card.fresh-canvas", "shortText": "Weatherworn awnings need fresh canvas." },
+    { "token": "card.upper-path", "shortText": "The upper path clears; move ahead three spaces." },
+    { "token": "card.glass-markers", "shortText": "Follow the glass markers to Glasswing Atelier." },
+    { "token": "card.village-showcase", "shortText": "A village showcase brings new orders." },
+    { "token": "card.splintered-wheel", "shortText": "A cart wheel splinters; move back two spaces." },
+    { "token": "card.spare-tools", "shortText": "You lend spare tools to a neighboring maker." },
+    { "token": "card.ridge-shortcut", "shortText": "Take the ridge shortcut to Quiet Overlook." }
+  ],
+  "resources": [
+    { "id": "resource.lumen", "presentationToken": "resource.lumen" },
+    { "id": "resource.renown", "presentationToken": "resource.renown" }
+  ],
+  "setup": {
+    "minimumPlayers": 2,
+    "maximumPlayers": 5,
+    "diceCount": 2,
+    "dieSides": 8,
+    "startSpaceId": "space.s001",
+    "startingResources": [
+      { "resourceId": "resource.lumen", "value": 120 },
+      { "resourceId": "resource.renown", "value": 0 }
+    ],
+    "startingPlayerPolicy": "fixed-order"
+  },
+  "track": [
+    "space.s001", "space.s002", "space.s003", "space.s004", "space.s005", "space.s006", "space.s007",
+    "space.s008", "space.s009", "space.s010", "space.s011", "space.s012", "space.s013", "space.s014",
+    "space.s015", "space.s016", "space.s017", "space.s018", "space.s019", "space.s020", "space.s021",
+    "space.s022", "space.s023", "space.s024", "space.s025", "space.s026", "space.s027"
+  ],
+  "profileCapabilities": [
+    { "kind": "move" }
+  ],
+  "spaces": [
+    { "id": "space.s001", "presentationToken": "space.lantern-dock", "capabilities": [] },
+    { "id": "space.s002", "presentationToken": "space.mosslight-studio", "capabilities": [
+      { "kind": "ownable", "groupId": "group.fiber" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 18 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 4 } }
+    ] },
+    { "id": "space.s003", "presentationToken": "space.courier-bell", "capabilities": [{ "kind": "draw", "deckId": "deck.d001" }] },
+    { "id": "space.s004", "presentationToken": "space.glasswing-atelier", "capabilities": [
+      { "kind": "ownable", "groupId": "group.glass" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 31 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 7 } }
+    ] },
+    { "id": "space.s005", "presentationToken": "space.pebble-rest", "capabilities": [] },
+    { "id": "space.s006", "presentationToken": "space.copper-loom", "capabilities": [
+      { "kind": "ownable", "groupId": "group.fiber" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 24 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 5 } }
+    ] },
+    { "id": "space.s007", "presentationToken": "space.ember-post", "capabilities": [{ "kind": "draw", "deckId": "deck.d001" }] },
+    { "id": "space.s008", "presentationToken": "space.rainwheel-works", "capabilities": [
+      { "kind": "ownable", "groupId": "group.motion" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 37 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 8 } }
+    ] },
+    { "id": "space.s009", "presentationToken": "space.market-breather", "capabilities": [] },
+    { "id": "space.s010", "presentationToken": "space.reed-bindery", "capabilities": [
+      { "kind": "ownable", "groupId": "group.fiber" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 20 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 4 } }
+    ] },
+    { "id": "space.s011", "presentationToken": "space.moonthread-room", "capabilities": [
+      { "kind": "ownable", "groupId": "group.light" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 29 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 6 } }
+    ] },
+    { "id": "space.s012", "presentationToken": "space.tale-lantern", "capabilities": [{ "kind": "draw", "deckId": "deck.d001" }] },
+    { "id": "space.s013", "presentationToken": "space.orchard-kiln", "capabilities": [
+      { "kind": "ownable", "groupId": "group.clay" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 34 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 7 } }
+    ] },
+    { "id": "space.s014", "presentationToken": "space.windstep-passage", "capabilities": [] },
+    { "id": "space.s015", "presentationToken": "space.cloudmill-annex", "capabilities": [
+      { "kind": "ownable", "groupId": "group.motion" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 42 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 9 } }
+    ] },
+    { "id": "space.s016", "presentationToken": "space.river-signal", "capabilities": [{ "kind": "draw", "deckId": "deck.d001" }] },
+    { "id": "space.s017", "presentationToken": "space.fernpress-workshop", "capabilities": [
+      { "kind": "ownable", "groupId": "group.fiber" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 27 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 5 } }
+    ] },
+    { "id": "space.s018", "presentationToken": "space.dawnclay-yard", "capabilities": [
+      { "kind": "ownable", "groupId": "group.clay" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 22 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 4 } }
+    ] },
+    { "id": "space.s019", "presentationToken": "space.makers-commons", "capabilities": [] },
+    { "id": "space.s020", "presentationToken": "space.starlit-foundry", "capabilities": [
+      { "kind": "ownable", "groupId": "group.light" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 46 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 10 } }
+    ] },
+    { "id": "space.s021", "presentationToken": "space.ridge-courier", "capabilities": [{ "kind": "draw", "deckId": "deck.d001" }] },
+    { "id": "space.s022", "presentationToken": "space.hazel-forge", "capabilities": [
+      { "kind": "ownable", "groupId": "group.clay" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 39 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 8 } }
+    ] },
+    { "id": "space.s023", "presentationToken": "space.bluebell-lab", "capabilities": [
+      { "kind": "ownable", "groupId": "group.glass" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 33 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 7 } }
+    ] },
+    { "id": "space.s024", "presentationToken": "space.quiet-overlook", "capabilities": [] },
+    { "id": "space.s025", "presentationToken": "space.beacon-workshop", "capabilities": [
+      { "kind": "ownable", "groupId": "group.light" },
+      { "kind": "purchasable", "price": { "resourceId": "resource.lumen", "value": 44 } },
+      { "kind": "usage-fee", "amount": { "resourceId": "resource.lumen", "value": 9 } }
+    ] },
+    { "id": "space.s026", "presentationToken": "space.lantern-exchange", "capabilities": [{ "kind": "draw", "deckId": "deck.d001" }] },
+    { "id": "space.s027", "presentationToken": "space.valley-gate", "capabilities": [] }
+  ],
+  "decks": [
+    {
+      "id": "deck.d001",
+      "presentationToken": "deck.vale-messages",
+      "cards": [
+        {
+          "id": "card.c001",
+          "presentationToken": "card.lantern-jury",
+          "effects": [{ "kind": "resource-change", "resourceId": "resource.renown", "delta": 3 }]
+        },
+        {
+          "id": "card.c002",
+          "presentationToken": "card.early-crate",
+          "effects": [{ "kind": "resource-change", "resourceId": "resource.lumen", "delta": 10 }]
+        },
+        {
+          "id": "card.c003",
+          "presentationToken": "card.fresh-canvas",
+          "effects": [{ "kind": "resource-change", "resourceId": "resource.lumen", "delta": -7 }]
+        },
+        {
+          "id": "card.c004",
+          "presentationToken": "card.upper-path",
+          "effects": [{
+            "kind": "move",
+            "target": { "kind": "relative", "offset": 3 },
+            "passOriginPolicy": "apply-profile-reward",
+            "resolveDestination": true
+          }]
+        },
+        {
+          "id": "card.c005",
+          "presentationToken": "card.glass-markers",
+          "effects": [{
+            "kind": "move",
+            "target": { "kind": "absolute", "spaceId": "space.s004" },
+            "passOriginPolicy": "apply-profile-reward",
+            "resolveDestination": true
+          }]
+        },
+        {
+          "id": "card.c006",
+          "presentationToken": "card.village-showcase",
+          "effects": [
+            { "kind": "resource-change", "resourceId": "resource.renown", "delta": 2 },
+            { "kind": "resource-change", "resourceId": "resource.lumen", "delta": 5 }
+          ]
+        },
+        {
+          "id": "card.c007",
+          "presentationToken": "card.splintered-wheel",
+          "effects": [{
+            "kind": "move",
+            "target": { "kind": "relative", "offset": -2 },
+            "passOriginPolicy": "ignore",
+            "resolveDestination": true
+          }]
+        },
+        {
+          "id": "card.c008",
+          "presentationToken": "card.spare-tools",
+          "effects": [
+            { "kind": "resource-change", "resourceId": "resource.lumen", "delta": -4 },
+            { "kind": "resource-change", "resourceId": "resource.renown", "delta": 1 }
+          ]
+        },
+        {
+          "id": "card.c009",
+          "presentationToken": "card.ridge-shortcut",
+          "effects": [{
+            "kind": "move",
+            "target": { "kind": "absolute", "spaceId": "space.s024" },
+            "passOriginPolicy": "apply-profile-reward",
+            "resolveDestination": true
+          }]
+        }
+      ]
+    }
+  ],
+  "statuses": [],
+  "policies": {
+    "passOriginReward": { "resourceId": "resource.lumen", "value": 12 },
+    "purchaseDecline": "leave-unowned",
+    "matchEnd": {
+      "kind": "highest-resource-after-rounds",
+      "roundLimit": 12,
+      "resourceId": "resource.renown",
+      "tieBreak": "lowest-player-id"
+    }
+  }
+}

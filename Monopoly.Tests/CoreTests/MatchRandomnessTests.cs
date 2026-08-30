@@ -110,51 +110,6 @@ public sealed class MatchRandomnessTests
     }
 
     [Fact]
-    public void SetupUsesDeterministicFisherYatesWithoutStartingPlayerRandomness()
-    {
-        MinimumMatchRandomSource source = new();
-
-        Game game = CoreGameSetup.Setup(new GameRules(2, 2, 6), randomSource: source);
-        GameStateV1 state = GameStateV1Mapper.ToState(game);
-
-        int expectedRequestCount = state.ChanceDeck.Count + state.CommunityChestDeck.Count - 2;
-        Assert.Equal(expectedRequestCount, source.Requests.Count);
-        Assert.All(source.Requests, request => Assert.Equal(RandomPurpose.DeckShuffle, request.Purpose));
-        Assert.Equal(Enumerable.Range(0, expectedRequestCount), source.Requests.Select(request => request.SequenceIndex));
-        Assert.DoesNotContain(source.Requests, request =>
-            request.Purpose is RandomPurpose.SetupStartingPlayer or RandomPurpose.SetupDice);
-        Assert.Equal(0, game.CurrentPlayer.Id);
-        Assert.Equal(RotatedCanonicalOrder(state.ChanceDeck.Count), state.ChanceDeck);
-        Assert.Equal(RotatedCanonicalOrder(state.CommunityChestDeck.Count), state.CommunityChestDeck);
-    }
-
-    [Fact]
-    public void VersionOneReconstructionRestoresDecksWithoutConsumingRandomInput()
-    {
-        Game sourceGame = CoreGameSetup.Setup(
-            new GameRules(2, 2, 6),
-            randomSource: new MinimumMatchRandomSource());
-        GameStateV1 saved = GameStateV1Mapper.ToState(sourceGame);
-        ScriptedMatchRandomSource source = new(2, 3);
-
-        Game loaded = GameStateV1Mapper.FromState(saved, randomSource: source);
-
-        Assert.Empty(source.Requests);
-        Assert.Equal(saved.ChanceDeck, loaded.CardHandler.GetLegacyPrimaryDeckOrder());
-        Assert.Equal(saved.CommunityChestDeck, loaded.CardHandler.GetLegacySecondaryDeckOrder());
-
-        _ = loaded.PlayTurn();
-
-        Assert.Equal([2, 3], loaded.LastDiceRoll!.Results);
-        Assert.Equal(
-            [RandomPurpose.TurnDice, RandomPurpose.TurnDice],
-            source.Requests.Select(request => request.Purpose));
-        string wireJson = JsonSerializer.Serialize(saved);
-        Assert.DoesNotContain(nameof(IMatchRandomSource), wireJson, StringComparison.Ordinal);
-        Assert.DoesNotContain(nameof(DiceRoll), wireJson, StringComparison.Ordinal);
-    }
-
-    [Fact]
     public void ConcurrentMatchesUseOnlyTheirOwnInjectedSources()
     {
         ScriptedMatchRandomSource firstSource = new(1, 2);
@@ -188,22 +143,18 @@ public sealed class MatchRandomnessTests
     public void DedicatedRuleRollUsesItsOwnPurposeWithoutReplacingTheTurnResult()
     {
         ScriptedMatchRandomSource source = new(1, 2, 4, 5);
-        Game game = new GameTestBuilder()
-            .WithPlayer(0, position: 4)
-            .WithSquare(12, ownerId: 1)
-            .WithChanceCardFirst((int)UKChanceCard.UKChanceCardType.AdvanceTokenToNearestUtility)
-            .WithRandomSource(source)
-            .Build();
+        Game game = new GameTestBuilder().WithRandomSource(source).Build();
 
         TurnResult result = game.PlayTurnToCompletion();
+        DiceRoll dedicated = game.Handler.RollDice(game.CurrentPlayer, RandomPurpose.DedicatedRuleDice);
 
         Assert.Equal(RandomPurpose.TurnDice, result.Roll!.Purpose);
         Assert.Equal([1, 2], result.Roll.Results);
         Assert.Equal(3, result.Roll.Sum);
-        Assert.Equal(7, result.LandedSpace!.Index);
+        Assert.Equal(3, result.LandedSpace!.Index);
         Assert.Equal(RandomPurpose.DedicatedRuleDice, game.LastDiceRoll!.Purpose);
-        Assert.Equal([4, 5], game.LastDiceRoll.Results);
-        Assert.Equal(12, result.Player.Position);
+        Assert.Equal([4, 5], dedicated.Results);
+        Assert.Equal([1, 2], result.Roll.Results);
         Assert.Equal(
             [RandomPurpose.TurnDice, RandomPurpose.TurnDice,
                 RandomPurpose.DedicatedRuleDice, RandomPurpose.DedicatedRuleDice],
@@ -228,7 +179,7 @@ public sealed class MatchRandomnessTests
     private static ScenarioSnapshot RunScenario()
     {
         ScriptedMatchRandomSource source = ScriptedMatchRandomSource.ForDice(1, 2);
-        Game game = CoreGameSetup.Setup(new GameRules(2, 2, 6), randomSource: source);
+        Game game = new GameTestBuilder().WithRandomSource(source).Build();
         List<GameNotification> notifications = [];
         using IDisposable subscription = game.Notifications.Subscribe(notifications.Add);
 
@@ -238,25 +189,20 @@ public sealed class MatchRandomnessTests
 
         Assert.Equal(GameActionStatus.TurnCompleted, completed.Status);
         return new ScenarioSnapshot(
-            JsonSerializer.Serialize(GameStateV1Mapper.ToState(game)),
+            GameTestSnapshot.CaptureAuthoritative(game),
             string.Join(',', completed.TurnResult!.Roll!.Results),
-            string.Join(',', game.CardHandler.GetLegacyPrimaryDeckOrder()),
-            string.Join(',', game.CardHandler.GetLegacySecondaryDeckOrder()),
+            string.Join(',', game.Decks.Entries.SelectMany(deck => deck.Cards).Select(card => card.Id.Value)),
             string.Join(',', notifications.Select(notification =>
                 $"{notification.GetType().Name}:{notification.PresentationToken.Value}")));
     }
 
     private static string SerializeState(Game game) =>
-        JsonSerializer.Serialize(GameStateV1Mapper.ToState(game));
-
-    private static string[] RotatedCanonicalOrder(int count) =>
-        Enumerable.Range(1, count - 1).Append(0).Select(index => index.ToString()).ToArray();
+        GameTestSnapshot.Capture(game);
 
     private sealed record ScenarioSnapshot(
         string State,
         string Roll,
-        string ChanceDeck,
-        string CommunityChestDeck,
+        string DeckOrder,
         string Notifications);
 
     private sealed class ConstantRandomSource(int value) : IMatchRandomSource

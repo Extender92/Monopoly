@@ -1,20 +1,15 @@
-using Monopoly.Core.Models.FortuneCard;
 using Monopoly.Core.Models;
+using Monopoly.Core.Models.FortuneCard;
 using Monopoly.Core.Presentation;
 using Monopoly.Core.Randomness;
 
 namespace Monopoly.Core;
 
-internal sealed class FortuneCardHandler
+internal sealed class DeckRuntime
 {
     private readonly Dictionary<DeckId, RuntimeDeck> _decks;
 
-    internal FortuneCardHandler(GameRules gameRules, MatchRandomizer randomizer, bool shuffleDecks)
-        : this(CreateLegacyRegistrations(gameRules), randomizer, shuffleDecks)
-    {
-    }
-
-    internal FortuneCardHandler(
+    internal DeckRuntime(
         IEnumerable<RuntimeDeckRegistration> registrations,
         MatchRandomizer randomizer,
         bool shuffleDecks)
@@ -22,10 +17,8 @@ internal sealed class FortuneCardHandler
         ArgumentNullException.ThrowIfNull(registrations);
         ArgumentNullException.ThrowIfNull(randomizer);
 
-        RuntimeDeckRegistration[] copiedRegistrations = registrations.ToArray();
-        if (copiedRegistrations.Any(registration => registration is null))
-            throw new ArgumentException("Deck registrations cannot contain null entries.", nameof(registrations));
-        RuntimeDeckRegistration[] orderedRegistrations = copiedRegistrations
+        RuntimeDeckRegistration[] orderedRegistrations = registrations
+            .Select(registration => registration ?? throw new ArgumentException("Deck registrations cannot contain null entries.", nameof(registrations)))
             .OrderBy(registration => registration.Id)
             .ToArray();
         if (orderedRegistrations.Select(registration => registration.Id).Distinct().Count() != orderedRegistrations.Length)
@@ -56,19 +49,17 @@ internal sealed class FortuneCardHandler
         _decks = prepared;
     }
 
-    internal IReadOnlyList<PresentationMetadata> AllPresentationMetadata =>
-        Array.AsReadOnly(_decks.Values
-            .OrderBy(deck => deck.Id)
-            .SelectMany(deck => deck.CanonicalCards)
-            .Select(card => card.Presentation)
-            .ToArray());
-
     internal DeckCollection CreateSnapshot() =>
-        new(_decks.Values
-            .OrderBy(deck => deck.Id)
-            .Select(deck => deck.CreateView()));
+        new(_decks.Values.OrderBy(deck => deck.Id).Select(deck => deck.CreateView()));
 
     internal RuntimeCard DrawNextCard(DeckId deckId) => Resolve(deckId).DrawNext();
+
+    internal IReadOnlyList<PresentationToken> RequiredPresentationTokens =>
+        Array.AsReadOnly(_decks.Values
+            .OrderBy(deck => deck.Id)
+            .SelectMany(deck => new[] { deck.PresentationToken }
+                .Concat(deck.CanonicalCards.Select(card => card.PresentationToken)))
+            .ToArray());
 
     internal void EnsureReferences(IEnumerable<DeckId> references)
     {
@@ -80,28 +71,6 @@ internal sealed class FortuneCardHandler
         }
     }
 
-    internal IReadOnlyList<string> GetLegacyPrimaryDeckOrder() =>
-        GetLegacyDeckOrder(LegacyStructureIds.PrimaryDeck);
-
-    internal IReadOnlyList<string> GetLegacySecondaryDeckOrder() =>
-        GetLegacyDeckOrder(LegacyStructureIds.SecondaryDeck);
-
-    internal void RestoreLegacyDeckOrder(
-        IReadOnlyList<string> primaryOrder,
-        IReadOnlyList<string> secondaryOrder)
-    {
-        ArgumentNullException.ThrowIfNull(primaryOrder);
-        ArgumentNullException.ThrowIfNull(secondaryOrder);
-
-        RuntimeDeck primary = Resolve(LegacyStructureIds.PrimaryDeck);
-        RuntimeDeck secondary = Resolve(LegacyStructureIds.SecondaryDeck);
-        IReadOnlyList<RuntimeCard> preparedPrimary = primary.PrepareLegacyOrder(primaryOrder);
-        IReadOnlyList<RuntimeCard> preparedSecondary = secondary.PrepareLegacyOrder(secondaryOrder);
-
-        primary.ReplaceOrder(preparedPrimary);
-        secondary.ReplaceOrder(preparedSecondary);
-    }
-
     private RuntimeDeck Resolve(DeckId deckId)
     {
         if (!deckId.IsValid) throw new ArgumentException("The deck ID is invalid.", nameof(deckId));
@@ -109,41 +78,6 @@ internal sealed class FortuneCardHandler
             ? deck
             : throw new KeyNotFoundException($"Deck ID '{deckId}' is not defined.");
     }
-
-    private IReadOnlyList<string> GetLegacyDeckOrder(DeckId deckId)
-    {
-        RuntimeDeck deck = Resolve(deckId);
-        return Array.AsReadOnly(deck.CurrentCards
-            .Select(card => deck.IndexOfCanonicalCard(card).ToString())
-            .ToArray());
-    }
-
-    private static RuntimeDeckRegistration[] CreateLegacyRegistrations(GameRules gameRules)
-    {
-        ArgumentNullException.ThrowIfNull(gameRules);
-
-        return
-        [
-            CreateLegacyRegistration(
-                LegacyStructureIds.PrimaryDeck,
-                PresentationTokens.PrimaryDeck,
-                Data.FortuneCardBuilder.GetChanceCards(gameRules)),
-            CreateLegacyRegistration(
-                LegacyStructureIds.SecondaryDeck,
-                PresentationTokens.SecondaryDeck,
-                Data.FortuneCardBuilder.GetCommunityChestCards(gameRules))
-        ];
-    }
-
-    private static RuntimeDeckRegistration CreateLegacyRegistration(
-        DeckId id,
-        PresentationToken presentationToken,
-        IReadOnlyList<ILegacyCard> cards) =>
-        new(
-            id,
-            presentationToken,
-            cards.Select((card, index) =>
-                new RuntimeCardRegistration(LegacyStructureIds.Card(id, index), card)));
 
     private static IReadOnlyList<RuntimeCard> ShuffleCopy(
         IReadOnlyList<RuntimeCard> source,
@@ -177,8 +111,7 @@ internal sealed class RuntimeCard : ICardView
     }
 
     public CardId Id { get; }
-    public PresentationToken PresentationToken => _card.Presentation.Token;
-    internal PresentationMetadata Presentation => _card.Presentation;
+    public PresentationToken PresentationToken => _card.PresentationToken;
     internal void ExecuteEffect(Player player, Game game) => _card.ExecuteEffect(player, game);
 }
 
@@ -228,7 +161,6 @@ internal sealed class RuntimeDeckRegistration
 internal sealed class RuntimeDeck
 {
     private Queue<RuntimeCard> _cards;
-    private readonly Dictionary<CardId, int> _canonicalIndices;
 
     internal RuntimeDeck(
         DeckId id,
@@ -239,9 +171,6 @@ internal sealed class RuntimeDeck
         Id = id;
         PresentationToken = presentationToken;
         CanonicalCards = Array.AsReadOnly(canonicalCards.ToArray());
-        _canonicalIndices = CanonicalCards
-            .Select((card, index) => (card.Id, index))
-            .ToDictionary(entry => entry.Id, entry => entry.index);
         _cards = new Queue<RuntimeCard>(initialOrder);
     }
 
@@ -258,21 +187,4 @@ internal sealed class RuntimeDeck
     }
 
     internal DeckView CreateView() => new(Id, PresentationToken, CurrentCards);
-
-    internal int IndexOfCanonicalCard(RuntimeCard card) => _canonicalIndices[card.Id];
-
-    internal IReadOnlyList<RuntimeCard> PrepareLegacyOrder(IReadOnlyList<string> order)
-    {
-        if (order.Count != CanonicalCards.Count ||
-            order.Any(key => !int.TryParse(key, out int index) || index < 0 || index >= CanonicalCards.Count) ||
-            order.Distinct().Count() != order.Count)
-        {
-            throw new ArgumentException("Card order must contain every card exactly once.", nameof(order));
-        }
-
-        return Array.AsReadOnly(order.Select(key => CanonicalCards[int.Parse(key)]).ToArray());
-    }
-
-    internal void ReplaceOrder(IReadOnlyList<RuntimeCard> order) =>
-        _cards = new Queue<RuntimeCard>(order);
 }

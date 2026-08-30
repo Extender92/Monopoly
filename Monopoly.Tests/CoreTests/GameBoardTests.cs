@@ -15,44 +15,40 @@ namespace Monopoly.Tests.CoreTests
         public void GetSquareAtPosition_ShouldReturnCorrectSquare()
         {
             // Arrange
-            var gameMock = new Mock<IGame>();
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
+            var board = new GameTestBuilder().Build().Board;
 
             // Act
             var square = board.GetSquareAtPosition(5);
 
             // Assert
             Assert.IsType<RailroadSquare>(square);
-            Assert.Equal("Kings Cross Station", square.Presentation.DisplayText);
+            Assert.Equal("Shared Carrier", square.Presentation.DisplayText);
         }
 
         [Fact]
         public void GetAllSquaresOfType_ShouldReturnAllPropertySquares()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
+            var board = new GameTestBuilder().Build().Board;
 
             // Act
             var propertySquares = board.GetAllSquaresOfType<PropertySquare>();
 
             // Assert
-            Assert.Equal(22, propertySquares.Count);
+            Assert.Equal(8, propertySquares.Count);
         }
 
         [Fact]
         public void GetAllMortgageableSquares_ShouldReturnCorrectSquares()
         {
             // Arrange
-            var rules = new GameRules(2, 2, 6);
-            var board = new GameBoard(rules);
+            var board = new GameTestBuilder().Build().Board;
 
             // Act
             var mortgageableSquares = board.GetAllMortgageableSquares();
 
             // Assert
-            Assert.Equal(28, mortgageableSquares.Count);
+            Assert.Equal(10, mortgageableSquares.Count);
         }
 
         [Fact]

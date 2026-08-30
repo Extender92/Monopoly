@@ -38,40 +38,6 @@ internal class PropertySquare : Square
         MortgageValue = mortgageValue;
     }
 
-    internal PropertySquare(
-        LegacyPropertyGroup group,
-        string name,
-        int rent,
-        int rentWithGroup,
-        int rentOneHouse,
-        int rentTwoHouses,
-        int rentThreeHouses,
-        int rentFourHouses,
-        int rentHotel,
-        int buildHouseCost,
-        int buildHotelCost,
-        int price,
-        int mortgageValue,
-        int position)
-        : this(
-            LegacyPresentationFactory.Group(group).Id,
-            LegacyPresentationFactory.Group(group).Presentation,
-            LegacyPresentationFactory.Space(position, name, colorToken: LegacyPresentationFactory.Group(group).Presentation.ColorToken),
-            rent,
-            rentWithGroup,
-            rentOneHouse,
-            rentTwoHouses,
-            rentThreeHouses,
-            rentFourHouses,
-            rentHotel,
-            buildHouseCost,
-            buildHotelCost,
-            price,
-            mortgageValue,
-            position)
-    {
-    }
-
     public GroupId GroupId { get; }
     public PresentationToken GroupPresentationToken => GroupPresentation.Token;
     internal PresentationMetadata GroupPresentation { get; }

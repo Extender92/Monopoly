@@ -61,7 +61,7 @@ public sealed class ConsolePendingDecisionTests
             .Build();
         DecisionFixture fixture = new(game, 1, 1);
         ConsoleLogPrinter logPrinter = new(fixture.Console.Object);
-        ConsoleCardPrinter cardPrinter = new(fixture.Console.Object, game.Board.Squares, game.Rules);
+        ConsoleCardPrinter cardPrinter = new(fixture.Console.Object, game);
         ConsoleGame consoleGame = new(
             game,
             fixture.Printer,
@@ -98,7 +98,7 @@ public sealed class ConsolePendingDecisionTests
             new List<TablePiece>(),
             fixture.DecisionInput,
             new ConsoleLogPrinter(fixture.Console.Object),
-            new ConsoleCardPrinter(fixture.Console.Object, game.Board.Squares, game.Rules),
+            new ConsoleCardPrinter(fixture.Console.Object, game),
             fixture.SaveStore.Object,
             fixture.Provider);
 
@@ -118,7 +118,7 @@ public sealed class ConsolePendingDecisionTests
             Console = new Mock<IConsoleWrapper>();
             Menu = new QueueMenuSelector(selections);
             DecisionInput = new Input(Console.Object, Menu);
-            Printer = new ConsolePrinter(Console.Object, game.Board.Squares, game.Rules);
+            Printer = new ConsolePrinter(Console.Object, game);
             SaveStore = new Mock<IGameSaveStore>();
             Provider = new ConsolePlayerDecisionProvider(Printer, DecisionInput, game, SaveStore.Object);
         }

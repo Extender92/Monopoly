@@ -115,7 +115,7 @@ public sealed class ResumableGamePhaseTests
     {
         MortgageFundsProvider decisions = new(squarePosition: 5);
         Game game = new GameTestBuilder()
-            .WithPlayer(0, money: 0)
+            .WithPlayer(0, money: 10)
             .WithSquare(5, ownerId: 0)
             .WithRandomValues(1, 2)
             .WithDecisions(decisions)
@@ -138,7 +138,7 @@ public sealed class ResumableGamePhaseTests
     {
         CountingFundsProvider decisions = new();
         Game game = new GameTestBuilder()
-            .WithPlayer(0, money: 0)
+            .WithPlayer(0, money: 10)
             .WithSquare(5, ownerId: 0)
             .WithRandomValues(1, 2)
             .WithDecisions(decisions)
@@ -328,7 +328,7 @@ public sealed class ResumableGamePhaseTests
     }
 
     [Fact]
-    public void ProgressProjectionIsDetachedPrimitiveOnlyDataAndNotPartOfVersionOne()
+    public void ProgressProjectionIsDetachedPrimitiveOnlyData()
     {
         Game game = new GameTestBuilder().WithRandomValues(1, 2).Build();
         PurchaseDecision decision = RequirePurchase(game);
@@ -350,12 +350,6 @@ public sealed class ResumableGamePhaseTests
 
         Assert.Equal(2, game.PendingDecision!.AllowedResponses.Count);
         Assert.Equal([1, 2], GameProgressStateMapper.ToState(game).Continuation!.DiceResults);
-        Assert.DoesNotContain(
-            typeof(GameStateV1).GetProperties(),
-            property => property.PropertyType == typeof(GameProgressState) ||
-                        property.Name.Contains("Decision", StringComparison.Ordinal) ||
-                        property.Name.Contains("Continuation", StringComparison.Ordinal));
-        Assert.Throws<GameStateValidationException>(() => GameStateV1Mapper.ToState(game));
     }
 
     [Fact]
@@ -387,26 +381,6 @@ public sealed class ResumableGamePhaseTests
                 Assert.False(propertyType.Namespace?.StartsWith("Monopoly.Core.Models", StringComparison.Ordinal) ?? false);
             }
         }
-    }
-
-    [Fact]
-    public void VersionOneReconstructionAlwaysStartsWithoutPendingProgress()
-    {
-        Game source = new GameTestBuilder().WithTurn(4, consecutiveDoubles: 1).Build();
-        GameStateV1 state = GameStateV1Mapper.ToState(source);
-
-        Game loaded = GameStateV1Mapper.FromState(state);
-
-        Assert.Equal(GamePhase.ReadyForTurn, loaded.Phase);
-        Assert.Null(loaded.PendingDecision);
-        Assert.Null(GameProgressStateMapper.ToState(loaded).Continuation);
-
-        state.Players.RemoveAll(player => player.Id != state.CurrentPlayerId);
-        Game loadedCompletedMatch = GameStateV1Mapper.FromState(state);
-        Assert.True(loadedCompletedMatch.IsGameOver);
-        Assert.Equal(GamePhase.ReadyForTurn, loadedCompletedMatch.Phase);
-        Assert.Equal(GameActionStatus.GameOver, loadedCompletedMatch.PlayTurn().Status);
-        Assert.Equal(GamePhase.GameOver, loadedCompletedMatch.Phase);
     }
 
     [Fact]
@@ -475,8 +449,11 @@ public sealed class ResumableGamePhaseTests
         WinnerId = game.Winner?.Id,
         Dice = game.LastDiceRoll?.Results,
         Logs = game.Logs.LogList.Select(log => new { log.Id, log.Info }),
-        Chance = game.CardHandler.GetLegacyPrimaryDeckOrder(),
-        CommunityChest = game.CardHandler.GetLegacySecondaryDeckOrder(),
+        Decks = game.Decks.Entries.Select(deck => new
+        {
+            deck.Id,
+            Cards = deck.Cards.Select(card => card.Id)
+        }),
         Progress = GameProgressStateMapper.ToState(game)
     });
 

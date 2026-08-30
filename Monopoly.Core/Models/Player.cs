@@ -13,7 +13,7 @@ namespace Monopoly.Core.Models
         public string Name { get; } = !string.IsNullOrWhiteSpace(name)
             ? name
             : throw new ArgumentException("Player name cannot be empty.", nameof(name));
-        public int Money { get; private set; } = 3000;
+        public int Money { get; private set; }
         public int Position { get; private set; }
         internal int NumberOfGetOutOFJailCards { get; private set; }
         public bool IsBankrupt { get; private set; }

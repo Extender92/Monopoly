@@ -1,160 +1,88 @@
 # Monopoly
 
-> **Development status:** This repository is an unofficial work in progress.
-> No supported releases or deployment artifacts are provided.
+> **Development status:** This legacy repository is an unofficial work in
+> progress. It provides no supported release or deployment artifact.
 
 [![Build and tests](https://github.com/Extender92/Monopoly/actions/workflows/Build-And-Tests.yml/badge.svg?branch=main)](https://github.com/Extender92/Monopoly/actions/workflows/Build-And-Tests.yml)
 [![Spelling](https://github.com/Extender92/Monopoly/actions/workflows/SpellChecker.yml/badge.svg?branch=main)](https://github.com/Extender92/Monopoly/actions/workflows/SpellChecker.yml)
 
-A .NET 10 and C# 14 legacy implementation being transformed into a
-frontend-neutral property-trading engine. The current repository contains the
-authoritative game Core, a playable Console frontend and automated tests.
+A .NET 10 and C# 14 codebase being transformed into a frontend-neutral
+property-trading engine. The public target is generic Core contracts, a
+project-owned Demo profile and small synthetic tests.
 
-The clean publication target is defined by the
-[public engine scope](docs/public-engine-scope.md). Current product-shaped code
-and data are transition inputs, not part of that target.
+## Current status
 
-## Project status
+The tracked Demo profile is
+[Lantern Vale](profiles/demo/lantern-vale-v1.json). Infrastructure parses its
+strict JSON and Core validates it into an immutable ValidatedGameProfile with a
+canonical SHA-256 fingerprint.
 
-The Console application is playable and demonstrates the current legacy Core
-flow. The project remains under active neutralization. Regional profiles and
-product-shaped rules found in current code or older documentation describe the
-implementation being replaced; the clean project will contain only generic
-contracts, original Demo data and small synthetic fixtures.
+This change intentionally creates a short WIP gap:
 
-The documentation distinguishes normative target behavior from sections marked
-as the current implementation. Current defects and planned work are tracked in
-[GitHub Issues](https://github.com/Extender92/Monopoly/issues).
+- Console starts, but new-match creation is unavailable until issues #40 and
+  #75 compose and execute validated profiles.
+- Save Format Version 1 has been retired. Save and load return typed
+  compatibility errors until issue #52 supplies Version 2.
+- The remaining internal rule executor exists only for focused regression
+  tests and is replaced by #75.
+
+No external or private profile is required by clone, build, tests or Console.
 
 ## Architecture
 
-`Monopoly.Core` is the game. It owns authoritative match state, rules and state
-transitions. Frontends own presentation, input and framework integration.
+- Monopoly.Core owns profile contracts, validation, authoritative match state
+  and state transitions.
+- Infrastructure owns strict JSON parsing and technical storage boundaries.
+- Monopoly.Console owns terminal input and presentation.
+- Monopoly.Tests uses the original Demo and small neutral runtime fixtures.
 
-Each match also exposes an immutable `ProfilePresentation` catalog. Core state
-refers to that catalog through validated semantic `PresentationToken` values;
-terminal colors and other framework-specific values are mapped only by the
-frontend. Authoritative property grouping uses `GroupId`, never a color hint.
+Authoritative identities use ProfileId, SpaceId, DeckId and CardId.
+Presentation is resolved separately through PresentationToken. Tracks have no
+fixed length and deck collections may contain zero, one or many decks.
 
-Each match receives one `IMatchRandomSource`. Core uses it for deck shuffling
-and dice outcomes, while immutable `DiceRoll` snapshots record only committed
-results. The Console creates a fresh production source for every new or loaded
-match; deterministic tests inject scripted sources.
+See [Architecture](docs/architecture.md) and
+[Public engine scope](docs/public-engine-scope.md).
 
-Core represents the route as an immutable, profile-sized `GameTrack` keyed by
-`SpaceId`. Current deck state is exposed as detached `DeckId`-indexed snapshots;
-there is no public two-deck runtime contract. Save Format Version 1 retains its
-old named fields only as a temporary compatibility exception.
+## Build and test
 
-Profile rules now have closed, immutable contracts for capabilities, card
-effects, resources and statuses. Strict version 1 JSON is parsed by
-Infrastructure and semantically validated by Core into an immutable
-`ValidatedGameProfile` with a canonical SHA-256 fingerprint. Public match state
-exposes generic `SpaceView`, status and decision IDs; concrete legacy spaces,
-regional cards and detention payloads remain internal migration code. Issue
-#75 owns registration and execution of the validated declarations.
+Prerequisites are Git and the stable .NET 10 SDK selected by
+[global.json](global.json).
 
-```text
-Monopoly.Console ──> Monopoly.Core
-Monopoly.Console ──> Infrastructure ──> Monopoly.Core
-Monopoly.Tests   ──> Monopoly.Core / Monopoly.Console / Infrastructure
-```
-
-A frontend decides how a choice is presented and collected. Core decides which
-choices are allowed and what each accepted choice does to the match.
-
-See [Architecture](docs/architecture.md) for the complete dependency and
-responsibility model.
-
-## Repository structure
-
-- [Monopoly.Core](Monopoly.Core/) – reusable class library containing game state
-  and rules.
-- [Monopoly.Console](Monopoly.Console/) – playable reference frontend using
-  terminal input and rendering.
-- [Infrastructure](Infrastructure/) – temporary neutral project for JSON and
-  atomic file persistence; its final identity is owned by issue #56.
-- [Monopoly.Tests](Monopoly.Tests/) – Core integration, unit and Console
-  and Infrastructure component tests.
-- [docs](docs/) – architecture, rules, persistence, frontend, testing and
-  workflow documentation.
-
-Future frontend projects are added only when their implementation begins.
-
-## Prerequisites
-
-- Git.
-- A stable [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
-
-The repository's [global.json](global.json) selects SDK `10.0.201`, allows
-later stable .NET 10 feature bands and excludes preview SDKs.
-
-## Clone, build and test
-
-```text
+~~~text
 git clone https://github.com/Extender92/Monopoly.git
 cd Monopoly
 dotnet restore
 dotnet build --configuration Release
 dotnet test --configuration Release --no-build
-```
+~~~
 
-The full verification requirements are documented in
-[Testing](docs/testing.md).
+Run the WIP Console shell with:
 
-## Run the Console frontend
-
-From the repository root:
-
-```text
+~~~text
 dotnet run --project Monopoly.Console
-```
-
-The interactive frontend uses terminal cursor positioning and colors. Use a
-terminal that supports those capabilities.
-
-Current menu controls:
-
-- Arrow keys move the selection.
-- Enter accepts the highlighted option.
-- Escape cancels where cancellation is available.
-
-See [Console frontend](docs/console-frontend.md) for session behavior, manual
-smoke testing and the boundary between UI and game logic.
+~~~
 
 ## Documentation
 
-- [Public engine scope](docs/public-engine-scope.md) – positive publication
-  boundary and non-goals.
-- [Original Demo design](docs/demo-profile-design.md) – independently designed
-  reference-profile constraints.
-- [JSON profile format](docs/profile-format.md) – versioned schema, validation,
-  safety limits and canonical fingerprinting.
-- [Architecture](docs/architecture.md) – project boundaries and target design.
-- [Game flow](docs/game-flow.md) – setup, turns, decisions and match completion.
-- [Game rules](docs/game-rules.md) – legacy rule specification being replaced
-  by the public capability baseline.
-- [Save and load](docs/save-format.md) – persistence contract, Version 1 and
-  future requirements.
-- [Console frontend](docs/console-frontend.md) – input, rendering and Core
-  integration.
-- [Testing](docs/testing.md) – automated strategy, CI and manual verification.
-- [Development workflow](docs/development-workflow.md) – issues, branches,
-  pull requests, squash merges and releases.
+- [Public engine scope](docs/public-engine-scope.md)
+- [Demo profile design](docs/demo-profile-design.md)
+- [JSON profile format](docs/profile-format.md)
+- [Architecture](docs/architecture.md)
+- [Game flow](docs/game-flow.md)
+- [Capability baseline](docs/game-rules.md)
+- [Save and load](docs/save-format.md)
+- [Console frontend](docs/console-frontend.md)
+- [Testing](docs/testing.md)
+- [Development workflow](docs/development-workflow.md)
 
-The legacy neutralization plan and clean-publication audit are internal
-publication evidence and are deliberately excluded from the future clean
-snapshot.
+GitHub Issues are the source of truth for planned work. Issue #59 defines the
+legacy repository's execution order.
 
 ## Contributing
 
-Start significant work from a focused GitHub issue and a branch based on the
-latest `main`. Changes are delivered through pull requests and squash merged
-after the required checks pass.
-
-Read [Development workflow](docs/development-workflow.md) before preparing a
-change. Use [GitHub Issues](https://github.com/Extender92/Monopoly/issues) for
-defects, proposals and questions about planned work.
+Read [Development workflow](docs/development-workflow.md), start significant
+work from a focused issue and use a dedicated branch. The clean publication
+process and future project identity are tracked separately.
 
 ## Attribution
 

@@ -9,11 +9,6 @@ namespace Monopoly.Core.Models.Board;
     {
     }
 
-    internal JailSquare(int position, string name, string info, string inJailInfo)
-        : this(position, LegacyPresentationFactory.Space(position, name, $"{info} || {inJailInfo}"))
-    {
-    }
-
     internal override void LandOn(Player player, Game game)
     {
     }

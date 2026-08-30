@@ -4,6 +4,7 @@ using Monopoly.Console.GUI;
 using Monopoly.Console.Models.Board;
 using Monopoly.Core;
 using Monopoly.Core.Presentation;
+using Monopoly.Tests.CoreTests;
 
 namespace Monopoly.Tests.ConsoleTests;
 
@@ -56,7 +57,7 @@ public sealed class ConsolePresentationResolverTests
     [Fact]
     public void SquareCardBuilderUsesOnlyItsMatchPresentationAndHasNoStaticRulesState()
     {
-        Game first = CoreGameSetup.Setup(new GameRules(2, 2, 6));
+        Game first = SyntheticGameFactory.Setup(new GameRules(2, 2, 6));
         ProfilePresentation variant = new(first.Presentation.Entries.Select(entry => new PresentationMetadata(
             entry.Token,
             displayText: entry.DisplayText is null ? null : $"Variant {entry.Token}",
@@ -65,9 +66,7 @@ public sealed class ConsolePresentationResolverTests
             symbol: entry.Symbol,
             colorToken: entry.ColorToken,
             layoutToken: entry.LayoutToken)));
-        Player firstPlayer = new("First", 0);
-        Player secondPlayer = new("Second", 1);
-        Game second = new([firstPlayer, secondPlayer], firstPlayer, new GameRules(2, 2, 6), presentation: variant);
+        Game second = new GameTestBuilder().WithPresentation(variant).Build();
 
         SquareCard firstCard = new SquareCardBuilder(first).BuildAllSquareCards().Single(card => card.BoardPosition == 0);
         SquareCard secondCard = new SquareCardBuilder(second).BuildAllSquareCards().Single(card => card.BoardPosition == 0);

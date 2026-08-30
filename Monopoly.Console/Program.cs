@@ -24,34 +24,15 @@ namespace Monopoly.Console
         }
 
         internal static void StartNewGame(IGameSaveStore saveStore)
+            => StartNewGame(saveStore, new ConsoleWrapper());
+
+        internal static void StartNewGame(IGameSaveStore saveStore, IConsoleWrapper consoleWrapper)
         {
             ArgumentNullException.ThrowIfNull(saveStore);
-            IConsoleWrapper consoleWrapper = new ConsoleWrapper();
-
-            GameRules gameRules = SetupRules(consoleWrapper);
-
-            Game game = CoreGameSetup.Setup(gameRules, randomSource: new SystemMatchRandomSource());
-
-            ConsolePrinter consolePrinter = new ConsolePrinter(consoleWrapper, game);
-
-            TablePieceInputManager PieceInput = new TablePieceInputManager(consoleWrapper, consolePrinter);
-
-            ConsoleGameSetup gameSetup = new ConsoleGameSetup(gameRules, PieceInput);
-
-            IMenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
-
-            Input input = new Input(consoleWrapper, menu);
-
-            ConsolePlayerDecisionProvider decisionProvider = new(consolePrinter, input, game, saveStore);
-            game.SetDecisionProvider(decisionProvider);
-
-            ConsoleLogPrinter logPrinter = new ConsoleLogPrinter(consoleWrapper);
-
-            ConsoleCardPrinter cardPrinter = new ConsoleCardPrinter(consoleWrapper, game);
-
-            ConsoleGame consoleGame = gameSetup.Setup(game, consolePrinter, input, logPrinter, cardPrinter, saveStore, decisionProvider);
-
-            consoleGame.StartConsoleGame();
+            ArgumentNullException.ThrowIfNull(consoleWrapper);
+            ShowTransitionMessage(
+                consoleWrapper,
+                "Match creation is temporarily unavailable while validated Demo setup is being completed.");
         }
 
         internal static void LoadGame(IGameSaveStore saveStore) =>
@@ -105,14 +86,10 @@ namespace Monopoly.Console
             consoleGame.StartConsoleGame();
         }
 
-        private static GameRules SetupRules(IConsoleWrapper consoleWrapper)
+        private static void ShowTransitionMessage(IConsoleWrapper consoleWrapper, string message)
         {
-            IMenuOptionSelector menu = new MenuOptionSelector(consoleWrapper);
-            Input input = new Input(consoleWrapper, menu);
-            int numberOfDice = 2;
-            int dieSides = 6;
-            int numberOfPlayers = input.GetNumberOfPlayers();
-            return new GameRules(numberOfPlayers, numberOfDice, dieSides);
+            consoleWrapper.WriteLine($"{message} Press Enter to return to the main menu.");
+            consoleWrapper.ReadLine();
         }
     }
 }

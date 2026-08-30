@@ -9,16 +9,11 @@ namespace Monopoly.Core.Models.Board;
     {
     }
 
-    internal ParkingSquare(int position, string name)
-        : this(position, LegacyPresentationFactory.Space(position, name))
-    {
-    }
-
     internal override void LandOn(Player player, Game game)
     {
         switch (game.Rules.FreeParking)
         {
-            case GameRules.Parking.Classic:
+            case GameRules.Parking.None:
                 break;
             case GameRules.Parking.SetFee:
                 game.Transactions.GetMoneyFromBank(player, (int)GameRules.Parking.SetFee);
