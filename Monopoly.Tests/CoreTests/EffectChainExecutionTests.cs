@@ -157,7 +157,7 @@ public sealed class EffectChainExecutionTests
     }
 
     [Fact]
-    public void ResumingANestedLandingCanPauseAtASecondPurchaseDecision()
+    public void ResumingNestedLandingCanPauseAtSecondPurchaseDecision()
     {
         DeckId firstDeck = new("deck.decision-a");
         DeckId secondDeck = new("deck.decision-b");
