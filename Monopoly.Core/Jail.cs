@@ -65,7 +65,7 @@ namespace Monopoly.Core
             ValidatePlayer(player);
             if (turnsInJail < 0 || turnsInJail > CurrentGame.Rules.MaxTurnsInJail)
                 throw new ArgumentOutOfRangeException(nameof(turnsInJail));
-            player.MoveTo(JailPosition);
+            CurrentGame.MovePlayerToIndex(player, JailPosition);
             _playersInJail[player] = new JailStatus(turnsInJail);
         }
 

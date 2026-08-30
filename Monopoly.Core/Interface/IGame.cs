@@ -22,9 +22,13 @@ namespace Monopoly.Core.Interface
         Player CurrentPlayer { get; }
         DiceRoll? LastDiceRoll { get; }
         ProfilePresentation Presentation { get; }
+        ValidatedGameProfile? Profile { get; }
         StatusCollection Statuses { get; }
+        OwnershipCollection Ownership { get; }
+        ProfileModuleState ModuleState { get; }
         int Fines { get; }
         int CurrentTurn { get; }
+        int RoundNumber { get; }
         int ConsecutiveDoubles { get; }
         Player? Winner { get; }
         bool IsGameOver { get; }

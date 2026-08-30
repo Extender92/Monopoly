@@ -2,26 +2,37 @@
 
 ## Current WIP boundary
 
-There is no production match factory during the profile transition. Console
-new-match creation reports that validated Demo setup is not yet available.
-Loading reports a typed compatibility failure. No fallback match is created.
+Core now has a production setup boundary. `GameSetup.Create` returns a complete
+initial match from an explicitly supplied validated profile and ordered player
+identities. Console still stops before a session and reports that capability
+execution is being completed. Loading reports a typed compatibility failure.
+No fallback match is created.
 
 Focused tests may run the internal data-free executor through small synthetic
 compositions. Those fixtures are not product data and are never selected by
 Console.
 
-## Target setup flow
+## Setup flow
 
-Issue #40 will implement this flow:
+The implemented setup flow is:
 
-1. A frontend selects a registered ValidatedGameProfile.
+1. An application explicitly supplies a `ValidatedGameProfile`; Core has no
+   default profile.
 2. Core verifies the requested player count against the profile.
-3. Core creates player resource balances and places players at the declared
+3. Core verifies every capability, effect, status and policy against one
+   trusted setup registry.
+4. Core creates player resource balances and places players at the declared
    start SpaceId.
-4. Core creates and shuffles each declared deck with the match-scoped random
+5. Core creates and shuffles each declared deck with the match-scoped random
    source.
-5. Core applies the declared starting-player policy.
-6. Core returns a match only after all references and runtime state validate.
+6. Core applies the declared starting-player policy.
+7. Core returns a match only after all references and runtime state validate.
+
+`fixed-order` consumes no setup randomness. `random` makes one
+`SetupStartingPlayer` request. `highest-roll` uses the full profile dice set;
+only tied leaders reroll in seat order, and setup fails after 128 tied rounds.
+Deck shuffle, random-player selection and setup dice each use independent
+sequence indices.
 
 The Lantern Vale Demo declares 2–5 players, 2d8, fixed player order, 120 Lumen,
 zero Renown and a 12-Lumen pass-origin reward.
@@ -35,6 +46,10 @@ the same decision ID.
 
 Core validates stale, duplicate, unavailable and participant-mismatched
 responses without mutation. Runtime callbacks are never stored in match state.
+
+Before #75, a profile-created match remains in `ReadyForTurn` and `PlayTurn`
+returns `CapabilityExecutionUnavailable` without changing resources, position,
+deck order, ownership, logs, dice, notifications, phase or decisions.
 
 The Demo baseline requires:
 

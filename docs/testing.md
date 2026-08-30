@@ -37,6 +37,19 @@ combinations and canonical fingerprint stability.
 
 No test embeds a complete third-party layout, economy or card collection.
 
+## Match setup tests
+
+The real Lantern Vale JSON is parsed and passed to `GameSetup`. Tests verify
+exact profile identity, resources, starting SpaceId, deck state, ownership,
+empty status state and round one. Synthetic profiles cover different track
+lengths and zero, one and multiple decks.
+
+Scripted randomness proves ordinal deck preparation, independent purpose
+sequences, fixed and random starting-player selection, highest-roll tie rerolls
+and the bounded tie failure. Setup failures never return a partial match.
+Before #75, tests also prove that `PlayTurn` returns the typed execution gate
+without changing authoritative or presentation state.
+
 ## Runtime regression fixtures
 
 Until #75, existing state-transition tests use a small neutral composition

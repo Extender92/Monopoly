@@ -3,20 +3,72 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 using Monopoly.Core.Models.Board;
 
 namespace Monopoly.Core.Models
 {
-    public class Player(string name, int id)
+    public class Player
     {
-        public int Id { get; } = id >= 0 ? id : throw new ArgumentOutOfRangeException(nameof(id));
-        public string Name { get; } = !string.IsNullOrWhiteSpace(name)
-            ? name
-            : throw new ArgumentException("Player name cannot be empty.", nameof(name));
+        private readonly Dictionary<ResourceId, int> _resources = [];
+        private readonly ReadOnlyDictionary<ResourceId, int> _resourcesView;
+
+        public Player(string name, int id)
+        {
+            Id = id >= 0 ? id : throw new ArgumentOutOfRangeException(nameof(id));
+            Name = !string.IsNullOrWhiteSpace(name)
+                ? name
+                : throw new ArgumentException("Player name cannot be empty.", nameof(name));
+            _resourcesView = new ReadOnlyDictionary<ResourceId, int>(_resources);
+        }
+
+        public int Id { get; }
+        public string Name { get; }
         public int Money { get; private set; }
         public int Position { get; private set; }
+        public SpaceId CurrentSpaceId { get; private set; }
+        public IReadOnlyDictionary<ResourceId, int> Resources => _resourcesView;
         internal int NumberOfGetOutOFJailCards { get; private set; }
         public bool IsBankrupt { get; private set; }
+
+        internal void InitializeProfileState(IEnumerable<ResourceAmount> resources, SpaceId spaceId, int position)
+        {
+            ArgumentNullException.ThrowIfNull(resources);
+            if (!spaceId.IsValid) throw new ArgumentException("The current space ID is invalid.", nameof(spaceId));
+            if (position < 0) throw new ArgumentOutOfRangeException(nameof(position));
+
+            ResourceAmount[] supplied = resources.ToArray();
+            if (supplied.Any(resource => !resource.IsValid) ||
+                supplied.Select(resource => resource.ResourceId).Distinct().Count() != supplied.Length)
+            {
+                throw new ArgumentException("Profile resources must contain unique valid resource amounts.", nameof(resources));
+            }
+
+            _resources.Clear();
+            foreach (ResourceAmount resource in supplied.OrderBy(resource => resource.ResourceId))
+                _resources.Add(resource.ResourceId, resource.Value);
+            MoveTo(position, spaceId);
+        }
+
+        internal void CreditResource(ResourceId resourceId, int amount)
+        {
+            if (!resourceId.IsValid) throw new ArgumentException("The resource ID is invalid.", nameof(resourceId));
+            if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            if (!_resources.TryGetValue(resourceId, out int current))
+                throw new KeyNotFoundException($"Resource '{resourceId}' is not defined for this player.");
+            _resources[resourceId] = checked(current + amount);
+        }
+
+        internal bool TryDebitResource(ResourceId resourceId, int amount)
+        {
+            if (!resourceId.IsValid) throw new ArgumentException("The resource ID is invalid.", nameof(resourceId));
+            if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            if (!_resources.TryGetValue(resourceId, out int current))
+                throw new KeyNotFoundException($"Resource '{resourceId}' is not defined for this player.");
+            if (current < amount) return false;
+            _resources[resourceId] = current - amount;
+            return true;
+        }
 
         internal void Credit(int amount)
         {
@@ -43,6 +95,13 @@ namespace Monopoly.Core.Models
         {
             if (position < 0) throw new ArgumentOutOfRangeException(nameof(position));
             Position = position;
+        }
+
+        internal void MoveTo(int position, SpaceId spaceId)
+        {
+            if (!spaceId.IsValid) throw new ArgumentException("The current space ID is invalid.", nameof(spaceId));
+            MoveTo(position);
+            CurrentSpaceId = spaceId;
         }
 
         internal void AddJailCards(int count = 1)

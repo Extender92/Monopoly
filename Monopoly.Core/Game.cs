@@ -19,7 +19,13 @@ public sealed class Game : IGame
     private Guid? _lastConsumedDecisionId;
     private int _notificationDispatchDepth;
 
-    internal GameHandler Handler { get; }
+    private readonly GameHandler? _handler;
+    private readonly GameRules? _rules;
+    private readonly Transaction? _transactions;
+    private readonly Jail? _jail;
+    private readonly StatusCollection? _profileStatuses;
+    private readonly ReadOnlyCollection<SpaceId> _profileOwnableSpaceIds = Array.AsReadOnly(Array.Empty<SpaceId>());
+    internal GameHandler Handler => _handler ?? throw new InvalidOperationException("The legacy executor is not available for a profile-created match.");
     private readonly ILogHandler _logs;
     public IGameLog Logs => _logs;
     public IGameNotificationSource Notifications => _notifications;
@@ -31,17 +37,25 @@ public sealed class Game : IGame
     public Player CurrentPlayer { get; private set; }
     public DiceRoll? LastDiceRoll { get; private set; }
     internal MatchRandomizer Randomizer { get; }
-    internal GameRules Rules { get; }
+    internal GameRules Rules => _rules ?? throw new InvalidOperationException("Legacy rules are not available for a profile-created match.");
     public ProfilePresentation Presentation { get; }
-    internal Transaction Transactions { get; }
-    internal Jail TheJail { get; }
-    public StatusCollection Statuses => TheJail.CreateStatusSnapshot();
+    public ValidatedGameProfile? Profile { get; }
+    internal Transaction Transactions => _transactions ?? throw new InvalidOperationException("Legacy transactions are not available for a profile-created match.");
+    internal Jail TheJail => _jail ?? throw new InvalidOperationException("The legacy detention module is not available for a profile-created match.");
+    public StatusCollection Statuses => _profileStatuses ?? TheJail.CreateStatusSnapshot();
+    public OwnershipCollection Ownership => new(_profileOwnableSpaceIds.Select(spaceId =>
+    {
+        Square square = Board.GetSquare(spaceId);
+        return new SpaceOwnershipView(spaceId, square.Owner?.Id);
+    }));
+    public ProfileModuleState ModuleState => new(Ownership, Statuses);
     internal IPlayerDecisionProvider Decisions { get; private set; }
     public int Fines { get; private set; }
     public int CurrentTurn { get; private set; }
+    public int RoundNumber { get; private set; }
     public int ConsecutiveDoubles { get; private set; }
     public Player? Winner { get; private set; }
-    public bool IsGameOver => Winner is not null || Players.Count(p => !p.IsBankrupt) <= 1;
+    public bool IsGameOver => Winner is not null || (Profile is null && Players.Count(p => !p.IsBankrupt) <= 1);
     public GamePhase Phase { get; private set; }
     public PendingDecision? PendingDecision { get; private set; }
     internal TurnContinuation? TurnContinuationSnapshot => _turnContinuation;
@@ -112,22 +126,71 @@ public sealed class Game : IGame
 
         _playersView = _players.AsReadOnly();
         CurrentPlayer = currentPlayer;
-        Rules = rules;
+        _rules = rules;
         _logs = logs;
         Decisions = decisions ?? new DefaultPlayerDecisionProvider();
         Randomizer = new MatchRandomizer(randomSource ?? new SystemMatchRandomSource());
 
         Fines = 0;
         CurrentTurn = 1;
+        RoundNumber = 1;
         Phase = GamePhase.ReadyForTurn;
         Board = board;
+        foreach (Player player in _players)
+            player.MoveTo(player.Position, Board.Track.GetSpaceIdAt(player.Position));
         DeckRuntime = new DeckRuntime(deckRegistrations, Randomizer, shuffleDecks);
         DeckRuntime.EnsureReferences(Board.ReferencedDeckIds);
         Presentation = presentation;
         Presentation.EnsureReferences(RequiredPresentationTokens());
-        TheJail = new Jail(this, detentionSpacePosition);
-        Handler = new GameHandler(this);
-        Transactions = new Transaction(this);
+        _jail = new Jail(this, detentionSpacePosition);
+        _handler = new GameHandler(this);
+        _transactions = new Transaction(this);
+
+        if (_logs is LogHandler logHandler)
+            logHandler.OwnerGame = this;
+    }
+
+    internal Game(
+        ValidatedGameProfile profile,
+        IEnumerable<Player> players,
+        Player currentPlayer,
+        GameBoard board,
+        DeckRuntime decks,
+        MatchRandomizer randomizer,
+        IEnumerable<SpaceId> ownableSpaceIds,
+        ILogHandler logs,
+        IPlayerDecisionProvider? decisions = null)
+    {
+        Profile = profile ?? throw new ArgumentNullException(nameof(profile));
+        ArgumentNullException.ThrowIfNull(players);
+        ArgumentNullException.ThrowIfNull(currentPlayer);
+        Board = board ?? throw new ArgumentNullException(nameof(board));
+        DeckRuntime = decks ?? throw new ArgumentNullException(nameof(decks));
+        Randomizer = randomizer ?? throw new ArgumentNullException(nameof(randomizer));
+        ArgumentNullException.ThrowIfNull(ownableSpaceIds);
+        Presentation = profile.Presentation;
+        _logs = logs ?? throw new ArgumentNullException(nameof(logs));
+        Decisions = decisions ?? new DefaultPlayerDecisionProvider();
+
+        _players = players.ToList();
+        if (_players.Count < profile.Setup.MinimumPlayers || _players.Count > profile.Setup.MaximumPlayers ||
+            _players.Any(player => player is null))
+        {
+            throw new ArgumentException("The profile match roster is invalid.", nameof(players));
+        }
+        if (_players.Select(player => player.Id).Distinct().Count() != _players.Count)
+            throw new ArgumentException("Player IDs must be unique.", nameof(players));
+        if (!_players.Any(player => ReferenceEquals(player, currentPlayer)))
+            throw new ArgumentException("The current player must belong to the game.", nameof(currentPlayer));
+
+        _playersView = _players.AsReadOnly();
+        CurrentPlayer = currentPlayer;
+        _profileOwnableSpaceIds = Array.AsReadOnly(ownableSpaceIds.OrderBy(id => id).ToArray());
+        _profileStatuses = new StatusCollection([]);
+        Fines = 0;
+        CurrentTurn = 1;
+        RoundNumber = 1;
+        Phase = GamePhase.ReadyForTurn;
 
         if (_logs is LogHandler logHandler)
             logHandler.OwnerGame = this;
@@ -176,6 +239,9 @@ public sealed class Game : IGame
     /// <summary>Starts a turn and runs until it completes or requires a frontend decision.</summary>
     public GameActionResult PlayTurn()
     {
+        if (Profile is not null)
+            return GameActionResult.Rejected(GameActionRejectionReason.CapabilityExecutionUnavailable);
+
         if (_notificationDispatchDepth > 0)
             return GameActionResult.Rejected(GameActionRejectionReason.OperationInProgress, PendingDecision);
 
@@ -228,6 +294,9 @@ public sealed class Game : IGame
 
     public GameActionResult SubmitDecision(DecisionResponse? response)
     {
+        if (Profile is not null)
+            return GameActionResult.Rejected(GameActionRejectionReason.CapabilityExecutionUnavailable);
+
         if (_notificationDispatchDepth > 0)
             return GameActionResult.Rejected(GameActionRejectionReason.OperationInProgress, PendingDecision);
 
@@ -535,6 +604,16 @@ public sealed class Game : IGame
         return Board.GetSquareAtPosition(player.Position);
     }
 
+    internal void MovePlayerToIndex(Player player, int position)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        if (!ContainsPlayer(player))
+            throw new ArgumentException("The player does not belong to this game.", nameof(player));
+        if (position < 0 || position >= Board.Track.Count)
+            throw new ArgumentOutOfRangeException(nameof(position));
+        player.MoveTo(position, Board.Track.GetSpaceIdAt(position));
+    }
+
     internal void PublishNotification(GameNotification notification)
     {
         _notificationDispatchDepth++;
@@ -684,6 +763,12 @@ public sealed class Game : IGame
 
     internal void ValidateAuthoritativeState()
     {
+        if (Profile is not null)
+        {
+            ValidateProfileAuthoritativeState(Profile);
+            return;
+        }
+
         if (_players.Count == 0 || _players.Count > Rules.NumberOfPlayers)
             throw new InvalidOperationException("The active match roster is inconsistent with the configured player count.");
         if (!ContainsPlayer(CurrentPlayer) || CurrentPlayer.IsBankrupt)
@@ -716,6 +801,44 @@ public sealed class Game : IGame
         Player? expectedWinner = activePlayers.Count == 1 ? activePlayers[0] : null;
         if (!ReferenceEquals(Winner, expectedWinner) && (Winner is not null || activePlayers.Count <= 1))
             throw new InvalidOperationException("Winner state is inconsistent with the active players.");
+    }
+
+    private void ValidateProfileAuthoritativeState(ValidatedGameProfile profile)
+    {
+        if (_players.Count < profile.Setup.MinimumPlayers || _players.Count > profile.Setup.MaximumPlayers)
+            throw new InvalidOperationException("The active match roster is inconsistent with the profile player range.");
+        if (!ContainsPlayer(CurrentPlayer) || CurrentPlayer.IsBankrupt)
+            throw new InvalidOperationException("The current player must be active and belong to the profile match.");
+        if (Board.Track.Count != profile.RuleGraph.Track.Count ||
+            Board.Spaces.Where((space, index) => space.Id != profile.RuleGraph.Track.GetSpaceIdAt(index)).Any())
+        {
+            throw new InvalidOperationException("The runtime track does not match the validated profile.");
+        }
+
+        HashSet<ResourceId> resourceIds = profile.RuleGraph.Resources.ToHashSet();
+        foreach (Player player in _players)
+        {
+            if (!resourceIds.SetEquals(player.Resources.Keys) || player.Resources.Values.Any(value => value < 0))
+                throw new InvalidOperationException("A player's resources do not match the validated profile.");
+            if (player.Position < 0 || player.Position >= Board.Track.Count ||
+                player.CurrentSpaceId != Board.Track.GetSpaceIdAt(player.Position))
+            {
+                throw new InvalidOperationException("A player's position and space ID are inconsistent.");
+            }
+        }
+
+        HashSet<SpaceId> expectedOwnable = profile.RuleGraph.Spaces
+            .Where(space => space.Capabilities.Contains(CapabilityKinds.Ownable))
+            .Select(space => space.Id)
+            .ToHashSet();
+        if (!expectedOwnable.SetEquals(_profileOwnableSpaceIds))
+            throw new InvalidOperationException("The ownership module does not match the validated profile.");
+        if (Ownership.Entries.Any(entry => entry.OwnerPlayerId is int ownerId && _players.All(player => player.Id != ownerId)))
+            throw new InvalidOperationException("Every owner must belong to the profile match.");
+        if (Statuses.Count != 0 || PendingDecision is not null || Winner is not null || LastDiceRoll is not null)
+            throw new InvalidOperationException("The initial profile module state is inconsistent.");
+        if (RoundNumber < 1)
+            throw new InvalidOperationException("The profile match round number must be positive.");
     }
 
 }

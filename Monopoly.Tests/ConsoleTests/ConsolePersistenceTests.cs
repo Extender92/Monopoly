@@ -11,6 +11,16 @@ namespace Monopoly.Tests.ConsoleTests;
 public sealed class ConsolePersistenceTests
 {
     [Fact]
+    public void ApplicationCompositionExplicitlySelectsTheBundledDemoProfile()
+    {
+        ValidatedGameProfile profile = Program.LoadBundledDemoProfile();
+
+        Assert.Equal(new ProfileId("profile.demo-001"), profile.Id);
+        Assert.Equal(new ProfileRevision(1), profile.Revision);
+        Assert.Equal(27, profile.RuleGraph.Track.Count);
+    }
+
+    [Fact]
     public void StartNewGameShowsTheValidatedDemoTransitionMessageWithoutUsingStorage()
     {
         Mock<IGameSaveStore> saveStore = new();
@@ -20,7 +30,7 @@ public sealed class ConsolePersistenceTests
         Program.StartNewGame(saveStore.Object, console.Object);
 
         console.Verify(wrapper => wrapper.WriteLine(It.Is<string>(message => message.StartsWith(
-            "Match creation is temporarily unavailable while validated Demo setup is being completed.",
+            "Match play is temporarily unavailable while validated Demo capability execution is being completed.",
             StringComparison.Ordinal))), Times.Once);
         console.Verify(wrapper => wrapper.ReadLine(), Times.Once);
         saveStore.VerifyNoOtherCalls();

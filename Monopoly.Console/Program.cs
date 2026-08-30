@@ -1,6 +1,7 @@
 ﻿using Monopoly.Console.GUI;
 using Monopoly.Console.Models;
 using Infrastructure.Persistence;
+using Infrastructure.Profiles;
 using Monopoly.Core;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models;
@@ -30,9 +31,20 @@ namespace Monopoly.Console
         {
             ArgumentNullException.ThrowIfNull(saveStore);
             ArgumentNullException.ThrowIfNull(consoleWrapper);
+            _ = LoadBundledDemoProfile();
             ShowTransitionMessage(
                 consoleWrapper,
-                "Match creation is temporarily unavailable while validated Demo setup is being completed.");
+                "Match play is temporarily unavailable while validated Demo capability execution is being completed.");
+        }
+
+        internal static ValidatedGameProfile LoadBundledDemoProfile()
+        {
+            string path = Path.Combine(
+                AppContext.BaseDirectory,
+                "profiles",
+                "demo",
+                "lantern-vale-v1.json");
+            return new JsonGameProfileParser().Parse(File.ReadAllBytes(path));
         }
 
         internal static void LoadGame(IGameSaveStore saveStore) =>

@@ -34,6 +34,18 @@ validated before the profile can be used.
 Effects run in declared order. Issue #75 defines the supported execution
 semantics and rejects declarations outside that capability set.
 
+## Setup registry
+
+`GameSetup` recognizes the structural Demo baseline before a match is exposed:
+the Move profile capability; Ownable, Purchasable, UsageFee and Draw space
+capabilities; Move and ResourceChange effects; all three starting-player
+policies; leave-unowned purchase decline; and the round-limited resource
+result. Status definitions and effects are rejected until explicitly
+supported.
+
+Issue #75 attaches executable handlers to this same trusted registry. It does
+not create a second capability vocabulary or accept arbitrary profile code.
+
 ## Lantern Vale Demo
 
 The project-owned Demo is specified in

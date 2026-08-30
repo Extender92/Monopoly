@@ -44,9 +44,16 @@ card and effect order.
 
 ## Runtime boundary
 
-Game is the authoritative match aggregate. Its public construction is
-temporarily unavailable: #40 will create a match from a ValidatedGameProfile,
-and #75 will execute the declared capabilities and effects.
+Game is the authoritative match aggregate. `GameSetup.Create` is the public,
+explicit construction boundary. It accepts one `ValidatedGameProfile`, ordered
+player identities and an optional match-scoped random source. Core never
+selects a default profile or reads a profile path.
+
+Setup validates the trusted component registry before consuming randomness,
+then prepares decks in ordinal DeckId order and applies the declared
+starting-player policy. The returned match is readable in `ReadyForTurn`.
+Until #75 attaches execution handlers to the same registry, `PlayTurn` returns
+the typed, mutation-free `CapabilityExecutionUnavailable` rejection.
 
 An internal data-free executor remains only to protect existing state,
 decision, randomness and notification regressions. Tests compose it from a
@@ -55,7 +62,10 @@ default profile or public compatibility layer.
 
 Each match owns:
 
+- exact profile ID, revision and fingerprint;
 - players, current participant and winner state;
+- per-player resource balances and current SpaceId;
+- generic ownership/status module snapshots and a round number;
 - phase, pending immutable decision and continuation state;
 - an immutable GameTrack and read-only SpaceView snapshots;
 - a match-scoped DeckId collection;
@@ -98,7 +108,7 @@ or a private profile.
 
 ## Follow-up ownership
 
-- #40: construct setup from a validated profile.
+- #40: construct setup from a validated profile (implemented).
 - #75: register and execute supported capabilities.
 - #76: explicitly select external JSON profiles.
 - #52: introduce whole-match Save Format Version 2.

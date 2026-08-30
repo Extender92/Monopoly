@@ -29,16 +29,16 @@ internal sealed class GameHandler
         if (targetPosition >= boardSize)
         {
             int laps = targetPosition / boardSize;
-            player.MoveTo(CurrentGame.Board.Track.NormalizeIndex(targetPosition));
+            CurrentGame.MovePlayerToIndex(player, CurrentGame.Board.Track.NormalizeIndex(targetPosition));
             for (int i = 0; i < laps; i++)
                 CurrentGame.Transactions.PlayerGetSalary(player);
         }
         else if (targetPosition < 0)
         {
-            player.MoveTo(CurrentGame.Board.Track.NormalizeIndex(targetPosition));
+            CurrentGame.MovePlayerToIndex(player, CurrentGame.Board.Track.NormalizeIndex(targetPosition));
         }
         else
-            player.MoveTo(targetPosition);
+            CurrentGame.MovePlayerToIndex(player, targetPosition);
     }
 
     public void MovePlayerAndInvokeEvent(Player player, int newPosition)

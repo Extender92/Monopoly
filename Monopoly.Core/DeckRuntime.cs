@@ -36,7 +36,7 @@ internal sealed class DeckRuntime
             }
 
             RuntimeCard[] canonical = registration.Cards
-                .Select(card => new RuntimeCard(card.Id, card.Card))
+                .Select(card => card.CreateRuntimeCard())
                 .ToArray();
             IReadOnlyList<RuntimeCard> initialOrder = shuffleDecks
                 ? ShuffleCopy(canonical, randomizer, ref sequenceIndex)
@@ -48,6 +48,15 @@ internal sealed class DeckRuntime
 
         _decks = prepared;
     }
+
+    internal static DeckRuntime CreateForProfile(
+        IEnumerable<DeckDefinition> definitions,
+        MatchRandomizer randomizer,
+        bool shuffleDecks) => new(
+            (definitions ?? throw new ArgumentNullException(nameof(definitions)))
+                .Select(definition => new RuntimeDeckRegistration(definition)),
+            randomizer,
+            shuffleDecks);
 
     internal DeckCollection CreateSnapshot() =>
         new(_decks.Values.OrderBy(deck => deck.Id).Select(deck => deck.CreateView()));
@@ -101,31 +110,54 @@ internal sealed class DeckRuntime
 
 internal sealed class RuntimeCard : ICardView
 {
-    private readonly ILegacyCard _card;
+    private readonly ILegacyCard? _legacyCard;
 
     internal RuntimeCard(CardId id, ILegacyCard card)
     {
         if (!id.IsValid) throw new ArgumentException("The card ID is invalid.", nameof(id));
-        _card = card ?? throw new ArgumentNullException(nameof(card));
+        _legacyCard = card ?? throw new ArgumentNullException(nameof(card));
         Id = id;
+        PresentationToken = card.PresentationToken;
+    }
+
+    internal RuntimeCard(CardDefinition definition)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        Definition = definition;
+        Id = definition.Id;
+        PresentationToken = definition.PresentationToken;
     }
 
     public CardId Id { get; }
-    public PresentationToken PresentationToken => _card.PresentationToken;
-    internal void ExecuteEffect(Player player, Game game) => _card.ExecuteEffect(player, game);
+    public PresentationToken PresentationToken { get; }
+    internal CardDefinition? Definition { get; }
+    internal void ExecuteEffect(Player player, Game game) =>
+        (_legacyCard ?? throw new InvalidOperationException("Profile card execution is not available yet."))
+            .ExecuteEffect(player, game);
 }
 
 internal sealed class RuntimeCardRegistration
 {
+    private readonly CardDefinition? _definition;
+
     internal RuntimeCardRegistration(CardId id, ILegacyCard card)
     {
         if (!id.IsValid) throw new ArgumentException("The card ID is invalid.", nameof(id));
         Id = id;
-        Card = card ?? throw new ArgumentNullException(nameof(card));
+        LegacyCard = card ?? throw new ArgumentNullException(nameof(card));
+    }
+
+    internal RuntimeCardRegistration(CardDefinition definition)
+    {
+        _definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        Id = definition.Id;
     }
 
     internal CardId Id { get; }
-    internal ILegacyCard Card { get; }
+    internal ILegacyCard? LegacyCard { get; }
+    internal RuntimeCard CreateRuntimeCard() => _definition is null
+        ? new RuntimeCard(Id, LegacyCard!)
+        : new RuntimeCard(_definition);
 }
 
 internal sealed class RuntimeDeckRegistration
@@ -151,6 +183,14 @@ internal sealed class RuntimeDeckRegistration
         Id = id;
         PresentationToken = presentationToken;
         Cards = Array.AsReadOnly(copiedCards);
+    }
+
+    internal RuntimeDeckRegistration(DeckDefinition definition)
+        : this(
+            (definition ?? throw new ArgumentNullException(nameof(definition))).Id,
+            definition.PresentationToken,
+            definition.Cards.Select(card => new RuntimeCardRegistration(card)))
+    {
     }
 
     internal DeckId Id { get; }
