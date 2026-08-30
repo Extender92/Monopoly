@@ -289,11 +289,14 @@ public sealed class GameSetupTests
     [Fact]
     public void PublicSetupBoundaryExposesNoTransportCallbacksOrLegacyFactories()
     {
-        MethodInfo create = typeof(GameSetup).GetMethods(BindingFlags.Public | BindingFlags.Static).Single();
-        Type[] publicSignature = create.GetParameters().Select(parameter => parameter.ParameterType)
-            .Append(create.ReturnType)
+        MethodInfo[] methods = typeof(GameSetup).GetMethods(BindingFlags.Public | BindingFlags.Static);
+        Type[] publicSignature = methods
+            .SelectMany(method => method.GetParameters().Select(parameter => parameter.ParameterType)
+                .Append(method.ReturnType))
             .ToArray();
 
+        Assert.Contains(methods, method => method.Name == nameof(GameSetup.Create));
+        Assert.Contains(methods, method => method.Name == nameof(GameSetup.ValidateCompatibility));
         Assert.DoesNotContain(publicSignature, type =>
             type == typeof(Stream) ||
             type == typeof(FileInfo) ||

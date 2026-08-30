@@ -58,6 +58,13 @@ public static class GameSetup
         IMatchRandomSource? randomSource = null) =>
         Create(profile, players, randomSource, ProfileComponentRegistry.CreateExecutionBaseline());
 
+    /// <summary>
+    /// Verifies that a validated profile can be executed by the currently
+    /// supported public capability baseline without creating match state.
+    /// </summary>
+    public static void ValidateCompatibility(ValidatedGameProfile profile) =>
+        ValidateCompatibility(profile, ProfileComponentRegistry.CreateExecutionBaseline());
+
     internal static Game Create(
         ValidatedGameProfile profile,
         IEnumerable<PlayerSetup> players,
@@ -74,9 +81,8 @@ public static class GameSetup
         if (roster.Any(player => player is null))
             throw Error(GameSetupErrorKind.InvalidPlayer, "players", "Player setup entries cannot be null.");
 
-        ValidateProfile(profile);
+        ValidateCompatibility(profile, registry);
         ValidateRoster(profile, roster);
-        registry.Validate(profile);
 
         MatchRandomizer randomizer = new(randomSource ?? new SystemMatchRandomSource());
         DeckRuntime decks = DeckRuntime.CreateForProfile(profile.RuleGraph.Decks, randomizer, shuffleDecks: true);
@@ -106,6 +112,18 @@ public static class GameSetup
             registry,
             ownableSpaceIds,
             new LogHandler());
+    }
+
+    internal static void ValidateCompatibility(
+        ValidatedGameProfile profile,
+        ProfileComponentRegistry registry)
+    {
+        if (profile is null)
+            throw Error(GameSetupErrorKind.InvalidProfile, "profile", "A validated profile is required.");
+        ArgumentNullException.ThrowIfNull(registry);
+
+        ValidateProfile(profile);
+        registry.Validate(profile);
     }
 
     private static void ValidateProfile(ValidatedGameProfile profile)

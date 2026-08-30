@@ -1,4 +1,5 @@
 using Monopoly.Console.Utilities;
+using Monopoly.Core;
 using Monopoly.Core.Persistence;
 
 namespace Monopoly.Console.GUI;
@@ -7,11 +8,16 @@ internal sealed class MainMenu
 {
     private readonly IMenuOptionSelector _menuOptionSelector;
     private readonly IGameSaveStore _saveStore;
+    private readonly ValidatedGameProfile _profile;
 
-    internal MainMenu(IMenuOptionSelector menuOptionSelector, IGameSaveStore saveStore)
+    internal MainMenu(
+        IMenuOptionSelector menuOptionSelector,
+        IGameSaveStore saveStore,
+        ValidatedGameProfile profile)
     {
         _menuOptionSelector = menuOptionSelector ?? throw new ArgumentNullException(nameof(menuOptionSelector));
         _saveStore = saveStore ?? throw new ArgumentNullException(nameof(saveStore));
+        _profile = profile ?? throw new ArgumentNullException(nameof(profile));
     }
 
     private enum MainMenuOption
@@ -37,7 +43,7 @@ internal sealed class MainMenu
             switch (actions[selectedIndex])
             {
                 case MainMenuOption.StartNewGame:
-                    Program.StartNewGame(_saveStore);
+                    Program.StartNewGame(_saveStore, _profile);
                     break;
                 case MainMenuOption.LoadGame:
                     Program.LoadGame(_saveStore);

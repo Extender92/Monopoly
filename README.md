@@ -23,13 +23,15 @@ application gaps:
 - Core creates and runs matches from an explicitly supplied validated profile.
   Movement, purchase decisions, fixed usage fees, generic draws, bounded
   effects, rounds and terminal scoring use one registered execution path.
-- Console starts and validates the Demo, but interactive match play remains
-  unavailable until #77 supplies generic projections.
+- Console uses the bundled Demo by default or loads one explicitly selected
+  local JSON profile with `--profile`. Interactive match play remains
+  unavailable until #77 supplies player entry and generic projections.
 - Save Format Version 1 has been retired. Save and load return typed
   compatibility errors until issue #52 supplies Version 2.
 - No legacy Core rule executor or product-shaped runtime state remains.
 
-No external or private profile is required by clone, build, tests or Console.
+No external or private profile is required by clone, build, tests or default
+Console use.
 
 ## Architecture
 
@@ -64,6 +66,16 @@ Run the WIP Console shell with:
 ~~~text
 dotnet run --project Monopoly.Console
 ~~~
+
+Select one local profile explicitly with:
+
+~~~text
+dotnet run --project Monopoly.Console -- --profile <path>
+~~~
+
+The path may be relative or absolute. Console loads it once before opening the
+menu, does not scan profile directories and does not fall back to the Demo when
+an explicitly selected profile fails validation or compatibility checks.
 
 ## Documentation
 

@@ -35,6 +35,12 @@ multiple decks. Parser and validator tests cover security limits, malformed
 encodings, unknown fields and kinds, duplicates, broken references, invalid
 combinations and canonical fingerprint stability.
 
+Profile-source and Console-composition tests cover bundled default selection,
+explicit relative and absolute paths, argument validation, safe technical file
+errors, JSON/schema failures, semantic validation and execution compatibility.
+They verify that explicit failure starts neither menu nor match, never falls
+back to Demo and never exposes an absolute path.
+
 No test embeds a complete third-party layout, economy or card collection.
 
 ## Match setup tests

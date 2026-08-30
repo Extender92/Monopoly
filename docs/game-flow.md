@@ -8,6 +8,12 @@ player identities. Console still stops before a session while #77 implements
 generic projections. Loading reports a typed compatibility failure. No
 fallback match is created.
 
+Console selects the bundled Demo by default or one file supplied through
+`--profile`. Infrastructure opens and parses the file, Core checks semantic and
+execution compatibility, and only the resulting immutable profile enters
+application composition. A selection failure occurs before the menu opens and
+never replaces state or retries with another profile.
+
 ## Setup flow
 
 The implemented setup flow is:

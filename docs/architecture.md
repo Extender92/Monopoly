@@ -80,8 +80,14 @@ hints and never control execution.
 ## JSON and profile files
 
 Core defines the transport-neutral schema semantics. Infrastructure uses
-System.Text.Json to parse bytes or bounded streams. File selection belongs to
-Infrastructure and Console in #76; Core never receives a path.
+System.Text.Json to parse bytes or bounded streams. `JsonFileGameProfileSource`
+opens one explicitly configured file and translates technical failures without
+exposing its path. Console owns selection and Core never receives a path.
+
+Before application composition accepts a profile, Core runs the same
+`GameSetup.ValidateCompatibility` checks used by `GameSetup.Create`. This
+separates source, JSON/schema, semantic-validation and execution-compatibility
+failures without constructing or mutating a match.
 
 The distributed original Demo is
 [lantern-vale-v1.json](../profiles/demo/lantern-vale-v1.json). Schema and
@@ -107,14 +113,15 @@ compiled; the old Console session is not a runtime fallback. Full generic
 projections belong to #77.
 
 During the current gap the Console shell starts, while new and loaded matches
-return clear transition messages. It never falls back to bundled legacy data
-or a private profile.
+return clear transition messages. The bundled Demo is the default. An explicit
+`--profile` selection is loaded before the menu and never falls back to Demo on
+failure; no private directory is scanned automatically.
 
 ## Follow-up ownership
 
 - #40: construct setup from a validated profile (implemented).
 - #75: registered capability execution and legacy Core removal (implemented).
-- #76: explicitly select external JSON profiles.
+- #76: explicitly select external JSON profiles (implemented).
 - #52: introduce whole-match Save Format Version 2.
 - #77: render generic profile projections in Console.
 - #56: adopt the final neutral project identity.

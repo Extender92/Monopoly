@@ -9,32 +9,101 @@ namespace Monopoly.Console;
 
 internal static class Program
 {
+    private const string Usage = "Usage: Monopoly.Console [--profile <path>] [--help]";
     private const string SessionTransitionMessage =
-        "Demo capability execution is available in Core. Interactive match play is temporarily unavailable while generic Console projections are being completed.";
+        "The selected profile is valid and supported. Interactive match play is temporarily unavailable while generic Console projections are being completed.";
 
-    private static void Main()
+    private static int Main(string[] args) => Run(args, new ConsoleWrapper());
+
+    internal static int Run(
+        string[] args,
+        IConsoleWrapper consoleWrapper,
+        Action<ValidatedGameProfile, IConsoleWrapper>? runApplication = null)
     {
-        ConsolePositions.SetStandardPositions();
-        IConsoleWrapper consoleWrapper = new ConsoleWrapper();
-        MainMenu mainMenu = new(new MenuOptionSelector(consoleWrapper), new JsonFileGameSaveStore("game_data.json"));
-        mainMenu.DisplayMainMenu();
+        ArgumentNullException.ThrowIfNull(args);
+        ArgumentNullException.ThrowIfNull(consoleWrapper);
+
+        ConsoleCommandLineOptions options;
+        try
+        {
+            options = ConsoleCommandLineOptions.Parse(args);
+        }
+        catch (ConsoleCommandLineException exception)
+        {
+            consoleWrapper.WriteLine(exception.Message);
+            consoleWrapper.WriteLine(Usage);
+            return 2;
+        }
+
+        if (options.ShowHelp)
+        {
+            consoleWrapper.WriteLine(Usage);
+            return 0;
+        }
+
+        ValidatedGameProfile profile;
+        try
+        {
+            profile = LoadSelectedProfile(options.ProfilePath);
+        }
+        catch (ProfileSourceException exception)
+        {
+            consoleWrapper.WriteLine(SourceErrorMessage(exception.Kind));
+            return 1;
+        }
+        catch (ProfileJsonException exception)
+        {
+            consoleWrapper.WriteLine(JsonErrorMessage(exception.Kind));
+            return 1;
+        }
+        catch (ProfileValidationException)
+        {
+            consoleWrapper.WriteLine("The profile content is invalid.");
+            return 1;
+        }
+        catch (GameSetupException exception) when (
+            exception.Kind is GameSetupErrorKind.UnsupportedComponent or GameSetupErrorKind.UnsupportedPolicy)
+        {
+            consoleWrapper.WriteLine("The profile uses components that this engine version does not support.");
+            return 1;
+        }
+        catch (GameSetupException)
+        {
+            consoleWrapper.WriteLine("The profile is not compatible with match setup.");
+            return 1;
+        }
+
+        (runApplication ?? DisplayMainMenu)(profile, consoleWrapper);
+        return 0;
     }
 
-    internal static void StartNewGame(IGameSaveStore saveStore) =>
-        StartNewGame(saveStore, new ConsoleWrapper());
+    internal static void StartNewGame(IGameSaveStore saveStore, ValidatedGameProfile profile) =>
+        StartNewGame(saveStore, profile, new ConsoleWrapper());
 
-    internal static void StartNewGame(IGameSaveStore saveStore, IConsoleWrapper consoleWrapper)
+    internal static void StartNewGame(
+        IGameSaveStore saveStore,
+        ValidatedGameProfile profile,
+        IConsoleWrapper consoleWrapper)
     {
         ArgumentNullException.ThrowIfNull(saveStore);
+        ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(consoleWrapper);
-        _ = LoadBundledDemoProfile();
+        GameSetup.ValidateCompatibility(profile);
         ShowTransitionMessage(consoleWrapper, SessionTransitionMessage);
     }
 
-    internal static ValidatedGameProfile LoadBundledDemoProfile()
+    internal static ValidatedGameProfile LoadBundledDemoProfile() => LoadSelectedProfile(null);
+
+    internal static ValidatedGameProfile LoadSelectedProfile(string? explicitProfilePath)
     {
-        string path = Path.Combine(AppContext.BaseDirectory, "profiles", "demo", "lantern-vale-v1.json");
-        return new JsonGameProfileParser().Parse(File.ReadAllBytes(path));
+        string path = explicitProfilePath ?? Path.Combine(
+            AppContext.BaseDirectory,
+            "profiles",
+            "demo",
+            "lantern-vale-v1.json");
+        ValidatedGameProfile profile = new JsonFileGameProfileSource(path).Load();
+        GameSetup.ValidateCompatibility(profile);
+        return profile;
     }
 
     internal static void LoadGame(IGameSaveStore saveStore) =>
@@ -69,4 +138,38 @@ internal static class Program
         consoleWrapper.WriteLine($"{message} Press Enter to return to the main menu.");
         consoleWrapper.ReadLine();
     }
+
+    private static void DisplayMainMenu(
+        ValidatedGameProfile profile,
+        IConsoleWrapper consoleWrapper)
+    {
+        ConsolePositions.SetStandardPositions();
+        MainMenu mainMenu = new(
+            new MenuOptionSelector(consoleWrapper),
+            new JsonFileGameSaveStore("game_data.json"),
+            profile);
+        mainMenu.DisplayMainMenu();
+    }
+
+    private static string SourceErrorMessage(ProfileSourceErrorKind kind) => kind switch
+    {
+        ProfileSourceErrorKind.NotFound => "The profile file was not found.",
+        ProfileSourceErrorKind.AccessDenied => "Access to the profile file was denied.",
+        ProfileSourceErrorKind.InvalidPath => "The profile path is invalid.",
+        ProfileSourceErrorKind.StorageFailure => "The profile file could not be read.",
+        _ => "The profile source could not be loaded."
+    };
+
+    private static string JsonErrorMessage(ProfileJsonErrorKind kind) => kind switch
+    {
+        ProfileJsonErrorKind.InputTooLarge => "The profile file exceeds the supported size limit.",
+        ProfileJsonErrorKind.InvalidEncoding => "The profile file must use valid UTF-8.",
+        ProfileJsonErrorKind.MalformedJson => "The profile file contains malformed JSON.",
+        ProfileJsonErrorKind.DepthExceeded => "The profile JSON exceeds the supported depth limit.",
+        ProfileJsonErrorKind.UnsupportedSchemaVersion => "The profile uses an unsupported schema version.",
+        ProfileJsonErrorKind.UnknownMember or
+        ProfileJsonErrorKind.DuplicateMember or
+        ProfileJsonErrorKind.InvalidWireValue => "The profile JSON does not match the supported schema.",
+        _ => "The profile JSON could not be loaded."
+    };
 }
