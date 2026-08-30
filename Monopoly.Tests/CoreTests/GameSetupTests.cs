@@ -231,7 +231,7 @@ public sealed class GameSetupTests
     [InlineData(RandomSourceErrorKind.Exhausted)]
     [InlineData(RandomSourceErrorKind.OutOfRange)]
     [InlineData(RandomSourceErrorKind.SourceFailure)]
-    public void RandomSourceFailuresEscapeTypedWithoutReturningAPartialMatch(RandomSourceErrorKind kind)
+    public void RandomSourceFailuresEscapeTypedWithoutReturningPartialMatch(RandomSourceErrorKind kind)
     {
         ValidatedGameProfile profile = WithStartingPolicy(ProfileTestFactory.Create(), StartingPlayerPolicyKind.Random);
         IMatchRandomSource source = kind switch
