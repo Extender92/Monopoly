@@ -15,14 +15,27 @@ The application starts and displays its menu.
 
 Selecting a new match displays:
 
-> Demo capability execution is available in Core. Interactive match play is
+> The selected profile is valid and supported. Interactive match play is
 > temporarily unavailable while generic Console projections are being
 > completed.
 
 The user acknowledges the message and returns to the menu. Core setup from a
 validated profile and the Demo execution baseline are complete, but Console
-intentionally does not enter a session until #77. Application composition
-explicitly selects and validates the bundled Demo; Core has no default profile.
+intentionally does not enter a session until #77. Application composition uses
+the bundled Demo unless the process received an explicit profile path; Core has
+no default profile.
+
+The supported commands are:
+
+~~~text
+Monopoly.Console [--profile <path>] [--help]
+~~~
+
+`--profile` accepts one relative or absolute file path. The file is loaded,
+semantically validated and checked against the current execution registry
+before the menu opens. Failure exits without creating application or match
+state and never falls back to Demo. Paths are not copied into Core, errors,
+logs or saves.
 
 Loading delegates to the injected IGameSaveStore. During the persistence gap,
 the retired format produces the stable unsupported-version message and returns
@@ -42,11 +55,16 @@ excluded from compilation because their Core compatibility types no longer
 exist. Issue #77 deletes those sources and replaces them with generic space,
 card, decision and match projections.
 
-## Future composition
+## Profile composition
 
-Issue #76 adds explicit profile-path selection through Infrastructure. Without
-that option, Console will use the distributed Demo. Core will never receive a
-file path.
+Infrastructure distinguishes missing, denied, invalid-path and storage errors.
+JSON/schema errors, semantic profile errors and unsupported execution
+components retain their separate typed boundaries. Console maps those to safe
+messages without displaying the source path.
+
+The selected `ValidatedGameProfile` is injected into the menu and retained for
+the next new match. Issue #77 owns player input, actual match creation and the
+interactive session.
 
 Session lifecycle and subscription cleanup must be reconsidered as neutral
 issues after clean publication.

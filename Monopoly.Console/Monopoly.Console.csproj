@@ -16,6 +16,7 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <Compile Include="ConsoleCommandLineOptions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="GUI\ArrowKeyMenuController.cs" />
     <Compile Include="GUI\ConsolePositions.cs" />

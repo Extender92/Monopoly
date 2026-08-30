@@ -60,6 +60,10 @@ are never serialized. Internal policy handlers and capability registrations are
 runtime code and are likewise never persisted; only any resulting authoritative
 match state or pending decision belongs in Version 2.
 
+The profile file path is application input, not profile identity or match
+state. Version 2 resolves saved profile ID, revision and fingerprint against an
+already registered validated profile and never records the source path.
+
 ## Ownership boundaries
 
 Core owns persistence contracts, compatibility categories and whole-match

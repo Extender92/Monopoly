@@ -29,7 +29,7 @@ immutable ValidatedGameProfile
 Infrastructure owns `System.Text.Json`, wire DTOs and technical format errors.
 Core owns identifiers, capabilities, effects, policies, semantic validation and
 fingerprinting. Core never receives a path. File selection and loading belong
-to the application boundary introduced by issue #76.
+to Infrastructure and the Console application boundary.
 
 ## Version 1 structure
 
@@ -104,10 +104,13 @@ movements from every Draw space and rejects any possible resolving Draw cycle,
 including self-loops, regardless of current deck order. Relative offsets use
 the full non-zero signed 32-bit range and are normalized against track order.
 
-Infrastructure reports technical failures as `ProfileJsonException` with a
-`ProfileJsonErrorKind` and path. Core reports semantic failures as
-`ProfileValidationException` with a `ProfileValidationErrorKind` and path.
-Failure returns no profile and cannot create or mutate a `Game`.
+Infrastructure reports file-source failures as a sanitized
+`ProfileSourceException`. JSON and schema failures remain
+`ProfileJsonException` with a `ProfileJsonErrorKind` and JSON path. Core reports
+semantic failures as `ProfileValidationException` with a
+`ProfileValidationErrorKind` and path. `GameSetup.ValidateCompatibility` then
+checks the supported execution registry without creating match state. Failure
+returns no selected profile and cannot create or mutate a `Game`.
 
 ## Runtime setup
 
@@ -151,6 +154,10 @@ The repository contains small original schema-conformance fixtures with
 different track and deck structures. The bundled original Demo profile is
 validated through the same parser. Builds, tests and default application use
 must never depend on an external or private profile.
+
+Console may load exactly one explicitly selected local file with
+`--profile <path>`. It performs no discovery, applies no private default and
+does not fall back to the Demo after an explicit failure.
 
 ## Related documentation
 
