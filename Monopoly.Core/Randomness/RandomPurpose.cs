@@ -5,7 +5,6 @@ public enum RandomPurpose
 {
     DeckShuffle,
     TurnDice,
-    DetentionDice,
     DedicatedRuleDice,
     SetupStartingPlayer,
     SetupDice

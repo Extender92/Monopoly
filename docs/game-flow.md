@@ -2,15 +2,11 @@
 
 ## Current WIP boundary
 
-Core now has a production setup boundary. `GameSetup.Create` returns a complete
-initial match from an explicitly supplied validated profile and ordered player
-identities. Console still stops before a session and reports that capability
-execution is being completed. Loading reports a typed compatibility failure.
-No fallback match is created.
-
-Focused tests may run the internal data-free executor through small synthetic
-compositions. Those fixtures are not product data and are never selected by
-Console.
+Core has a production setup and execution boundary. `GameSetup.Create` returns
+a complete match from an explicitly supplied validated profile and ordered
+player identities. Console still stops before a session while #77 implements
+generic projections. Loading reports a typed compatibility failure. No
+fallback match is created.
 
 ## Setup flow
 
@@ -37,19 +33,15 @@ sequence indices.
 The Lantern Vale Demo declares 2–5 players, 2d8, fixed player order, 120 Lumen,
 zero Renown and a 12-Lumen pass-origin reward.
 
-## Target turn and decision flow
+## Turn and decision flow
 
-Issue #75 will execute supported declarations. A frontend calls PlayTurn until
-Core either completes the action cycle, reaches game over or returns an
+A frontend calls `PlayTurn` until Core either completes the action cycle,
+reaches game over or returns an
 immutable pending decision. The frontend later submits a DecisionResponse with
-the same decision ID.
+the same decision ID, participant ID and an allowed response.
 
 Core validates stale, duplicate, unavailable and participant-mismatched
 responses without mutation. Runtime callbacks are never stored in match state.
-
-Before #75, a profile-created match remains in `ReadyForTurn` and `PlayTurn`
-returns `CapabilityExecutionUnavailable` without changing resources, position,
-deck order, ownership, logs, dice, notifications, phase or decisions.
 
 The Demo baseline requires:
 
@@ -64,9 +56,20 @@ The Demo baseline requires:
 9. apply its ordered declarative effects;
 10. complete after the declared round limit and compare the score resource.
 
+The player order cycles from the setup-selected starting participant. A round
+ends when play returns to that participant. The match ends after every
+participant finishes the final declared round. Doubles do not grant an extra
+turn in schema version 1.
+
 Movement card effects can use a relative offset or absolute SpaceId. They
 declare whether the destination resolves and whether crossing the origin
 applies the profile reward. Backward Demo movement ignores that reward.
+Nested draw destinations and complex movement cycles remain rejected until
+#36 defines their complete semantics.
+
+Mandatory debits stop at zero. A usage fee transfers only the amount actually
+available. Optional purchases require the full configured price. Positive
+overflow rejects the prepared transition before any authoritative mutation.
 
 ## Match-scoped services
 

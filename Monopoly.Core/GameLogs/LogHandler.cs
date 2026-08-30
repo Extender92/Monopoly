@@ -29,7 +29,8 @@ namespace Monopoly.Core.Logs
                 Info = text
             };
             _logs.Add(log);
-            OwnerGame?.PublishNotification(new LogAddedNotification(log));
+            if (OwnerGame is Game game)
+                game.PublishNotification(new LogAddedNotification(log, game.Profile.PresentationToken));
         }
     }
 }

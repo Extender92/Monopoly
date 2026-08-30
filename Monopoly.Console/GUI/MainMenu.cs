@@ -1,145 +1,52 @@
-﻿using Monopoly.Console.Utilities;
-using Monopoly.Core.Interface;
-using Monopoly.Core.Models;
+using Monopoly.Console.Utilities;
 using Monopoly.Core.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Monopoly.Console.GUI
+namespace Monopoly.Console.GUI;
+
+internal sealed class MainMenu
 {
-    internal class MainMenu
+    private readonly IMenuOptionSelector _menuOptionSelector;
+    private readonly IGameSaveStore _saveStore;
+
+    internal MainMenu(IMenuOptionSelector menuOptionSelector, IGameSaveStore saveStore)
     {
-        private readonly IMenuOptionSelector MenuOptionSelector;
-        private readonly IGameSaveStore SaveStore;
+        _menuOptionSelector = menuOptionSelector ?? throw new ArgumentNullException(nameof(menuOptionSelector));
+        _saveStore = saveStore ?? throw new ArgumentNullException(nameof(saveStore));
+    }
 
-        public MainMenu(IMenuOptionSelector menuOptionSelector, IGameSaveStore saveStore)
+    private enum MainMenuOption
+    {
+        [DisplayName("Start New Game")]
+        StartNewGame,
+
+        [DisplayName("Load Game")]
+        LoadGame,
+
+        [DisplayName("Exit Game")]
+        ExitGame
+    }
+
+    internal void DisplayMainMenu()
+    {
+        MainMenuOption[] actions = Enum.GetValues<MainMenuOption>();
+        while (true)
         {
-            MenuOptionSelector = menuOptionSelector;
-            SaveStore = saveStore;
-        }
+            int selectedIndex = _menuOptionSelector.GetSelectedOption(
+                actions.Select(action => action.GetDisplayName()).ToList());
 
-        public enum MainMenuOptions
-        {
-            [DisplayName("Start New Game")]
-            StartNewGame,
-
-            [DisplayName("Load Game")]
-            LoadGame,
-
-            [DisplayName("Exit Game")]
-            ExitGame,
-
-            [DisplayName("Back To Game")]
-            BackToGame,
-        }
-
-        public enum StartNewGameMenu
-        {
-            [DisplayName("Start Game")]
-            StartGame,
-
-            [DisplayName("Setup Rules")]
-            SetupRules,
-
-            [DisplayName("Back")]
-            BackToMainMenu,
-        }
-
-        public void DisplayMainMenu()
-        {
-            List<MainMenuOptions> availableActions = GetAvailableMainActions();
-            int selectedOption = MenuOptionSelector.GetSelectedOption(availableActions.Select(action => action.GetDisplayName()).ToList());
-
-            HandleActionMainMenu(availableActions[selectedOption]);
-        }
-
-        public void DisplayStartNewGameMenu()
-        {
-            List<StartNewGameMenu> availableActions = GetAvailableRealEstateActions();
-            int selectedOption = MenuOptionSelector.GetSelectedOption(availableActions.Select(action => action.GetDisplayName()).ToList());
-
-            HandlePlayerActionRealEstateMenu(availableActions[selectedOption]);
-        }
-
-        private List<MainMenuOptions> GetAvailableMainActions()
-        {
-            List<MainMenuOptions> actions = new List<MainMenuOptions>
+            switch (actions[selectedIndex])
             {
-                MainMenuOptions.StartNewGame,
-                MainMenuOptions.LoadGame,
-                // CurrentGame ? MainMenuOptions.BackToGame,
-                MainMenuOptions.ExitGame,
-            };
-
-            return actions;
-        }
-
-        private List<StartNewGameMenu> GetAvailableRealEstateActions()
-        {
-            List<StartNewGameMenu> actions = new List<StartNewGameMenu>
-            {
-                StartNewGameMenu.StartGame,
-                StartNewGameMenu.SetupRules,
-                StartNewGameMenu.BackToMainMenu
-            };
-
-            return actions;
-        }
-
-        private void HandleActionMainMenu(MainMenuOptions action)
-        {
-            switch (action)
-            {
-                case MainMenuOptions.StartNewGame:
-                    DisplayStartNewGameMenu();
+                case MainMenuOption.StartNewGame:
+                    Program.StartNewGame(_saveStore);
                     break;
-                case MainMenuOptions.LoadGame:
-                    LoadGame();
+                case MainMenuOption.LoadGame:
+                    Program.LoadGame(_saveStore);
                     break;
-                case MainMenuOptions.ExitGame:
-                    Environment.Exit(0);
-                    break;
-                case MainMenuOptions.BackToGame:
-                    // PlayerActionMenu PlayerActionMenu = new PlayerActionMenu(MenuOptionSelector, CurrentGame, player);
-                    break;
+                case MainMenuOption.ExitGame:
+                    return;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");
+                    throw new ArgumentOutOfRangeException(nameof(selectedIndex));
             }
-        }
-
-        private void HandlePlayerActionRealEstateMenu(StartNewGameMenu action)
-        {
-            switch (action)
-            {
-                case StartNewGameMenu.StartGame:
-                    Program.StartNewGame(SaveStore);
-                    break;
-                case StartNewGameMenu.SetupRules:
-                    SetupRules();
-                    break;
-                case StartNewGameMenu.BackToMainMenu:
-                    DisplayMainMenu();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(action), $"Invalid value for 'selectedOption': {action}");
-            }
-        }
-
-        private void SetupRules()
-        {
-            // SetupRules
-            DisplayStartNewGameMenu();
-        }
-
-        private void LoadGame()
-        {
-            // Logic to Load the game
-            Program.LoadGame(SaveStore);
-            DisplayMainMenu();
         }
     }
 }

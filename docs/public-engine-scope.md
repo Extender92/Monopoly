@@ -47,8 +47,8 @@ A validated profile may define:
 
 The first public capability baseline is intentionally narrow: movement,
 ownership, optional purchase, fixed usage fees, drawing an event, bounded
-resource changes and a round-limited score result. Issue #75 owns the exact
-executable contract and may reject any capability not registered by the engine.
+resource changes and a round-limited score result. The trusted execution
+registry rejects any capability that has no supported handler.
 
 ## Explicit non-goals
 

@@ -21,15 +21,12 @@ public enum GameActionStatus
 public static class DecisionKinds
 {
     public static DecisionKindId Purchase { get; } = new("purchase");
-    public static DecisionKindId Status { get; } = new("status");
 }
 
 public static class DecisionOptions
 {
     public static DecisionOptionId Accept { get; } = new("accept");
     public static DecisionOptionId Decline { get; } = new("decline");
-    public static DecisionOptionId Resolve { get; } = new("resolve");
-    public static DecisionOptionId Roll { get; } = new("roll");
 }
 
 public enum GameActionRejectionReason
@@ -40,11 +37,36 @@ public enum GameActionRejectionReason
     StaleDecision,
     DuplicateDecision,
     ResponseNotAllowed,
-    OperationInProgress,
-    CapabilityExecutionUnavailable
+    WrongPlayer,
+    OperationInProgress
 }
 
-public sealed record DecisionResponse(Guid DecisionId, DecisionOptionId Response);
+public enum ProfileExecutionErrorKind
+{
+    ResourceOverflow,
+    InvalidRuntimeState,
+    UnsupportedExecutionShape
+}
+
+public sealed class ProfileExecutionException : Exception
+{
+    internal ProfileExecutionException(
+        ProfileExecutionErrorKind kind,
+        string path,
+        string message,
+        Exception? innerException = null)
+        : base(message, innerException)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        Kind = kind;
+        Path = path;
+    }
+
+    public ProfileExecutionErrorKind Kind { get; }
+    public string Path { get; }
+}
+
+public sealed record DecisionResponse(Guid DecisionId, int PlayerId, DecisionOptionId Response);
 
 public abstract class PendingDecision
 {
@@ -59,17 +81,17 @@ public abstract class PendingDecision
     {
         if (decisionId == Guid.Empty) throw new ArgumentException("A decision ID cannot be empty.", nameof(decisionId));
         if (playerId < 0) throw new ArgumentOutOfRangeException(nameof(playerId));
+        if (!kind.IsValid) throw new ArgumentException("The decision kind is invalid.", nameof(kind));
+        if (!presentationToken.IsValid) throw new ArgumentException("The presentation token is invalid.", nameof(presentationToken));
         ArgumentNullException.ThrowIfNull(allowedResponses);
 
         DecisionOptionId[] responses = allowedResponses.ToArray();
-        if (!kind.IsValid) throw new ArgumentException("The decision kind is invalid.", nameof(kind));
         if (responses.Length == 0 || responses.Any(response => !response.IsValid) || responses.Distinct().Count() != responses.Length)
             throw new ArgumentException("Allowed responses must contain unique, defined values.", nameof(allowedResponses));
 
         DecisionId = decisionId;
         PlayerId = playerId;
         Kind = kind;
-        if (!presentationToken.IsValid) throw new ArgumentException("The decision presentation token is invalid.", nameof(presentationToken));
         PresentationToken = presentationToken;
         _allowedResponses = Array.AsReadOnly(responses);
     }
@@ -83,12 +105,17 @@ public abstract class PendingDecision
 
 public sealed class PurchaseDecision : PendingDecision
 {
-    internal PurchaseDecision(Guid decisionId, int playerId, SpaceId spaceId, ResourceAmount price)
+    internal PurchaseDecision(
+        Guid decisionId,
+        int playerId,
+        SpaceId spaceId,
+        ResourceAmount price,
+        PresentationToken presentationToken)
         : base(
             decisionId,
             playerId,
             DecisionKinds.Purchase,
-            PresentationTokens.PropertyPurchaseDecision,
+            presentationToken,
             [DecisionOptions.Accept, DecisionOptions.Decline])
     {
         if (!spaceId.IsValid) throw new ArgumentException("The space ID is invalid.", nameof(spaceId));
@@ -99,46 +126,6 @@ public sealed class PurchaseDecision : PendingDecision
 
     public SpaceId SpaceId { get; }
     public ResourceAmount Price { get; }
-}
-
-internal sealed class StatusDecision : PendingDecision
-{
-    internal StatusDecision(
-        Guid decisionId,
-        int playerId,
-        StatusId statusId,
-        ResourceAmount cost,
-        bool hasAlternative,
-        int currentValue,
-        int maximumValue)
-        : base(
-            decisionId,
-            playerId,
-            DecisionKinds.Status,
-            PresentationTokens.DetentionReleaseDecision,
-            [DecisionOptions.Resolve, DecisionOptions.Roll])
-    {
-        if (!statusId.IsValid) throw new ArgumentException("The status ID is invalid.", nameof(statusId));
-        if (!cost.IsValid) throw new ArgumentException("The status cost is invalid.", nameof(cost));
-        if (currentValue < 0) throw new ArgumentOutOfRangeException(nameof(currentValue));
-        if (maximumValue <= 0 || currentValue > maximumValue) throw new ArgumentOutOfRangeException(nameof(maximumValue));
-        StatusId = statusId;
-        Cost = cost;
-        HasAlternative = hasAlternative;
-        CurrentValue = currentValue;
-        MaximumValue = maximumValue;
-    }
-
-    internal StatusId StatusId { get; }
-    internal ResourceAmount Cost { get; }
-    internal bool HasAlternative { get; }
-    internal int CurrentValue { get; }
-    internal int MaximumValue { get; }
-}
-
-internal static class LegacyResourceIds
-{
-    internal static ResourceId Primary { get; } = new("resource.primary");
 }
 
 public sealed class GameActionResult

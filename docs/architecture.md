@@ -51,14 +51,13 @@ selects a default profile or reads a profile path.
 
 Setup validates the trusted component registry before consuming randomness,
 then prepares decks in ordinal DeckId order and applies the declared
-starting-player policy. The returned match is readable in `ReadyForTurn`.
-Until #75 attaches execution handlers to the same registry, `PlayTurn` returns
-the typed, mutation-free `CapabilityExecutionUnavailable` rejection.
+starting-player policy. The same registry owns the closed execution handlers;
+there is no second vocabulary or fallback engine.
 
-An internal data-free executor remains only to protect existing state,
-decision, randomness and notification regressions. Tests compose it from a
-small neutral route and generic deck runtime. It is not a production factory,
-default profile or public compatibility layer.
+`PlayTurn` prepares a transition against detached resource, position,
+ownership and deck state. Core commits it only after every mutation is valid,
+then publishes match-scoped notifications. Purchase decisions store a
+primitive continuation and resume later without a frontend callback.
 
 Each match owns:
 
@@ -72,8 +71,11 @@ Each match owns:
 - a match-scoped notification hub;
 - one injected randomness boundary and committed DiceRoll outcomes.
 
-Frontends can read snapshots and submit validated operations. Presentation
-notifications are hints and never control execution.
+Resources are bounded to `0..int.MaxValue`. Mandatory debits use the available
+balance; positive overflow rejects the uncommitted transition. Doubles are
+observable dice data and have no baseline turn policy. Frontends can read
+snapshots and submit validated operations. Presentation notifications are
+hints and never control execution.
 
 ## JSON and profile files
 
@@ -100,7 +102,9 @@ active session.
 
 Console resolves profile presentation into terminal-safe projections. It does
 not select rules by display text, color or concrete space type in the target
-architecture. Full generic projections belong to #77.
+architecture. Between #75 and #77, only the minimal menu/WIP shell is
+compiled; the old Console session is not a runtime fallback. Full generic
+projections belong to #77.
 
 During the current gap the Console shell starts, while new and loaded matches
 return clear transition messages. It never falls back to bundled legacy data
@@ -109,7 +113,7 @@ or a private profile.
 ## Follow-up ownership
 
 - #40: construct setup from a validated profile (implemented).
-- #75: register and execute supported capabilities.
+- #75: registered capability execution and legacy Core removal (implemented).
 - #76: explicitly select external JSON profiles.
 - #52: introduce whole-match Save Format Version 2.
 - #77: render generic profile projections in Console.

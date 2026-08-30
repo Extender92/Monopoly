@@ -1,11 +1,9 @@
 ICard
 IComparable
-IDeck
 IDictionary
 IDisposable
 IEquatable
 IFile
-IFortune
 ILegacy
 IList
 IMatch

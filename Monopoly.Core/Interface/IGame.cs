@@ -1,42 +1,32 @@
-﻿using Monopoly.Core.Logs;
-using Monopoly.Core.Notifications;
-using Monopoly.Core.Models.Board;
+using Monopoly.Core.Logs;
 using Monopoly.Core.Models;
+using Monopoly.Core.Models.Board;
+using Monopoly.Core.Notifications;
 using Monopoly.Core.Presentation;
 using Monopoly.Core.Randomness;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Monopoly.Core.Interface
+namespace Monopoly.Core.Interface;
+
+public interface IGame
 {
-    public interface IGame
-    {
-        IGameLog Logs { get; }
-        IGameNotificationSource Notifications { get; }
-        GameBoard Board { get; }
-        DeckCollection Decks { get; }
-        IReadOnlyList<Player> Players { get; }
-        Player CurrentPlayer { get; }
-        DiceRoll? LastDiceRoll { get; }
-        ProfilePresentation Presentation { get; }
-        ValidatedGameProfile? Profile { get; }
-        StatusCollection Statuses { get; }
-        OwnershipCollection Ownership { get; }
-        ProfileModuleState ModuleState { get; }
-        int Fines { get; }
-        int CurrentTurn { get; }
-        int RoundNumber { get; }
-        int ConsecutiveDoubles { get; }
-        Player? Winner { get; }
-        bool IsGameOver { get; }
-        GamePhase Phase { get; }
-        PendingDecision? PendingDecision { get; }
+    IGameLog Logs { get; }
+    IGameNotificationSource Notifications { get; }
+    GameBoard Board { get; }
+    DeckCollection Decks { get; }
+    IReadOnlyList<Player> Players { get; }
+    Player CurrentPlayer { get; }
+    DiceRoll? LastDiceRoll { get; }
+    ProfilePresentation Presentation { get; }
+    ValidatedGameProfile Profile { get; }
+    StatusCollection Statuses { get; }
+    OwnershipCollection Ownership { get; }
+    ProfileModuleState ModuleState { get; }
+    int RoundNumber { get; }
+    Player? Winner { get; }
+    bool IsGameOver { get; }
+    GamePhase Phase { get; }
+    PendingDecision? PendingDecision { get; }
 
-        void SetDecisionProvider(IPlayerDecisionProvider decisions);
-        GameActionResult PlayTurn();
-        GameActionResult SubmitDecision(DecisionResponse? response);
-    }
+    GameActionResult PlayTurn();
+    GameActionResult SubmitDecision(DecisionResponse? response);
 }

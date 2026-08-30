@@ -27,7 +27,7 @@ public sealed class GameSetupTests
         Game game = GameSetup.Create(profile, players, new MinimumMatchRandomSource());
 
         Assert.Same(profile, game.Profile);
-        Assert.Equal(new ProfileId("profile.demo-001"), game.Profile!.Id);
+        Assert.Equal(new ProfileId("profile.demo-001"), game.Profile.Id);
         Assert.Equal(new ProfileRevision(1), game.Profile.Revision);
         Assert.Equal("7ba140a86da1a20222f2580b7419ca7e3f52d7a392bcadf9269ed1fe5a456c7d", game.Profile.Fingerprint.Value);
         Assert.Equal(27, game.Board.Track.Count);
@@ -49,16 +49,13 @@ public sealed class GameSetupTests
         Assert.Equal(game.Ownership.Entries, game.ModuleState.Ownership.Entries);
         Assert.Empty(game.ModuleState.Statuses.Entries);
         Assert.Equal(1, game.RoundNumber);
-        Assert.Equal(1, game.CurrentTurn);
         Assert.Equal(GamePhase.ReadyForTurn, game.Phase);
         Assert.Null(game.PendingDecision);
         Assert.Null(game.Winner);
         Assert.Null(game.LastDiceRoll);
         Assert.False(game.IsGameOver);
         Assert.Empty(game.Logs.LogList);
-        Assert.All(game.Board.Squares, square => Assert.IsType<ProfileSpace>(square));
-        Assert.Throws<InvalidOperationException>(() => _ = game.Rules);
-        Assert.Throws<InvalidOperationException>(() => _ = game.TheJail);
+        Assert.Equal(profile.RuleGraph.Spaces.Select(space => space.PresentationToken), game.Board.Spaces.Select(space => space.PresentationToken));
         Assert.Throws<NotSupportedException>(() => ((IDictionary<ResourceId, int>)game.Players[0].Resources).Add(new ResourceId("resource.extra"), 1));
         Assert.Throws<NotSupportedException>(() => ((IList<SpaceOwnershipView>)game.Ownership.Entries).Clear());
 
@@ -272,24 +269,21 @@ public sealed class GameSetupTests
     }
 
     [Fact]
-    public void PlayTurnRejectsProfileMatchWithoutAnyMutation()
+    public void CreatedProfileMatchExecutesThroughTheRegisteredBaseline()
     {
         ValidatedGameProfile profile = Validate(ProfileTestFactory.Create());
-        Game game = GameSetup.Create(profile, [new PlayerSetup(0, "Solo")]);
+        Game game = GameSetup.Create(profile, [new PlayerSetup(0, "Solo")], new ScriptedMatchRandomSource(1, 1));
         List<GameNotification> notifications = [];
         using IDisposable subscription = game.Notifications.Subscribe(notifications.Add);
-        string before = Snapshot(game);
-
         GameActionResult result = game.PlayTurn();
 
-        Assert.Equal(GameActionStatus.Rejected, result.Status);
-        Assert.Equal(GameActionRejectionReason.CapabilityExecutionUnavailable, result.RejectionReason);
-        Assert.Equal(before, Snapshot(game));
+        Assert.Equal(GameActionStatus.TurnCompleted, result.Status);
         Assert.Equal(GamePhase.ReadyForTurn, game.Phase);
         Assert.Null(game.PendingDecision);
-        Assert.Null(game.LastDiceRoll);
+        Assert.Equal(2, game.LastDiceRoll!.Sum);
+        Assert.Equal(new SpaceId("space.synthetic-2"), game.CurrentPlayer.CurrentSpaceId);
         Assert.Empty(game.Logs.LogList);
-        Assert.Empty(notifications);
+        Assert.NotEmpty(notifications);
     }
 
     [Fact]
@@ -376,7 +370,7 @@ public sealed class GameSetupTests
 
     private static string Snapshot(Game game) => JsonSerializer.Serialize(new
     {
-        Profile = new { game.Profile!.Id, game.Profile.Revision, game.Profile.Fingerprint },
+        Profile = new { game.Profile.Id, game.Profile.Revision, game.Profile.Fingerprint },
         Players = game.Players.Select(player => new
         {
             player.Id,
@@ -391,7 +385,6 @@ public sealed class GameSetupTests
         Ownership = game.Ownership.Entries,
         Statuses = game.Statuses.Entries,
         game.RoundNumber,
-        game.CurrentTurn,
         game.Phase,
         game.PendingDecision,
         game.LastDiceRoll,

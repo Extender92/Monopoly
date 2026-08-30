@@ -47,19 +47,21 @@ lengths and zero, one and multiple decks.
 Scripted randomness proves ordinal deck preparation, independent purpose
 sequences, fixed and random starting-player selection, highest-roll tie rerolls
 and the bounded tie failure. Setup failures never return a partial match.
-Before #75, tests also prove that `PlayTurn` returns the typed execution gate
-without changing authoritative or presentation state.
+Execution tests prove profile dice, origin passes, decisions, ownership,
+bounded fees, deck rotation, effects, rounds and terminal scoring.
 
-## Runtime regression fixtures
+## Runtime execution fixtures
 
-Until #75, existing state-transition tests use a small neutral composition
-created only inside the test assembly. It has no production factory and is not
-copied as data. It protects movement, payments, decisions, status transitions,
-match-scoped notifications and deterministic randomness while the executor is
-replaced.
+Legacy executor tests were removed with their unsupported runtime. The
+replacement suite uses the real Demo and small synthetic validated profiles.
+It covers tracks of 1, 2, 3, 4, 27 and 53 spaces; zero, one and multiple decks;
+movement, purchases, bounded fees, resource effects, resumable decisions,
+rounds, terminal scoring, atomic failures and match isolation.
 
-Tests arrange state through controlled test builders and compare detached
-snapshots. They do not use retired persistence DTOs.
+The pre-#75 baseline contained 289 tests, many of which asserted removed
+detention, building, mortgage, special-property and legacy persistence
+behavior. Test-count comparison is therefore not a compatibility measure;
+supported contracts must be traced to the replacement profile tests.
 
 ## Persistence gap tests
 
@@ -71,10 +73,10 @@ Version 2 round-trip testing belongs to #52.
 
 ## Public-boundary tests
 
-Reflection tests verify that exported Core signatures expose no frontend types,
-regional factory, edition selector or regional card type. The production
-assembly has no default match factory or public constructor that can create the
-internal transition runtime.
+Reflection tests verify that exported Core signatures expose no frontend
+types, regional factory, edition selector, concrete legacy space/card type,
+rules object or alternate executor. The production assembly has no default
+match factory or public constructor that bypasses validated setup.
 
 ## Publication checks
 
