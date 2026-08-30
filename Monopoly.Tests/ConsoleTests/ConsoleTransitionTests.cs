@@ -47,5 +47,3 @@ public sealed class ConsoleTransitionTests
         public void ShowCursor(bool b) { }
     }
 }
-
-
