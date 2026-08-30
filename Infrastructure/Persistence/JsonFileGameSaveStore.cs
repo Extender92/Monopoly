@@ -59,7 +59,7 @@ public sealed class JsonFileGameSaveStore : IGameSaveStore
             throw InvalidData("The active match could not be serialized as Save Format Version 2.", exception);
         }
 
-        string temporaryPath = $"{_filePath}.{Guid.NewGuid():N}.tmp";
+        string temporaryPath = $"{_filePath}.{Guid.NewGuid():N}.temp";
         try
         {
             using (IFileWriteSession session = _files.CreateNewWriteSession(temporaryPath))
