@@ -41,7 +41,7 @@
     <Compile Include="ConsoleTests\ArrowKeyMenuControllerTests.cs" />
     <Compile Include="ConsoleTests\ConsoleWrapperTests.cs" />
     <Compile Include="ConsoleTests\MenuOptionSelectorTests.cs" />
-    <Compile Include="ConsoleTests\ConsoleWipTests.cs" />
+    <Compile Include="ConsoleTests\ConsoleTransitionTests.cs" />
   </ItemGroup>
 
 </Project>

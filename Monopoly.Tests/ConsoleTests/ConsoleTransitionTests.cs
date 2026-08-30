@@ -5,7 +5,7 @@ using Monopoly.Core.Persistence;
 
 namespace Monopoly.Tests.ConsoleTests;
 
-public sealed class ConsoleWipTests
+public sealed class ConsoleTransitionTests
 {
     [Fact]
     public void NewGameValidatesBundledDemoAndReportsProjectionGap()
@@ -47,3 +47,5 @@ public sealed class ConsoleWipTests
         public void ShowCursor(bool b) { }
     }
 }
+
+

@@ -336,7 +336,7 @@ public sealed class CapabilityExecutionTests
     }
 
     [Fact]
-    public void DrawAndEarlierEffectsAreNotCommittedWhenALaterEffectOverflows()
+    public void DrawAndEarlierEffectsAreNotCommittedWhenLaterEffectOverflows()
     {
         DeckId deckId = new("deck.execution");
         ValidatedGameProfile profile = ExecutionProfileFactory.Create(
@@ -418,7 +418,7 @@ public sealed class CapabilityExecutionTests
     }
 
     [Fact]
-    public void PendingPurchaseProjectsAPrimitivePersistableContinuation()
+    public void PendingPurchaseProjectsPrimitivePersistableContinuation()
     {
         Game game = GameSetup.Create(
             PurchasableProfile(price: 5, fee: 1, startingCredits: 10),
@@ -482,7 +482,7 @@ public sealed class CapabilityExecutionTests
     }
 
     [Fact]
-    public void BundledDemoRunsDeterministicallyToATerminalWinner()
+    public void BundledDemoRunsDeterministicallyToTerminalWinner()
     {
         string first = RunDemo();
         string second = RunDemo();
