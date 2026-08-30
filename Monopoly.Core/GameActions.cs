@@ -40,7 +40,8 @@ public enum GameActionRejectionReason
     StaleDecision,
     DuplicateDecision,
     ResponseNotAllowed,
-    OperationInProgress
+    OperationInProgress,
+    CapabilityExecutionUnavailable
 }
 
 public sealed record DecisionResponse(Guid DecisionId, DecisionOptionId Response);

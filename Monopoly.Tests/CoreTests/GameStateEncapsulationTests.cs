@@ -20,9 +20,13 @@ public sealed class GameStateEncapsulationTests
             nameof(Game.LastDiceRoll),
             nameof(Game.Rules),
             nameof(Game.Presentation),
+            nameof(Game.Profile),
             nameof(Game.Decks),
+            nameof(Game.Ownership),
+            nameof(Game.ModuleState),
             nameof(Game.Fines),
             nameof(Game.CurrentTurn),
+            nameof(Game.RoundNumber),
             nameof(Game.ConsecutiveDoubles),
             nameof(Game.Winner));
         AssertNoPublicSetter<Player>(
@@ -30,6 +34,8 @@ public sealed class GameStateEncapsulationTests
             nameof(Player.Name),
             nameof(Player.Money),
             nameof(Player.Position),
+            nameof(Player.CurrentSpaceId),
+            nameof(Player.Resources),
             nameof(Player.NumberOfGetOutOFJailCards),
             nameof(Player.IsBankrupt));
         AssertNoPublicSetter<Square>(

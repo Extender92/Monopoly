@@ -23,6 +23,12 @@ composition does not bypass the storage boundary. During the gap:
 A failed operation does not create, replace or mutate a save file or active
 match.
 
+The current setup runtime already records the exact validated profile identity,
+revision and fingerprint, player resource balances and SpaceIds, deck order,
+generic ownership/status snapshots and round number. These are read models,
+not a temporary wire format; persistence remains unavailable until Version 2
+can validate and reconstruct the whole match.
+
 ## Version 2 target
 
 Issue #52 owns the replacement. Version 2 must include:

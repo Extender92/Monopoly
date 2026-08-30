@@ -15,11 +15,14 @@ The application starts and displays its menu.
 
 Selecting a new match displays:
 
-> Match creation is temporarily unavailable while validated Demo setup is
-> being completed.
+> Match play is temporarily unavailable while validated Demo capability
+> execution is being completed.
 
-The user acknowledges the message and returns to the menu. Issue #40 will
-replace this gap with setup from the bundled validated Demo.
+The user acknowledges the message and returns to the menu. Core setup from a
+validated profile is complete, but Console intentionally does not create or
+enter a session until issue #75 executes the Demo capabilities. Application
+composition explicitly selects and validates the bundled Demo; Core has no
+default profile.
 
 Loading delegates to the injected IGameSaveStore. During the persistence gap,
 the retired format produces the stable unsupported-version message and returns

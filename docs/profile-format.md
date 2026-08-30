@@ -53,7 +53,7 @@ The supported starting-player values are `fixed-order`, `random` and
 `highest-roll`. The version 1 public baseline declares `leave-unowned` for a
 declined purchase and `highest-resource-after-rounds` with
 `lowest-player-id` as its deterministic tie-break. These values are data;
-issues #40 and #75 own setup and execution.
+`GameSetup` applies setup policy and issue #75 owns turn execution.
 
 Capabilities use an explicit `kind`:
 
@@ -100,6 +100,18 @@ Infrastructure reports technical failures as `ProfileJsonException` with a
 `ProfileJsonErrorKind` and path. Core reports semantic failures as
 `ProfileValidationException` with a `ProfileValidationErrorKind` and path.
 Failure returns no profile and cannot create or mutate a `Game`.
+
+## Runtime setup
+
+`GameSetup.Create` accepts only an already validated profile, ordered player
+identities and an optional match-scoped random source. Core copies the roster,
+checks the trusted component registry, initializes declared resources and the
+start SpaceId, shuffles zero or more decks and selects the starting player.
+There is no default profile or file path in Core.
+
+The returned match records exact profile identity and exposes immutable read
+models for track, decks, resources, ownership, statuses and initial module
+state. Capability execution remains a separate gate owned by issue #75.
 
 ## Canonical fingerprint
 

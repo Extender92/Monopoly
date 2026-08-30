@@ -17,10 +17,12 @@ The tracked Demo profile is
 strict JSON and Core validates it into an immutable ValidatedGameProfile with a
 canonical SHA-256 fingerprint.
 
-This change intentionally creates a short WIP gap:
+The profile transition currently has a deliberate execution gap:
 
-- Console starts, but new-match creation is unavailable until issues #40 and
-  #75 compose and execute validated profiles.
+- Core can create a complete read-only initial match from an explicitly
+  supplied validated profile through `GameSetup`.
+- Console starts, but match play remains unavailable until issue #75 executes
+  the registered capabilities.
 - Save Format Version 1 has been retired. Save and load return typed
   compatibility errors until issue #52 supplies Version 2.
 - The remaining internal rule executor exists only for focused regression
