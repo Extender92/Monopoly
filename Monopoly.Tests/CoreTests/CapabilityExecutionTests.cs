@@ -656,26 +656,27 @@ public sealed class CapabilityExecutionTests
             new ScriptedMatchRandomSource(1));
 
         PurchaseDecision decision = Assert.IsType<PurchaseDecision>(game.PlayTurn().PendingDecision);
-        GameProgressState state = GameProgressStateMapper.ToState(game);
+        GameStateV2 state = GameStateV2Mapper.Capture(game);
 
         Assert.Equal(GamePhase.AwaitingDecision, state.Phase);
         Assert.Equal(decision.DecisionId, state.PendingDecision!.DecisionId);
         Assert.Equal(decision.PlayerId, state.PendingDecision.PlayerId);
         Assert.Equal(decision.AllowedResponses, state.PendingDecision.AllowedResponses);
         Assert.Equal(decision.SpaceId, state.PendingDecision.SpaceId);
-        Assert.Equal(RandomPurpose.TurnDice, state.Continuation!.DicePurpose);
-        Assert.Equal([1], state.Continuation.DiceResults);
-        Assert.Equal(decision.SpaceId, state.Continuation.SpaceId);
+        Assert.Equal(RandomPurpose.TurnDice, state.LastDiceRoll!.Purpose);
+        Assert.Equal([1], state.LastDiceRoll.Results);
+        Assert.Equal(decision.SpaceId, state.Continuation!.SpaceId);
         Assert.Equal(2, state.Continuation.NextCapabilityIndex);
 
-        state.PendingDecision.AllowedResponses.Clear();
+        Assert.Throws<NotSupportedException>(() =>
+            ((IList<DecisionOptionId>)state.PendingDecision!.AllowedResponses).Clear());
         Assert.Equal([DecisionOptions.Accept, DecisionOptions.Decline], decision.AllowedResponses);
 
         Assert.Equal(GameActionStatus.TurnCompleted, game.SubmitDecision(new DecisionResponse(
             decision.DecisionId,
             decision.PlayerId,
             DecisionOptions.Accept)).Status);
-        GameProgressState committed = GameProgressStateMapper.ToState(game);
+        GameStateV2 committed = GameStateV2Mapper.Capture(game);
         Assert.Equal(GamePhase.ReadyForTurn, committed.Phase);
         Assert.Null(committed.PendingDecision);
         Assert.Null(committed.Continuation);

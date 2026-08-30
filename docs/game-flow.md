@@ -2,11 +2,12 @@
 
 ## Current WIP boundary
 
-Core has a production setup and execution boundary. `GameSetup.Create` returns
-a complete match from an explicitly supplied validated profile and ordered
-player identities. Console still stops before a session while #77 implements
-generic projections. Loading reports a typed compatibility failure. No
-fallback match is created.
+Core has a production setup, execution and persistence boundary.
+`GameSetup.Create` returns a complete match from an explicitly supplied
+validated profile and ordered player identities. Console still stops before a
+session while #77 implements generic projections. A valid Save V2 can be
+checked and reconstructed, but it is not yet attached to an interactive
+Console session. No fallback match is created.
 
 Console selects the bundled Demo by default or one file supplied through
 `--profile`. Infrastructure opens and parses the file, Core checks semantic and
@@ -104,7 +105,12 @@ commands and a frontend may always render directly from current Core state.
 
 ## Persistence
 
-No current save format can represent the validated profile runtime. Save and
-load therefore remain unavailable until #52. The future format must persist
-profile identity, revision, fingerprint and all state required to resume the
-current phase without replaying earlier effects.
+Save V2 captures every authoritative value needed to resume the supported
+phase: exact profile identity, roster order, current and round-anchor players,
+resources, SpaceIds, deck order, ownership, round, committed dice, pending
+decision, continuation, consumed decision IDs and terminal winner.
+
+Load requires an exact profile fingerprint and constructs a detached candidate.
+It consumes no random input, replays no card/effect and returns no partial
+match. Presentation and runtime services are reconstructed rather than stored.
+Version 1 is an explicit compatibility failure.

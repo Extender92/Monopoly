@@ -26,8 +26,9 @@ application gaps:
 - Console uses the bundled Demo by default or loads one explicitly selected
   local JSON profile with `--profile`. Interactive match play remains
   unavailable until #77 supplies player entry and generic projections.
-- Save Format Version 1 has been retired. Save and load return typed
-  compatibility errors until issue #52 supplies Version 2.
+- Save Format Version 2 atomically stores the complete supported match state
+  and requires an exact registered profile ID, revision and fingerprint when
+  loading. Version 1 remains retired and is not migrated.
 - No legacy Core rule executor or product-shaped runtime state remains.
 
 No external or private profile is required by clone, build, tests or default

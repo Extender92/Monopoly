@@ -6,5 +6,5 @@ public interface IGameSaveStore
 {
     void Save(Game game);
 
-    Game Load(IMatchRandomSource? randomSource = null);
+    Game Load(GameProfileRegistry profiles, IMatchRandomSource? randomSource = null);
 }

@@ -1,73 +1,98 @@
 # Save and load
 
-## Current state
+## Version 2 contract
 
-There is an intentional persistence gap.
+Save Format Version 2 is the only supported format. Its tracked Draft 2020-12
+schema is [game-save-v2.schema.json](../schemas/game-save-v2.schema.json).
+Version 1 is intentionally rejected and is not migrated.
 
-Save Format Version 1, its DTOs, mapper and fixture have been removed because
-they represented retired profile fields and could not identify the validated
-profile that defines a match.
+The root contains `formatVersion`, an exact profile reference and the complete
+supported match state. JSON uses camelCase, UTF-8 without a required BOM, a
+maximum size of 5 MiB and maximum depth 64. Unknown or duplicate members,
+comments, trailing commas and wrong wire types are invalid.
 
-JsonFileGameSaveStore remains the injected Infrastructure adapter so Console
-composition does not bypass the storage boundary. During the gap:
+The profile reference consists of:
 
-- Save throws SaveStoreException with IncompatibleVersion before any file
-  operation;
-- Load recognizes a Version 1 envelope and rejects it with the same typed
-  compatibility category;
-- unsupported or absent versions are compatibility errors;
-- malformed JSON remains InvalidData;
-- missing files remain NotFound;
-- technical access failures remain StorageFailure.
+- `ProfileId`;
+- positive `ProfileRevision`;
+- canonical lowercase SHA-256 `ProfileFingerprint`.
 
-A failed operation does not create, replace or mutate a save file or active
-match.
+Load resolves all saved IDs against an already registered
+`ValidatedGameProfile`. A matching ID and revision with a different fingerprint
+is not considered compatible.
 
-The runtime records the exact validated profile identity, revision and
-fingerprint, resource balances and SpaceIds, deck order, ownership, round,
-winner, phase and primitive purchase continuation. A pending purchase projects
-its opaque decision ID, kind, participant, allowed responses, SpaceId,
-profile-derived resource price and original dice/landing continuation. A
-committed response clears the pending state and retains its consumed ID for
-duplicate and stale-response protection. These are authoritative runtime/read-
-model contracts, not a temporary wire format; persistence remains unavailable
-until Version 2 can validate and reconstruct the whole match.
+## Authoritative match state
 
-The supported effect-chain shape needs no continuation stack. A resolving Move
-is always the final card effect and Draw is the final landing capability, so a
-decision stores only the destination SpaceId and next capability index. A
-resumed chain can replace that completed boundary with a later purchase
-decision while retaining the original dice outcome; already committed cards
-and effects are never replayed.
+Version 2 stores:
 
-## Version 2 target
+- players in their authoritative cyclic order, with ID, name, current
+  `SpaceId` and every profile resource balance;
+- current player, round anchor, round number, phase and optional winner;
+- the last committed turn-dice results;
+- every profile deck and its current ordered `CardId` sequence;
+- version 1 ownership state for every ownable `SpaceId`;
+- version 1 status state, which must currently be empty;
+- an optional purchase decision and its primitive continuation;
+- all consumed decision IDs and the most recently consumed ID.
 
-Issue #52 owns the replacement. Version 2 must include:
+The numeric board position is derived from `SpaceId` and is not duplicated in
+the file. A continuation reuses the top-level committed dice outcome, so the
+same roll is not serialized twice.
 
-- profile ID, revision and canonical SHA-256 fingerprint;
-- generic resource balances, space IDs, deck IDs and card IDs;
-- current deck order;
-- player position, ownership and supported module state;
-- match phase, pending decision and continuation state;
-- winner and game-over state.
+The current capability baseline supports only a pending purchase decision. Its
+saved kind, participant, allowed responses, space and resource price must match
+the registered profile. The continuation must point immediately after that
+space's purchase capability. Resume never replays a preceding draw, effect or
+movement.
 
-Loading requires the exact referenced profile to be registered. A missing or
-changed profile is rejected before an active match is replaced. The complete
-candidate is reconstructed and validated as one unit.
+## Whole-match validation
 
-Runtime services such as random-source state, subscribers and frontend input
-are never serialized. Internal policy handlers and capability registrations are
-runtime code and are likewise never persisted; only any resulting authoritative
-match state or pending decision belongs in Version 2.
+Infrastructure parses the untrusted wire document. Core then validates the
+entire detached candidate before returning a `Game`:
 
-The profile file path is application input, not profile identity or match
-state. Version 2 resolves saved profile ID, revision and fingerprint against an
-already registered validated profile and never records the source path.
+- roster size and all player references;
+- complete, non-negative resource sets;
+- positions against the registered track;
+- complete ownership and deck state without duplicate or missing IDs;
+- phase, round, winner and scoring/tie-break consistency;
+- pending, continuation, consumed and stale-decision invariants;
+- supported module versions and execution compatibility.
 
-## Ownership boundaries
+Restore creates decks without shuffling and consumes no random input. A new
+match-scoped random source is attached for future turns. Logs, notifications,
+subscribers and presentation are freshly derived runtime state. A restored
+terminal match has a completed notification boundary.
 
-Core owns persistence contracts, compatibility categories and whole-match
-validation. Infrastructure owns JSON encoding, paths and atomic physical file
-operations. Console owns save selection and user-facing error presentation.
+The load API does not accept an active match. It returns a new match only after
+validation, so malformed input cannot partially mutate the caller's current
+session.
 
-Issue #52 does not restore compatibility with retired files.
+## Storage and errors
+
+Core owns `GameStateV2`, the immutable profile registry, validation and
+controlled reconstruction. Infrastructure owns JSON, file paths and atomic
+physical writes. Console owns the selected profile and user-facing messages.
+
+Save serializes and validates before opening a file. Infrastructure writes a
+unique temporary file in the destination directory, flushes it to disk and
+then atomically replaces an existing target or moves it into place. A write,
+flush or promotion failure preserves the previous valid target and performs
+best-effort temporary cleanup.
+
+Stable store categories are:
+
+- `NotFound` for an absent file;
+- `InvalidData` for malformed JSON or inconsistent Version 2 state;
+- `IncompatibleVersion` for Version 1, unknown formats or unsupported module
+  versions;
+- `IncompatibleProfile` when the exact saved profile is not registered;
+- `StorageFailure` for technical read/write failures.
+
+Runtime random sources, seeds, source paths, callbacks, handlers, subscribers,
+logs, notifications and rendered presentation are never serialized. Committed
+dice results, selected starting/round-anchor participant and deck order contain
+the authoritative consequences of earlier randomness.
+
+The current Console composition registers exactly the bundled or explicitly
+selected profile. It continues to use `game_data.json` until save naming and
+selection are planned in the clean-root project.

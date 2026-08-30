@@ -93,16 +93,23 @@ The distributed original Demo is
 [lantern-vale-v1.json](../profiles/demo/lantern-vale-v1.json). Schema and
 authoring rules are in [profile-format.md](profile-format.md).
 
-## Persistence transition
+## Persistence boundary
 
-Save Format Version 1 and its DTO mapper have been removed. The injected
-IGameSaveStore boundary remains, but the file implementation rejects save and
-load with IncompatibleVersion during the intentional gap. It never writes a
-file in this state.
+Core owns an immutable `GameStateV2`, exact profile registry and controlled
+whole-match reconstruction. Infrastructure owns strict UTF-8 JSON and atomic
+file promotion. A save records the profile ID, revision and fingerprint,
+ordered players and decks, resources, positions, ownership, round, phase,
+decisions, continuation and terminal winner.
 
-Issue #52 owns Version 2. It must bind a save to exact profile ID, revision and
-fingerprint and validate the whole reconstructed match before replacing an
-active session.
+Loading resolves the saved identity against an already registered profile and
+validates every reference and enabled module before returning a new `Game`.
+The API never receives an active match, so failed load cannot partially replace
+one. Version 1 is rejected and not migrated.
+
+Runtime randomness, profile paths, handlers, callbacks, logs, subscribers,
+notifications and rendered presentation are not state. Restore injects a new
+match-scoped random source without consuming it and derives runtime services
+from the exact validated profile.
 
 ## Frontend boundary
 
@@ -122,6 +129,6 @@ failure; no private directory is scanned automatically.
 - #40: construct setup from a validated profile (implemented).
 - #75: registered capability execution and legacy Core removal (implemented).
 - #76: explicitly select external JSON profiles (implemented).
-- #52: introduce whole-match Save Format Version 2.
+- #52: whole-match Save Format Version 2 (implemented).
 - #77: render generic profile projections in Console.
 - #56: adopt the final neutral project identity.

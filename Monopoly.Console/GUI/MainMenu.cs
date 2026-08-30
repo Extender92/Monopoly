@@ -46,7 +46,7 @@ internal sealed class MainMenu
                     Program.StartNewGame(_saveStore, _profile);
                     break;
                 case MainMenuOption.LoadGame:
-                    Program.LoadGame(_saveStore);
+                    Program.LoadGame(_saveStore, _profile);
                     break;
                 case MainMenuOption.ExitGame:
                     return;

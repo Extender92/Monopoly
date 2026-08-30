@@ -83,13 +83,20 @@ detention, building, mortgage, special-property and legacy persistence
 behavior. Test-count comparison is therefore not a compatibility measure;
 supported contracts must be traced to the replacement profile tests.
 
-## Persistence gap tests
+## Persistence tests
 
-Tests prove that save always returns a typed compatibility error without
-creating or changing a file. Load tests distinguish retired or unsupported
-versions, invalid JSON, missing files and storage failures.
+Save V2 tests round-trip fresh, pending-decision, resumed and terminal matches
+through the physical JSON adapter. Synthetic fixtures cover non-default player,
+space, resource, deck and card IDs and zero, one or several decks. Restore must
+not consume the injected random source; subsequent scripted execution remains
+deterministic.
 
-Version 2 round-trip testing belongs to #52.
+Negative tests cover retired and unknown versions, exact-profile mismatch,
+malformed or oversized UTF-8, duplicate/unknown fields, broken references,
+incomplete resources/decks/ownership, invalid decisions and terminal state and
+unsupported module versions. Atomic-write doubles fail creation, write, flush
+and promotion while proving that the previous valid file survives and temporary
+state is cleaned.
 
 ## Public-boundary tests
 

@@ -211,12 +211,14 @@
       "ownerIssues": [4, 37]
     },
     {
-      "id": "legacy-save-contract",
+      "id": "generic-save-v2-contract",
       "patterns": [
-        "Monopoly.Core/SaveAndLoad/**"
+        "schemas/game-save-v2.schema.json",
+        "Monopoly.Core/Persistence/**",
+        "Infrastructure/Persistence/**"
       ],
       "ownership": "project-owned",
-      "classification": "replace",
+      "classification": "allow",
       "ownerIssues": [52]
     },
     {
@@ -449,7 +451,7 @@
       ],
       "caseSensitive": true,
       "classification": "replace",
-      "ownerIssues": [52]
+      "ownerIssues": [58]
     },
     {
       "id": "complete-official-data-shape",
