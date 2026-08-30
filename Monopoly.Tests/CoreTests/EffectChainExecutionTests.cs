@@ -219,10 +219,10 @@ public sealed class EffectChainExecutionTests
         PurchaseDecision second = Assert.IsType<PurchaseDecision>(secondPending.PendingDecision);
         Assert.NotEqual(first.DecisionId, second.DecisionId);
         Assert.Equal(new SpaceId("space.execution-3"), second.SpaceId);
-        GameProgressState progress = GameProgressStateMapper.ToState(game);
+        GameStateV2 progress = GameStateV2Mapper.Capture(game);
         Assert.Equal(second.DecisionId, progress.PendingDecision!.DecisionId);
         Assert.Equal(second.SpaceId, progress.Continuation!.SpaceId);
-        Assert.Equal([1], progress.Continuation.DiceResults);
+        Assert.Equal([1], progress.LastDiceRoll!.Results);
         Assert.Contains(first.DecisionId, progress.ConsumedDecisionIds);
 
         GameActionResult completed = game.SubmitDecision(new DecisionResponse(

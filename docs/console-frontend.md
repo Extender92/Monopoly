@@ -37,12 +37,16 @@ before the menu opens. Failure exits without creating application or match
 state and never falls back to Demo. Paths are not copied into Core, errors,
 logs or saves.
 
-Loading delegates to the injected IGameSaveStore. During the persistence gap,
-the retired format produces the stable unsupported-version message and returns
-to the menu without changing a session. Missing, invalid and storage failures
-retain their distinct messages.
+Loading delegates to the injected IGameSaveStore with a registry containing
+exactly the profile selected at process start. Save V2 reconstructs a complete
+match only when ID, revision and fingerprint match. A valid loaded match still
+returns to the menu until #77 supplies the generic session. Missing, invalid,
+unsupported-version, incompatible-profile and storage failures retain distinct
+safe messages.
 
-Saving cannot write a file until #52 introduces Version 2.
+Infrastructure can atomically write Save V2. The compiled WIP shell has no
+active session or save command until #77; save naming and discovery are not
+part of the current baseline.
 
 ## Presentation
 

@@ -401,7 +401,8 @@ function Test-FileCollection {
 
         if ($extension -eq ".json") {
             $utf8 = $representations[0]
-            if ($utf8 -match '"Version"\s*:' -and $utf8 -match '"Players"\s*:' -and $utf8 -match '"CurrentPlayerId"\s*:') {
+            $isJsonSchema = $utf8 -match '"\$schema"\s*:'
+            if (-not $isJsonSchema -and $utf8 -match '"Version"\s*:' -and $utf8 -match '"Players"\s*:' -and $utf8 -match '"CurrentPlayerId"\s*:') {
                 $kind = if ($SelectedMode -eq "Publication") { "violation" } else { "finding" }
                 Add-Result -Kind $kind -Code "SaveSignature" -Scope $Scope -Path $relativePath -Message "JSON content has the legacy game-save signature." -Classification "remove" -OwnerIssues @(52, 58)
             }

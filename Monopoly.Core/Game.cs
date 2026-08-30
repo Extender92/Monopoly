@@ -32,7 +32,8 @@ public sealed class Game : IGame
         MatchRandomizer randomizer,
         ProfileComponentRegistry registry,
         IEnumerable<SpaceId> ownableSpaceIds,
-        ILogHandler logs)
+        ILogHandler logs,
+        int? roundAnchorPlayerId = null)
     {
         Profile = profile ?? throw new ArgumentNullException(nameof(profile));
         ArgumentNullException.ThrowIfNull(players);
@@ -56,7 +57,9 @@ public sealed class Game : IGame
             throw new ArgumentException("The current player must belong to the game.", nameof(currentPlayer));
 
         _playersView = _players.AsReadOnly();
-        _roundAnchorPlayerId = currentPlayer.Id;
+        _roundAnchorPlayerId = roundAnchorPlayerId ?? currentPlayer.Id;
+        if (_players.All(player => player.Id != _roundAnchorPlayerId))
+            throw new ArgumentException("The round anchor must belong to the game.", nameof(roundAnchorPlayerId));
         _ownership = ownableSpaceIds
             .Distinct()
             .OrderBy(id => id)
@@ -70,6 +73,63 @@ public sealed class Game : IGame
             logHandler.OwnerGame = this;
 
         ValidateAuthoritativeState();
+    }
+
+    internal static Game RestoreValidatedState(
+        ValidatedGameProfile profile,
+        IEnumerable<Player> players,
+        int currentPlayerId,
+        int roundAnchorPlayerId,
+        GameBoard board,
+        DeckRuntime decks,
+        MatchRandomizer randomizer,
+        ProfileComponentRegistry registry,
+        IReadOnlyDictionary<SpaceId, int?> ownership,
+        int roundNumber,
+        DiceRoll? lastDiceRoll,
+        int? winnerPlayerId,
+        GamePhase phase,
+        PendingDecision? pendingDecision,
+        TurnContinuation? continuation,
+        IEnumerable<Guid> consumedDecisionIds,
+        Guid? lastConsumedDecisionId)
+    {
+        ArgumentNullException.ThrowIfNull(players);
+        Player[] roster = players.ToArray();
+        Player currentPlayer = roster.Single(player => player.Id == currentPlayerId);
+        SpaceId[] ownableSpaceIds = profile.RuleGraph.Spaces
+            .Where(space => space.Capabilities.Contains(CapabilityKinds.Ownable))
+            .Select(space => space.Id)
+            .ToArray();
+
+        Game game = new(
+            profile,
+            roster,
+            currentPlayer,
+            board,
+            decks,
+            randomizer,
+            registry,
+            ownableSpaceIds,
+            new LogHandler(),
+            roundAnchorPlayerId);
+
+        game._ownership.Clear();
+        foreach ((SpaceId id, int? ownerId) in ownership.OrderBy(entry => entry.Key))
+            game._ownership.Add(id, ownerId);
+        game.RoundNumber = roundNumber;
+        game.LastDiceRoll = lastDiceRoll;
+        game.Winner = winnerPlayerId is int resolvedWinnerId ? game.CurrentPlayerById(resolvedWinnerId) : null;
+        game.Phase = phase;
+        game.PendingDecision = pendingDecision;
+        game._turnContinuation = continuation;
+        game._consumedDecisionIds.UnionWith(consumedDecisionIds);
+        game._lastConsumedDecisionId = lastConsumedDecisionId;
+
+        game.ValidateAuthoritativeState();
+        if (game.Phase == GamePhase.GameOver)
+            game._notifications.Complete();
+        return game;
     }
 
     public IGameLog Logs => _logs;
@@ -374,6 +434,8 @@ public sealed class Game : IGame
             throw new InvalidOperationException("The active match roster is inconsistent with the profile player range.");
         if (!_players.Contains(CurrentPlayer))
             throw new InvalidOperationException("The current player must belong to the profile match.");
+        if (_players.All(player => player.Id != _roundAnchorPlayerId))
+            throw new InvalidOperationException("The round anchor must belong to the profile match.");
         if (Board.Track.Count != Profile.RuleGraph.Track.Count ||
             Board.Spaces.Where((space, index) => space.Id != Profile.RuleGraph.Track.GetSpaceIdAt(index)).Any())
         {
@@ -408,6 +470,12 @@ public sealed class Game : IGame
             throw new InvalidOperationException("The pending decision and continuation state is inconsistent.");
         if ((Phase == GamePhase.GameOver) != (Winner is not null))
             throw new InvalidOperationException("The terminal phase and winner state is inconsistent.");
+        if (_consumedDecisionIds.Contains(Guid.Empty) ||
+            _lastConsumedDecisionId is Guid lastConsumed && !_consumedDecisionIds.Contains(lastConsumed) ||
+            PendingDecision is not null && _consumedDecisionIds.Contains(PendingDecision.DecisionId))
+        {
+            throw new InvalidOperationException("The consumed decision state is inconsistent.");
+        }
     }
 }
 

@@ -1,12 +1,10 @@
-using System.Text;
-
 namespace Infrastructure.Persistence;
 
 internal interface IFileOperations
 {
     bool Exists(string path);
 
-    string ReadAllText(string path);
+    byte[] ReadBytes(string path, int maximumBytes);
 
     IFileWriteSession CreateNewWriteSession(string path);
 
@@ -19,7 +17,7 @@ internal interface IFileOperations
 
 internal interface IFileWriteSession : IDisposable
 {
-    void Write(string content);
+    void Write(ReadOnlyMemory<byte> content);
 
     void FlushToDisk();
 }
@@ -28,7 +26,30 @@ internal sealed class PhysicalFileOperations : IFileOperations
 {
     public bool Exists(string path) => File.Exists(path);
 
-    public string ReadAllText(string path) => File.ReadAllText(path);
+    public byte[] ReadBytes(string path, int maximumBytes)
+    {
+        if (maximumBytes < 0) throw new ArgumentOutOfRangeException(nameof(maximumBytes));
+        using FileStream stream = new(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            bufferSize: 4096,
+            FileOptions.SequentialScan);
+        using MemoryStream content = new(capacity: (int)Math.Min(stream.Length, maximumBytes));
+        byte[] buffer = new byte[Math.Min(81920, Math.Max(1, maximumBytes))];
+        while (content.Length < maximumBytes)
+        {
+            int remaining = maximumBytes - checked((int)content.Length);
+            int read = stream.Read(buffer, 0, Math.Min(buffer.Length, remaining));
+            if (read == 0) return content.ToArray();
+            content.Write(buffer, 0, read);
+        }
+
+        if (stream.ReadByte() != -1)
+            throw new FileContentLimitExceededException(maximumBytes);
+        return content.ToArray();
+    }
 
     public IFileWriteSession CreateNewWriteSession(string path) => new PhysicalFileWriteSession(path);
 
@@ -43,7 +64,6 @@ internal sealed class PhysicalFileOperations : IFileOperations
 internal sealed class PhysicalFileWriteSession : IFileWriteSession
 {
     private readonly FileStream _fileStream;
-    private readonly StreamWriter _writer;
 
     internal PhysicalFileWriteSession(string path)
     {
@@ -54,26 +74,19 @@ internal sealed class PhysicalFileWriteSession : IFileWriteSession
             FileShare.None,
             bufferSize: 4096,
             FileOptions.SequentialScan);
-        _writer = new StreamWriter(_fileStream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), leaveOpen: true);
     }
 
-    public void Write(string content) => _writer.Write(content);
+    public void Write(ReadOnlyMemory<byte> content) => _fileStream.Write(content.Span);
 
-    public void FlushToDisk()
-    {
-        _writer.Flush();
-        _fileStream.Flush(flushToDisk: true);
-    }
+    public void FlushToDisk() => _fileStream.Flush(flushToDisk: true);
 
-    public void Dispose()
+    public void Dispose() => _fileStream.Dispose();
+}
+
+internal sealed class FileContentLimitExceededException : Exception
+{
+    internal FileContentLimitExceededException(int maximumBytes)
+        : base($"The file exceeds the configured {maximumBytes}-byte input limit.")
     {
-        try
-        {
-            _writer.Dispose();
-        }
-        finally
-        {
-            _fileStream.Dispose();
-        }
     }
 }

@@ -106,18 +106,26 @@ internal static class Program
         return profile;
     }
 
-    internal static void LoadGame(IGameSaveStore saveStore) =>
-        LoadGame(saveStore, new ConsoleWrapper());
+    internal static void LoadGame(IGameSaveStore saveStore, ValidatedGameProfile profile) =>
+        LoadGame(saveStore, profile, new ConsoleWrapper());
 
-    internal static void LoadGame(IGameSaveStore saveStore, IConsoleWrapper consoleWrapper)
+    internal static void LoadGame(
+        IGameSaveStore saveStore,
+        ValidatedGameProfile profile,
+        IConsoleWrapper consoleWrapper)
     {
         ArgumentNullException.ThrowIfNull(saveStore);
+        ArgumentNullException.ThrowIfNull(profile);
         ArgumentNullException.ThrowIfNull(consoleWrapper);
 
         try
         {
-            _ = saveStore.Load(randomSource: new SystemMatchRandomSource());
-            ShowTransitionMessage(consoleWrapper, "Loaded matches cannot enter the Console session until generic projections are completed.");
+            _ = saveStore.Load(
+                new GameProfileRegistry([profile]),
+                randomSource: new SystemMatchRandomSource());
+            ShowTransitionMessage(
+                consoleWrapper,
+                "The saved match is valid for the selected profile. Interactive match play is temporarily unavailable while generic Console projections are being completed.");
         }
         catch (SaveStoreException exception)
         {
@@ -126,6 +134,7 @@ internal static class Program
                 SaveStoreErrorKind.NotFound => "No save file was found.",
                 SaveStoreErrorKind.InvalidData => "The save file contains invalid data.",
                 SaveStoreErrorKind.IncompatibleVersion => "The save file uses an unsupported version.",
+                SaveStoreErrorKind.IncompatibleProfile => "The save requires a different or changed profile.",
                 SaveStoreErrorKind.StorageFailure => "The save storage could not be accessed.",
                 _ => "The save file could not be loaded."
             };

@@ -178,13 +178,57 @@ public sealed class ConsoleTransitionTests
     public void LoadKeepsTypedCompatibilityMessage()
     {
         Mock<IGameSaveStore> store = new();
-        store.Setup(candidate => candidate.Load(It.IsAny<Monopoly.Core.Randomness.IMatchRandomSource>()))
+        store.Setup(candidate => candidate.Load(
+                It.IsAny<GameProfileRegistry>(),
+                It.IsAny<Monopoly.Core.Randomness.IMatchRandomSource>()))
             .Throws(new SaveStoreException(SaveStoreErrorKind.IncompatibleVersion, "gap"));
         RecordingConsole console = new();
+        ValidatedGameProfile profile = Monopoly.Console.Program.LoadBundledDemoProfile();
 
-        Monopoly.Console.Program.LoadGame(store.Object, console);
+        Monopoly.Console.Program.LoadGame(store.Object, profile, console);
 
         Assert.Contains("unsupported version", Assert.Single(console.Lines));
+    }
+
+    [Fact]
+    public void LoadRegistersOnlyTheSelectedProfileAndReportsTheProjectionGap()
+    {
+        Mock<IGameSaveStore> store = new();
+        RecordingConsole console = new();
+        ValidatedGameProfile profile = Monopoly.Console.Program.LoadBundledDemoProfile();
+        Game loaded = GameSetup.Create(
+            profile,
+            [new PlayerSetup(1, "Aster"), new PlayerSetup(2, "Bramble")],
+            new Monopoly.Tests.TestDoubles.MinimumMatchRandomSource());
+        store.Setup(candidate => candidate.Load(
+                It.Is<GameProfileRegistry>(registry =>
+                    registry.Profiles.Count == 1 &&
+                    registry.Profiles[0].Id == profile.Id &&
+                    registry.Profiles[0].Revision == profile.Revision &&
+                    registry.Profiles[0].Fingerprint == profile.Fingerprint),
+                It.IsAny<Monopoly.Core.Randomness.SystemMatchRandomSource>()))
+            .Returns(loaded);
+
+        Monopoly.Console.Program.LoadGame(store.Object, profile, console);
+
+        Assert.Contains("saved match is valid for the selected profile", Assert.Single(console.Lines), StringComparison.OrdinalIgnoreCase);
+        store.VerifyAll();
+    }
+
+    [Fact]
+    public void LoadReportsAnExactProfileMismatchSeparately()
+    {
+        Mock<IGameSaveStore> store = new();
+        RecordingConsole console = new();
+        ValidatedGameProfile profile = Monopoly.Console.Program.LoadBundledDemoProfile();
+        store.Setup(candidate => candidate.Load(
+                It.IsAny<GameProfileRegistry>(),
+                It.IsAny<Monopoly.Core.Randomness.IMatchRandomSource>()))
+            .Throws(new SaveStoreException(SaveStoreErrorKind.IncompatibleProfile, "mismatch"));
+
+        Monopoly.Console.Program.LoadGame(store.Object, profile, console);
+
+        Assert.Contains("different or changed profile", Assert.Single(console.Lines), StringComparison.OrdinalIgnoreCase);
     }
 
     private static string AddUnsupportedStatus(string json)

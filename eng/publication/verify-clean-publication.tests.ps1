@@ -226,6 +226,15 @@ try {
         Assert-HasViolation (Get-Report $result) "SaveSignature"
     }
 
+    Assert-Test "save schema is not mistaken for a legacy save" {
+        $fixture = New-CleanFixture "save-schema"
+        Write-Utf8File -Path (Join-Path $fixture.Source "schema.json") -Content '{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","properties":{"version":{"type":"integer"},"players":{"type":"array"},"currentPlayerId":{"type":"integer"}}}'
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 0 $result.ExitCode $result.Output
+        $report = Get-Report $result
+        Assert-Equal 0 @($report.findings | Where-Object code -eq "SaveSignature").Count "A JSON Schema is reference material, not a saved match."
+    }
+
     Assert-Test "unresolved dependency blocks Publication" {
         $fixture = New-CleanFixture "dependency-publication"
         New-ApprovedManifest -Path $fixture.Manifest -Mutate {
