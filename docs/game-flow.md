@@ -1,19 +1,24 @@
 # Game flow
 
-## Current WIP boundary
+## Application boundary
 
 Core has a production setup, execution and persistence boundary.
 `GameSetup.Create` returns a complete match from an explicitly supplied
-validated profile and ordered player identities. Console still stops before a
-session while #77 implements generic projections. A valid Save V2 can be
-checked and reconstructed, but it is not yet attached to an interactive
-Console session. No fallback match is created.
+validated profile and ordered player identities. Console collects those
+identities for new matches and sends both new and reconstructed Save V2 matches
+through one interactive generic session. No fallback match is created.
 
 Console selects the bundled Demo by default or one file supplied through
 `--profile`. Infrastructure opens and parses the file, Core checks semantic and
 execution compatibility, and only the resulting immutable profile enters
 application composition. A selection failure occurs before the menu opens and
 never replaces state or retries with another profile.
+
+Within a session, ready state accepts a turn command, awaiting state accepts
+only one of Core's allowed decision responses, and terminal state exposes no
+further rule command. Route/deck inspection, explicit Save V2 and return to the
+main menu are frontend navigation and never mutate Core rule state. Returning
+does not save implicitly.
 
 ## Setup flow
 

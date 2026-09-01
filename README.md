@@ -17,15 +17,15 @@ The tracked Demo profile is
 strict JSON and Core validates it into an immutable ValidatedGameProfile with a
 canonical SHA-256 fingerprint.
 
-The profile transition now has an executable Core baseline and two deliberate
-application gaps:
+The profile transition now has an executable Core baseline and a playable
+reference frontend:
 
 - Core creates and runs matches from an explicitly supplied validated profile.
   Movement, purchase decisions, fixed usage fees, generic draws, bounded
   effects, rounds and terminal scoring use one registered execution path.
 - Console uses the bundled Demo by default or loads one explicitly selected
-  local JSON profile with `--profile`. Interactive match play remains
-  unavailable until #77 supplies player entry and generic projections.
+  local JSON profile with `--profile`. It creates players, runs turns and
+  decisions, renders linear generic state, and saves or resumes Save V2.
 - Save Format Version 2 atomically stores the complete supported match state
   and requires an exact registered profile ID, revision and fingerprint when
   loading. Version 1 remains retired and is not migrated.
@@ -62,7 +62,7 @@ dotnet build --configuration Release
 dotnet test --configuration Release --no-build
 ~~~
 
-Run the WIP Console shell with:
+Run the Console reference frontend with:
 
 ~~~text
 dotnet run --project Monopoly.Console
@@ -77,6 +77,10 @@ dotnet run --project Monopoly.Console -- --profile <path>
 The path may be relative or absolute. Console loads it once before opening the
 menu, does not scan profile directories and does not fall back to the Demo when
 an explicitly selected profile fails validation or compatibility checks.
+
+The session uses numbered line-oriented commands. Its route view supports any
+validated track length. Deck views show names and card counts; only a card that
+has actually been drawn is revealed.
 
 ## Documentation
 

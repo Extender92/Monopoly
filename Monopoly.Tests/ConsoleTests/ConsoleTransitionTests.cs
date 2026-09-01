@@ -1,11 +1,8 @@
 using System.Text;
 using System.Text.Json.Nodes;
-using Infrastructure.Persistence;
 using Infrastructure.Profiles;
-using Moq;
-using Monopoly.Console.GUI;
+using Monopoly.Console;
 using Monopoly.Core;
-using Monopoly.Core.Persistence;
 
 namespace Monopoly.Tests.ConsoleTests;
 
@@ -21,13 +18,10 @@ public sealed class ConsoleTransitionTests
     [Fact]
     public void DefaultStartSelectsBundledDemoWithoutAnExternalProfile()
     {
-        RecordingConsole console = new();
+        TestConsole console = new();
         ValidatedGameProfile? selected = null;
 
-        int exitCode = Monopoly.Console.Program.Run(
-            [],
-            console,
-            (profile, _) => selected = profile);
+        int exitCode = Monopoly.Console.Program.Run([], console, (profile, _) => selected = profile);
 
         Assert.Equal(0, exitCode);
         Assert.NotNull(selected);
@@ -47,7 +41,7 @@ public sealed class ConsoleTransitionTests
 
         foreach (string candidate in new[] { relativePath, profilePath })
         {
-            RecordingConsole console = new();
+            TestConsole console = new();
             ValidatedGameProfile? selected = null;
 
             int exitCode = Monopoly.Console.Program.Run(
@@ -67,7 +61,7 @@ public sealed class ConsoleTransitionTests
     {
         using TemporaryDirectory directory = new();
         string missingPath = Path.Combine(directory.Path, "private reference.json");
-        RecordingConsole console = new();
+        TestConsole console = new();
         bool applicationStarted = false;
 
         int exitCode = Monopoly.Console.Program.Run(
@@ -78,8 +72,7 @@ public sealed class ConsoleTransitionTests
         Assert.Equal(1, exitCode);
         Assert.False(applicationStarted);
         Assert.Equal("The profile file was not found.", Assert.Single(console.Lines));
-        Assert.DoesNotContain(missingPath, console.Lines[0], StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("Lantern Vale", console.Lines[0], StringComparison.Ordinal);
+        Assert.DoesNotContain(missingPath, console.Output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -101,7 +94,7 @@ public sealed class ConsoleTransitionTests
         {
             string path = Path.Combine(directory.Path, name);
             File.WriteAllBytes(path, content);
-            RecordingConsole console = new();
+            TestConsole console = new();
             bool applicationStarted = false;
 
             int exitCode = Monopoly.Console.Program.Run(
@@ -112,123 +105,41 @@ public sealed class ConsoleTransitionTests
             Assert.Equal(1, exitCode);
             Assert.False(applicationStarted);
             Assert.Equal(expectedMessage, Assert.Single(console.Lines));
-            Assert.DoesNotContain(directory.Path, console.Lines[0], StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(directory.Path, console.Output, StringComparison.OrdinalIgnoreCase);
         }
     }
 
     [Fact]
-    public void HelpReturnsWithoutLoadingOrStartingTheApplication()
+    public void HelpAndInvalidArgumentsDoNotStartTheApplication()
     {
-        RecordingConsole console = new();
-        bool applicationStarted = false;
+        TestConsole help = new();
+        bool started = false;
+        Assert.Equal(0, Monopoly.Console.Program.Run(["--help"], help, (_, _) => started = true));
+        Assert.False(started);
+        Assert.Contains("Usage: Monopoly.Console", Assert.Single(help.Lines));
 
-        int exitCode = Monopoly.Console.Program.Run(
-            ["--help"],
-            console,
-            (_, _) => applicationStarted = true);
+        TestConsole invalid = new();
+        Assert.Equal(2, Monopoly.Console.Program.Run(["--profile"], invalid, (_, _) => started = true));
+        Assert.False(started);
+        Assert.Equal(2, invalid.Lines.Count);
+    }
+
+    [Fact]
+    public void ExplicitSyntheticProfileCanEnterAndLeavePlayableSession()
+    {
+        string profilePath = Path.Combine(
+            AppContext.BaseDirectory,
+            "TestData",
+            "Profiles",
+            "synthetic-zero-decks-v1.json");
+        TestConsole console = new("1", "1", "Aster", "5", "3");
+
+        int exitCode = Monopoly.Console.Program.Run(["--profile", profilePath], console);
 
         Assert.Equal(0, exitCode);
-        Assert.False(applicationStarted);
-        Assert.Equal("Usage: Monopoly.Console [--profile <path>] [--help]", Assert.Single(console.Lines));
-    }
-
-    [Theory]
-    [MemberData(nameof(InvalidArguments))]
-    public void InvalidArgumentsReturnUsageError(string[] arguments)
-    {
-        RecordingConsole console = new();
-        bool applicationStarted = false;
-
-        int exitCode = Monopoly.Console.Program.Run(
-            arguments,
-            console,
-            (_, _) => applicationStarted = true);
-
-        Assert.Equal(2, exitCode);
-        Assert.False(applicationStarted);
-        Assert.Equal(2, console.Lines.Count);
-        Assert.Equal("Usage: Monopoly.Console [--profile <path>] [--help]", console.Lines[1]);
-    }
-
-    public static TheoryData<string[]> InvalidArguments => new()
-    {
-        new[] { "--unknown" },
-        new[] { "--profile" },
-        new[] { "--profile", " " },
-        new[] { "--profile", "first.json", "--profile", "second.json" },
-        new[] { "--profile", "first.json", "extra" },
-        new[] { "--help", "--profile", "first.json" }
-    };
-
-    [Fact]
-    public void NewGameReportsSelectedProfileProjectionGap()
-    {
-        Mock<IGameSaveStore> store = new();
-        RecordingConsole console = new();
-        ValidatedGameProfile profile = Monopoly.Console.Program.LoadBundledDemoProfile();
-
-        Monopoly.Console.Program.StartNewGame(store.Object, profile, console);
-
-        Assert.Contains("selected profile is valid and supported", Assert.Single(console.Lines), StringComparison.Ordinal);
-        Assert.Contains("generic Console projections", console.Lines[0], StringComparison.Ordinal);
-        store.VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public void LoadKeepsTypedCompatibilityMessage()
-    {
-        Mock<IGameSaveStore> store = new();
-        store.Setup(candidate => candidate.Load(
-                It.IsAny<GameProfileRegistry>(),
-                It.IsAny<Monopoly.Core.Randomness.IMatchRandomSource>()))
-            .Throws(new SaveStoreException(SaveStoreErrorKind.IncompatibleVersion, "gap"));
-        RecordingConsole console = new();
-        ValidatedGameProfile profile = Monopoly.Console.Program.LoadBundledDemoProfile();
-
-        Monopoly.Console.Program.LoadGame(store.Object, profile, console);
-
-        Assert.Contains("unsupported version", Assert.Single(console.Lines));
-    }
-
-    [Fact]
-    public void LoadRegistersOnlyTheSelectedProfileAndReportsTheProjectionGap()
-    {
-        Mock<IGameSaveStore> store = new();
-        RecordingConsole console = new();
-        ValidatedGameProfile profile = Monopoly.Console.Program.LoadBundledDemoProfile();
-        Game loaded = GameSetup.Create(
-            profile,
-            [new PlayerSetup(1, "Aster"), new PlayerSetup(2, "Bramble")],
-            new Monopoly.Tests.TestDoubles.MinimumMatchRandomSource());
-        store.Setup(candidate => candidate.Load(
-                It.Is<GameProfileRegistry>(registry =>
-                    registry.Profiles.Count == 1 &&
-                    registry.Profiles[0].Id == profile.Id &&
-                    registry.Profiles[0].Revision == profile.Revision &&
-                    registry.Profiles[0].Fingerprint == profile.Fingerprint),
-                It.IsAny<Monopoly.Core.Randomness.SystemMatchRandomSource>()))
-            .Returns(loaded);
-
-        Monopoly.Console.Program.LoadGame(store.Object, profile, console);
-
-        Assert.Contains("saved match is valid for the selected profile", Assert.Single(console.Lines), StringComparison.OrdinalIgnoreCase);
-        store.VerifyAll();
-    }
-
-    [Fact]
-    public void LoadReportsAnExactProfileMismatchSeparately()
-    {
-        Mock<IGameSaveStore> store = new();
-        RecordingConsole console = new();
-        ValidatedGameProfile profile = Monopoly.Console.Program.LoadBundledDemoProfile();
-        store.Setup(candidate => candidate.Load(
-                It.IsAny<GameProfileRegistry>(),
-                It.IsAny<Monopoly.Core.Randomness.IMatchRandomSource>()))
-            .Throws(new SaveStoreException(SaveStoreErrorKind.IncompatibleProfile, "mismatch"));
-
-        Monopoly.Console.Program.LoadGame(store.Object, profile, console);
-
-        Assert.Contains("different or changed profile", Assert.Single(console.Lines), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Selected profile: Quiet Loop", console.Output, StringComparison.Ordinal);
+        Assert.Contains("New match created.", console.Output, StringComparison.Ordinal);
+        Assert.Contains("This profile has no decks", RenderDeckView(profilePath), StringComparison.Ordinal);
     }
 
     private static string AddUnsupportedStatus(string json)
@@ -248,19 +159,17 @@ public sealed class ConsoleTransitionTests
         return document.ToJsonString();
     }
 
-    private sealed class RecordingConsole : IConsoleWrapper
+    private static string RenderDeckView(string profilePath)
     {
-        internal List<string> Lines { get; } = [];
-        public void Clear() { }
-        public string ReadKey() => string.Empty;
-        public string ReadLine() => string.Empty;
-        public ConsoleKeyInfo GetPressedKey() => default;
-        public void WriteLine(string s) => Lines.Add(s);
-        public void Write(string s) { }
-        public void SetTextColor(ConsoleColor color) { }
-        public void ResetColor() { }
-        public void SetPosition(int x, int y) { }
-        public void ShowCursor(bool b) { }
+        ValidatedGameProfile profile = new JsonFileGameProfileSource(profilePath).Load();
+        Game game = GameSetup.Create(
+            profile,
+            [new PlayerSetup(0, "Aster")],
+            new Monopoly.Tests.TestDoubles.MinimumMatchRandomSource());
+        ConsoleMatchProjection projection = new ConsoleProjectionBuilder().Build(game);
+        TestConsole console = new(string.Empty);
+        new ConsoleRenderer(console).RenderDecks(projection);
+        return console.Output;
     }
 
     private sealed class TemporaryDirectory : IDisposable

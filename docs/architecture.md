@@ -114,15 +114,22 @@ from the exact validated profile.
 ## Frontend boundary
 
 Console resolves profile presentation into terminal-safe projections. It does
-not select rules by display text, color or concrete space type in the target
-architecture. Between #75 and #77, only the minimal menu/WIP shell is
-compiled; the old Console session is not a runtime fallback. Full generic
-projections belong to #77.
+not select rules by display text, color or concrete space type. New and loaded
+matches enter one line-oriented session runner. It renders current state,
+pending decisions and terminal results from immutable Core reads and submits
+only the operations exposed by the supported capability baseline.
 
-During the current gap the Console shell starts, while new and loaded matches
-return clear transition messages. The bundled Demo is the default. An explicit
-`--profile` selection is loaded before the menu and never falls back to Demo on
-failure; no private directory is scanned automatically.
+The ordered route projection assumes no visual geometry. Deck projections show
+ordinal deck identity and count without revealing the runtime card order;
+drawn-card presentation comes from committed notifications. Notification
+callbacks buffer immutable hints and never render or call Core during
+notification delivery. Every session owns and disposes its match-scoped
+subscription.
+
+The bundled Demo is the default. An explicit `--profile` selection is loaded
+before the menu and never falls back to Demo on failure; no private directory
+is scanned automatically. `ConsoleWrapper` is the sole terminal boundary, and
+untrusted display text is stripped of control characters before output.
 
 ## Follow-up ownership
 
@@ -130,5 +137,5 @@ failure; no private directory is scanned automatically.
 - #75: registered capability execution and legacy Core removal (implemented).
 - #76: explicitly select external JSON profiles (implemented).
 - #52: whole-match Save Format Version 2 (implemented).
-- #77: render generic profile projections in Console.
+- #77: generic playable Console projections (implemented).
 - #56: adopt the final neutral project identity.

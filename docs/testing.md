@@ -41,6 +41,14 @@ errors, JSON/schema failures, semantic validation and execution compatibility.
 They verify that explicit failure starts neither menu nor match, never falls
 back to Demo and never exposes an absolute path.
 
+Fake-wrapper Console tests cover player registration, cancellation, new/load
+composition, ready/pending/terminal sessions, purchases, safe rejections,
+explicit saves and subscription cleanup. Projection tests cover arbitrary
+linear tracks, resources, ownership, zero/one/multiple decks, hidden future
+card order, drawn-card text, structured notification order and neutral
+presentation fallback. Source-contract tests require `ConsoleWrapper` to be the
+only `System.Console` caller and reject removed product-shaped Console paths.
+
 No test embeds a complete third-party layout, economy or card collection.
 
 ## Match setup tests

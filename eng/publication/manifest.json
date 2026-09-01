@@ -434,7 +434,7 @@
         "content"
       ],
       "classification": "replace",
-      "ownerIssues": [77]
+      "ownerIssues": [78, 58]
     },
     {
       "id": "legacy-save-symbols",

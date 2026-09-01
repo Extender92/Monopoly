@@ -2,28 +2,16 @@
 
 ## Responsibility
 
-Console is a reference frontend shell. It owns terminal input, navigation,
-colors and rendering. Core owns profile validation, decisions and match state.
-Infrastructure owns JSON and file access.
+Console is the playable reference frontend. It owns terminal input,
+line-oriented navigation, presentation resolution and user-facing errors. Core
+owns profile validation, decisions and authoritative match state.
+Infrastructure owns profile JSON and Save V2 file access.
 
-Console must never select rules by display text, hard-code profile data or use
-a private profile as a fallback.
+Console never selects a rule by display text, color or concrete space/card
+type. Unsupported capabilities are rejected by Core compatibility validation
+before the menu opens.
 
-## Current WIP behavior
-
-The application starts and displays its menu.
-
-Selecting a new match displays:
-
-> The selected profile is valid and supported. Interactive match play is
-> temporarily unavailable while generic Console projections are being
-> completed.
-
-The user acknowledges the message and returns to the menu. Core setup from a
-validated profile and the Demo execution baseline are complete, but Console
-intentionally does not enter a session until #77. Application composition uses
-the bundled Demo unless the process received an explicit profile path; Core has
-no default profile.
+## Startup and profile selection
 
 The supported commands are:
 
@@ -31,44 +19,69 @@ The supported commands are:
 Monopoly.Console [--profile <path>] [--help]
 ~~~
 
-`--profile` accepts one relative or absolute file path. The file is loaded,
-semantically validated and checked against the current execution registry
-before the menu opens. Failure exits without creating application or match
-state and never falls back to Demo. Paths are not copied into Core, errors,
-logs or saves.
+Without `--profile`, application composition uses the bundled Lantern Vale
+Demo. An explicit relative or absolute path selects exactly that file. Source,
+JSON, semantic or compatibility failure exits without creating a menu or match
+and never falls back to Demo. Paths do not enter Core, saves, logs or messages.
 
-Loading delegates to the injected IGameSaveStore with a registry containing
-exactly the profile selected at process start. Save V2 reconstructs a complete
-match only when ID, revision and fingerprint match. A valid loaded match still
-returns to the menu until #77 supplies the generic session. Missing, invalid,
-unsupported-version, incompatible-profile and storage failures retain distinct
+The selected immutable profile is retained for both new and loaded matches.
+New setup asks for a player count within the profile limits and a non-empty name
+for each player. Input order defines player IDs `0..n-1`; display names need not
+be unique. Blank input cancels setup without creating partial match state.
+
+## Session flow
+
+New and loaded matches enter the same session runner. A ready match offers:
+
+- play the next turn;
+- inspect the ordered route;
+- inspect deck names and counts;
+- save to the temporary fixed `game_data.json` destination; or
+- return to the main menu without implicit saving.
+
+An awaiting match displays the immutable Core decision and only its allowed
+responses. The submitted response uses the exact decision ID and participant
+ID. Route, deck, explicit save and return commands remain available while a
+decision is pending. A terminal match displays its winner and can be inspected
+or saved before returning.
+
+Each session subscribes to its match-scoped notification source. The callback
+only buffers immutable notifications; formatting and terminal writes occur
+after the Core operation returns. The subscription is disposed whenever the
+session exits. Returning to the main menu never invokes another menu
+recursively and never creates a replacement match.
+
+## Generic projections
+
+The main projection displays profile, phase, round, current participant, last
+dice result, player positions and profile-ordered resources. The route view
+lists spaces in authoritative track order with participants, ownership and the
+supported generic capability data such as purchase price, fixed usage fee and
+draw-deck reference. It assumes no geometric board or fixed track length.
+
+Decks are sorted ordinally by `DeckId` and show display name plus card count.
+The current order and upcoming cards are intentionally hidden. A card's text is
+shown only after `CardDrawnNotification`. Movement, resource, ownership,
+decision, card, turn and winner notifications render in their committed order.
+
+Required profile, space, resource, deck and drawn-card presentation tokens must
+resolve. A missing required token aborts the frontend session with a clear
+projection error. Optional or unknown color hints use white; layout hints do
+not alter the linear view. Lantern Vale accent tokens have frontend-local
+terminal colors, while labels remain the primary information carrier.
+
+All untrusted presentation and loaded player text is stripped of terminal
+control characters before rendering. `ConsoleWrapper` is the only production
+type that accesses `System.Console`.
+
+## Persistence and limits
+
+Load registers only the profile selected at process start. Save V2 requires an
+exact profile ID, revision and fingerprint and reconstructs ready, pending and
+terminal matches without consuming randomness. Missing, invalid,
+unsupported-version, incompatible-profile and storage failures have distinct
 safe messages.
 
-Infrastructure can atomically write Save V2. The compiled WIP shell has no
-active session or save command until #77; save naming and discovery are not
-part of the current baseline.
-
-## Presentation
-
-Core exposes semantic presentation tokens and immutable metadata. Console maps
-known color hints locally and uses safe fallbacks for unknown hints. Text
-labels remain available so color is never the only information carrier.
-
-Legacy Console session, action-menu and board-model sources are temporarily
-excluded from compilation because their Core compatibility types no longer
-exist. Issue #77 deletes those sources and replaces them with generic space,
-card, decision and match projections.
-
-## Profile composition
-
-Infrastructure distinguishes missing, denied, invalid-path and storage errors.
-JSON/schema errors, semantic profile errors and unsupported execution
-components retain their separate typed boundaries. Console maps those to safe
-messages without displaying the source path.
-
-The selected `ValidatedGameProfile` is injected into the menu and retained for
-the next new match. Issue #77 owns player input, actual match creation and the
-interactive session.
-
-Session lifecycle and subscription cleanup must be reconsidered as neutral
-issues after clean publication.
+Save naming, save discovery, profile editing, advanced deferred mechanics, a
+visual ASCII board and adaptive terminal-region rendering are not part of this
+reference baseline. They may be planned independently after clean publication.
