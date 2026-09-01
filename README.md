@@ -99,8 +99,8 @@ has actually been drawn is revealed.
 GitHub Issues are the source of truth for planned work. Issue #59 defines the
 legacy repository's execution order.
 
-## Contributing
+## Development workflow
 
-Read [Development workflow](docs/development-workflow.md), start significant
-work from a focused issue and use a dedicated branch. The clean publication
-process and future project identity are tracked separately.
+Project work follows [Development workflow](docs/development-workflow.md).
+Significant work starts from a focused issue and uses a dedicated branch. The
+clean publication process and future project identity are tracked separately.

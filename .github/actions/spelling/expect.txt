@@ -7,13 +7,9 @@ IFile
 IList
 IMatch
 LASTEXITCODE
-dto
 notin
 notnull
 pdb
-pscustomobject
-pwsh
-scriptblock
 Unicode
 Utc
 utf

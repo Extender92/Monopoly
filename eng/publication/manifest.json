@@ -6,11 +6,7 @@
       "replace",
       "remove",
       "review"
-    ],
-    "dependencyReviewAuditAllowance": {
-      "rationale": "Dependency and notice evidence remains an explicit governance gate owned by issue 57, which follows issue 78 in the roadmap.",
-      "ownerIssues": [57]
-    }
+    ]
   },
   "auditMaterial": [
     "docs/clean-publication-audit.md",
@@ -39,6 +35,8 @@
   ],
   "textFileNames": [
     ".gitignore",
+    "COPYRIGHT",
+    "CONTRIBUTING",
     "LICENSE",
     "NOTICE"
   ],
@@ -56,16 +54,8 @@
   ],
   "requiredPublicationFiles": [
     {
-      "path": "LICENSE",
-      "ownerIssues": [57]
-    },
-    {
-      "path": "NOTICE",
-      "ownerIssues": [57]
-    },
-    {
-      "path": "CONTRIBUTING.md",
-      "ownerIssues": [57]
+      "path": "README.md",
+      "ownerIssues": [56]
     }
   ],
   "forbiddenPaths": [
@@ -114,6 +104,12 @@
         "PrivateGameProfiles/**",
         "**/PrivateGameProfiles",
         "**/PrivateGameProfiles/**",
+        "PrivatePublication",
+        "PrivatePublication/**",
+        "**/PrivatePublication",
+        "**/PrivatePublication/**",
+        "*.private.*",
+        "**/*.private.*",
         "publication-audit*.json",
         "publication-audit*.txt",
         "diagnostics",
@@ -129,6 +125,20 @@
       ],
       "classification": "remove",
       "ownerIssues": [58]
+    },
+    {
+      "patterns": [
+        "LICENSE",
+        "LICENSE.*",
+        "NOTICE",
+        "NOTICE.*",
+        "COPYRIGHT",
+        "COPYRIGHT.*",
+        "CONTRIBUTING",
+        "CONTRIBUTING.*"
+      ],
+      "classification": "remove",
+      "ownerIssues": [57]
     }
   ],
   "fileRules": [
@@ -190,7 +200,7 @@
       ],
       "ownership": "project-owned",
       "classification": "remove",
-      "ownerIssues": [71, 58],
+      "ownerIssues": [58],
       "auditAllowance": {
         "rationale": "These files are the external publication control and legacy evidence; issue 58 excludes them from the clean candidate.",
         "pathPatterns": [
@@ -247,19 +257,13 @@
       "ownerIssues": [52]
     },
     {
-      "id": "derived-spelling-configuration",
+      "id": "project-owned-spelling-configuration",
       "patterns": [
         ".github/actions/spelling/**"
       ],
-      "ownership": "third-party-derived-configuration",
-      "classification": "review",
-      "ownerIssues": [57],
-      "auditAllowance": {
-        "rationale": "The derived spelling configuration remains under the dependency and notice review performed by issue 57.",
-        "pathPatterns": [
-          ".github/actions/spelling/**"
-        ]
-      }
+      "ownership": "project-owned",
+      "classification": "allow",
+      "ownerIssues": [57]
     }
   ],
   "contentRules": [
@@ -531,8 +535,9 @@
       "matchType": "regex",
       "patterns": [
         "(?i)PrivateGameProfiles",
+        "(?i)PrivatePublication",
         "(?i)(^|[\\s\"'])local-profiles([/\\\\]|$)",
-        "(?i)\\.private\\.profile\\.json",
+        "(?i)\\.private\\.[a-z0-9.]+",
         "(?i)[A-Z]:[/\\\\](Users|Documents and Settings)[/\\\\]",
         "(?i)(^|[\\s\"'])/(home|Users)/[^/\\s]+/"
       ],
@@ -596,9 +601,10 @@
       "version": "18.9.0",
       "kind": "direct-test",
       "upstream": "https://www.nuget.org/packages/Microsoft.NET.Test.Sdk/18.9.0",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://www.nuget.org/packages/Microsoft.NET.Test.Sdk/18.9.0",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -607,9 +613,10 @@
       "version": "4.20.72",
       "kind": "direct-test",
       "upstream": "https://www.nuget.org/packages/Moq/4.20.72",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "BSD-3-Clause",
+      "licenseEvidence": "https://www.nuget.org/packages/Moq/4.20.72",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -618,9 +625,10 @@
       "version": "2.9.3",
       "kind": "direct-test",
       "upstream": "https://www.nuget.org/packages/xunit/2.9.3",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "Apache-2.0",
+      "licenseEvidence": "https://www.nuget.org/packages/xunit/2.9.3",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -629,9 +637,10 @@
       "version": "4.0.0",
       "kind": "direct-test",
       "upstream": "https://www.nuget.org/packages/xunit.runner.visualstudio/4.0.0",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "Apache-2.0",
+      "licenseEvidence": "https://www.nuget.org/packages/xunit.runner.visualstudio/4.0.0",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -640,9 +649,10 @@
       "version": "10.0.1",
       "kind": "direct-test",
       "upstream": "https://www.nuget.org/packages/coverlet.collector/10.0.1",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://www.nuget.org/packages/coverlet.collector/10.0.1",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -651,9 +661,10 @@
       "version": "5.1.1",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/Castle.Core/5.1.1",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "Apache-2.0",
+      "licenseEvidence": "https://www.nuget.org/packages/Castle.Core/5.1.1",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -662,9 +673,10 @@
       "version": "18.9.0",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/Microsoft.CodeCoverage/18.9.0",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://www.nuget.org/packages/Microsoft.CodeCoverage/18.9.0",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -673,9 +685,10 @@
       "version": "18.9.0",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/Microsoft.TestPlatform.ObjectModel/18.9.0",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://www.nuget.org/packages/Microsoft.TestPlatform.ObjectModel/18.9.0",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -684,9 +697,10 @@
       "version": "18.9.0",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/Microsoft.TestPlatform.TestHost/18.9.0",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://www.nuget.org/packages/Microsoft.TestPlatform.TestHost/18.9.0",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -695,9 +709,10 @@
       "version": "6.0.0",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/System.Diagnostics.EventLog/6.0.0",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://www.nuget.org/packages/System.Diagnostics.EventLog/6.0.0",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -706,9 +721,10 @@
       "version": "2.0.3",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/xunit.abstractions/2.0.3",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "Apache-2.0",
+      "licenseEvidence": "https://www.nuget.org/packages/xunit.abstractions/2.0.3",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -717,9 +733,10 @@
       "version": "1.18.0",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/xunit.analyzers/1.18.0",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "Apache-2.0",
+      "licenseEvidence": "https://www.nuget.org/packages/xunit.analyzers/1.18.0",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -728,9 +745,10 @@
       "version": "2.9.3",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/xunit.assert/2.9.3",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "Apache-2.0",
+      "licenseEvidence": "https://www.nuget.org/packages/xunit.assert/2.9.3",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -739,9 +757,10 @@
       "version": "2.9.3",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/xunit.core/2.9.3",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "Apache-2.0",
+      "licenseEvidence": "https://www.nuget.org/packages/xunit.core/2.9.3",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -750,9 +769,10 @@
       "version": "2.9.3",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/xunit.extensibility.core/2.9.3",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "Apache-2.0",
+      "licenseEvidence": "https://www.nuget.org/packages/xunit.extensibility.core/2.9.3",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -761,9 +781,10 @@
       "version": "2.9.3",
       "kind": "transitive-test",
       "upstream": "https://www.nuget.org/packages/xunit.extensibility.execution/2.9.3",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "Apache-2.0",
+      "licenseEvidence": "https://www.nuget.org/packages/xunit.extensibility.execution/2.9.3",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
@@ -771,65 +792,59 @@
       "name": ".NET SDK",
       "version": "10.0.201",
       "kind": "build-platform",
-      "upstream": "https://github.com/dotnet/core",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "upstream": "https://github.com/dotnet/sdk/tree/v10.0.201",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://github.com/dotnet/sdk/blob/v10.0.201/LICENSE.TXT",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
       "ecosystem": "github-action",
       "name": "actions/checkout",
-      "version": "v4",
+      "version": "11d5960a326750d5838078e36cf38b85af677262",
       "kind": "workflow",
       "upstream": "https://github.com/actions/checkout",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://github.com/actions/checkout/blob/11d5960a326750d5838078e36cf38b85af677262/LICENSE",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
       "ecosystem": "github-action",
       "name": "actions/setup-dotnet",
-      "version": "v6",
+      "version": "a98b56852c35b8e3190ac28c8c2271da59106c68",
       "kind": "workflow",
       "upstream": "https://github.com/actions/setup-dotnet",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://github.com/actions/setup-dotnet/blob/a98b56852c35b8e3190ac28c8c2271da59106c68/LICENSE",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
       "ecosystem": "github-action",
       "name": "actions/upload-artifact",
-      "version": "v7",
+      "version": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
       "kind": "workflow",
       "upstream": "https://github.com/actions/upload-artifact",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://github.com/actions/upload-artifact/blob/043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/LICENSE",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     },
     {
       "ecosystem": "github-action",
       "name": "check-spelling/check-spelling",
-      "version": "v0.0.26, main, prerelease",
-      "kind": "workflow-and-derived-config",
+      "version": "cfb6f7e75bbfc89c71eaa30366d0c166f1bd9c8c",
+      "kind": "workflow",
       "upstream": "https://github.com/check-spelling/check-spelling",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
-      "ownerIssues": [57]
-    },
-    {
-      "ecosystem": "workflow-data",
-      "name": "cspell software terms dictionary",
-      "version": "workflow-resolved",
-      "kind": "remote-dictionary",
-      "upstream": "https://github.com/streetsidesoftware/cspell-dicts",
-      "licenseEvidence": null,
-      "licenseStatus": "review-required",
-      "noticeStatus": "review-required",
+      "licenseExpression": "MIT",
+      "licenseEvidence": "https://github.com/check-spelling/check-spelling/blob/cfb6f7e75bbfc89c71eaa30366d0c166f1bd9c8c/LICENSE.txt",
+      "licenseStatus": "approved",
+      "noticeStatus": "not-required",
       "ownerIssues": [57]
     }
   ]

@@ -239,16 +239,17 @@ function Assert-Manifest {
     }
 
     foreach ($dependency in @($Manifest.dependencies)) {
-        foreach ($property in "ecosystem", "name", "version", "upstream", "licenseStatus", "noticeStatus") {
+        foreach ($property in "ecosystem", "name", "version", "upstream", "licenseExpression", "licenseStatus", "noticeStatus") {
             if ([string]::IsNullOrWhiteSpace($dependency.$property)) {
                 throw "Every dependency must declare '$property'."
             }
         }
+        if ($dependency.ecosystem -eq "github-action" -and $dependency.version -notmatch '^[0-9a-f]{40}$') {
+            throw "GitHub Action '$($dependency.name)' must use a full lowercase commit SHA."
+        }
         Assert-OwnerIssues -Value $dependency -Context "Dependency '$($dependency.name)'"
     }
 
-    Assert-AuditAllowance -Allowance $Manifest.policy.dependencyReviewAuditAllowance -Context "Dependency review policy"
-    Assert-OwnerIssues -Value $Manifest.policy.dependencyReviewAuditAllowance -Context "Dependency review policy"
 }
 
 function Get-AuditFiles {
@@ -519,8 +520,7 @@ function Test-Dependencies {
     foreach ($dependency in @($Manifest.dependencies)) {
         $approved = $dependency.licenseStatus -eq "approved" -and $dependency.noticeStatus -in @("approved", "not-required") -and -not [string]::IsNullOrWhiteSpace($dependency.licenseEvidence)
         if (-not $approved) {
-            $kind = if ($SelectedMode -eq "Audit" -and $null -ne $Manifest.policy.dependencyReviewAuditAllowance) { "finding" } else { "violation" }
-            Add-Result -Kind $kind -Code "DependencyReview" -Scope "dependency" -Path "$($dependency.ecosystem)/$($dependency.name)@$($dependency.version)" -Message "License evidence or notice review is incomplete." -Classification "review" -RuleId "dependency-review" -OwnerIssues @($dependency.ownerIssues)
+            Add-Result -Kind violation -Code "DependencyReview" -Scope "dependency" -Path "$($dependency.ecosystem)/$($dependency.name)@$($dependency.version)" -Message "License evidence or notice review is incomplete." -Classification "review" -RuleId "dependency-review" -OwnerIssues @($dependency.ownerIssues)
         }
     }
 }

@@ -7,9 +7,10 @@ It separates file ownership from embedded content: a project-owned source file
 can still contain presentation data that must be replaced before publication.
 
 This is an engineering risk-control record, not legal approval. Private
-ownership evidence belongs to #57. This document, the machine-readable
-manifest and its verifier are audit/reference material for #58 and must not be
-copied into the clean public repository.
+ownership evidence belongs to #57 and now exists outside both repositories.
+This document, the machine-readable manifest and its verifier are
+audit/reference material for #58 and must not be copied into the clean public
+repository.
 
 ## Publication policy
 
@@ -47,41 +48,45 @@ The baseline was collected from `main` before implementing #55.
 
 ## Dependency inventory
 
-The entries below record the resolved dependency surface. #57 must verify each
-license against authoritative upstream evidence, decide compatibility and
-prepare any required notice before the publication gate can pass.
+The entries below record the resolved dependency surface and #57's completed
+source-only disposition. The dependencies are build/test inputs and are not
+part of the Console publish output. A future binary, runtime or apphost
+distribution requires a new artifact-specific review.
 
 ### NuGet and platform dependencies
 
 | Dependency | Resolved version | Kind | Current status | Owner |
 | --- | --- | --- | --- | --- |
-| Microsoft.NET.Test.Sdk | 18.9.0 | Direct test dependency | License/notice review required | #57 |
-| Moq | 4.20.72 | Direct test dependency | License/notice review required | #57 |
-| xunit | 2.9.3 | Direct test dependency | License/notice review required | #57 |
-| xunit.runner.visualstudio | 4.0.0 | Direct test dependency | License/notice review required | #57 |
-| coverlet.collector | 10.0.1 | Direct test dependency | License/notice review required | #57 |
-| Castle.Core | 5.1.1 | Transitive test dependency | License/notice review required | #57 |
-| Microsoft.CodeCoverage | 18.9.0 | Transitive test dependency | License/notice review required | #57 |
-| Microsoft.TestPlatform.ObjectModel | 18.9.0 | Transitive test dependency | License/notice review required | #57 |
-| Microsoft.TestPlatform.TestHost | 18.9.0 | Transitive test dependency | License/notice review required | #57 |
-| System.Diagnostics.EventLog | 6.0.0 | Transitive test dependency | License/notice review required | #57 |
-| xunit.abstractions | 2.0.3 | Transitive test dependency | License/notice review required | #57 |
-| xunit.analyzers | 1.18.0 | Transitive test dependency | License/notice review required | #57 |
-| xunit.assert | 2.9.3 | Transitive test dependency | License/notice review required | #57 |
-| xunit.core | 2.9.3 | Transitive test dependency | License/notice review required | #57 |
-| xunit.extensibility.core | 2.9.3 | Transitive test dependency | License/notice review required | #57 |
-| xunit.extensibility.execution | 2.9.3 | Transitive test dependency | License/notice review required | #57 |
-| .NET SDK | 10.0.201 selected by `global.json` | Build platform | Confirm redistribution boundary for final artifacts | #57, #58 |
+| Microsoft.NET.Test.Sdk | 18.9.0 | Direct test dependency | MIT; approved, notice not required | #57 complete |
+| Moq | 4.20.72 | Direct test dependency | BSD-3-Clause; approved, notice not required | #57 complete |
+| xunit | 2.9.3 | Direct test dependency | Apache-2.0; approved, notice not required; v2 legacy maintenance recorded | #57 complete |
+| xunit.runner.visualstudio | 4.0.0 | Direct test dependency | Apache-2.0; approved, notice not required | #57 complete |
+| coverlet.collector | 10.0.1 | Direct test dependency | MIT; approved, notice not required | #57 complete |
+| Castle.Core | 5.1.1 | Transitive test dependency | Apache-2.0; approved, notice not required | #57 complete |
+| Microsoft.CodeCoverage | 18.9.0 | Transitive test dependency | MIT; approved, notice not required | #57 complete |
+| Microsoft.TestPlatform.ObjectModel | 18.9.0 | Transitive test dependency | MIT; approved, notice not required | #57 complete |
+| Microsoft.TestPlatform.TestHost | 18.9.0 | Transitive test dependency | MIT; approved, notice not required | #57 complete |
+| System.Diagnostics.EventLog | 6.0.0 | Transitive test dependency | MIT; approved, notice not required | #57 complete |
+| xunit.abstractions | 2.0.3 | Transitive test dependency | Apache-2.0; approved, notice not required | #57 complete |
+| xunit.analyzers | 1.18.0 | Transitive test dependency | Apache-2.0; approved, notice not required | #57 complete |
+| xunit.assert | 2.9.3 | Transitive test dependency | Apache-2.0; approved, notice not required; v2 legacy maintenance recorded | #57 complete |
+| xunit.core | 2.9.3 | Transitive test dependency | Apache-2.0; approved, notice not required; v2 legacy maintenance recorded | #57 complete |
+| xunit.extensibility.core | 2.9.3 | Transitive test dependency | Apache-2.0; approved, notice not required; v2 legacy maintenance recorded | #57 complete |
+| xunit.extensibility.execution | 2.9.3 | Transitive test dependency | Apache-2.0; approved, notice not required; v2 legacy maintenance recorded | #57 complete |
+| .NET SDK | 10.0.201 selected by `global.json` | Build platform | MIT build input; no binary/runtime redistribution approved | #57 complete |
 
 ### Workflow dependencies
 
 | Dependency | Current reference | Current status | Owner |
 | --- | --- | --- | --- |
-| actions/checkout | `v4` | License/source and immutable-reference review required | #53, #57 |
-| actions/setup-dotnet | `v6` | License/source and immutable-reference review required | #53, #57 |
-| actions/upload-artifact | `v7` | License/source and immutable-reference review required | #53, #57 |
-| check-spelling/check-spelling | `v0.0.26`, `main` and `prerelease` | Derived configuration plus license/source and mutable-reference review required | #53, #57 |
-| cspell software terms dictionary | Remote workflow input | License/source review required | #57 |
+| actions/checkout | `11d5960a326750d5838078e36cf38b85af677262` | MIT; immutable reference approved | #53, #57 complete |
+| actions/setup-dotnet | `a98b56852c35b8e3190ac28c8c2271da59106c68` | MIT; immutable reference approved | #53, #57 complete |
+| actions/upload-artifact | `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` | MIT; immutable reference approved | #53, #57 complete |
+| check-spelling/check-spelling | `cfb6f7e75bbfc89c71eaa30366d0c166f1bd9c8c` | MIT; immutable reference approved | #53, #57 complete |
+
+The remote cspell dictionary, `spell-check-this` helper and mutable spelling
+report jobs were removed. The remaining minimal spelling rules and `.gitignore`
+are project-authored configuration.
 
 ## Denylist categories
 
@@ -99,6 +104,8 @@ with documented evidence and review:
   including relabelled copies.
 - Legacy save fields and presentation-shaped identifiers.
 - Unknown binaries, unreviewed dependencies and unresolved content findings.
+- Root-level project license, notice, copyright or external-contribution files;
+  the approved candidate intentionally grants no project reuse license.
 - Git metadata, saves, build/test output, temporary files and audit/reference
   material.
 
@@ -107,9 +114,10 @@ with documented evidence and review:
 The allowlist is narrow and path-scoped. Audit blocks every non-allow finding
 unless the manifest gives it an explicit `auditAllowance` with a rationale and
 owning issue. The only transition allowances are the current legacy code and
-repository identity, audit/reference files excluded from the candidate, and
-the dependency/spelling review owned by #57. Product content, unknown files,
-unclassified binaries and ownerless findings block Audit.
+repository identity and audit/reference files excluded from the candidate.
+Dependency/provenance and project-owned spelling review are complete. Product
+content, unknown files, unclassified binaries and ownerless findings block
+Audit.
 
 Publication ignores every Audit allowance. Independently written generic
 mechanics remain valid only when no deny rule also matches.
@@ -120,8 +128,9 @@ spelling warning; the publication verifier still scans that file, classifies
 denylisted content and blocks it in Publication mode.
 
 Original Demo presentation is allowed after the #4 review recorded below.
-Dependency code or notices do not become allowed until #57 records authoritative
-license evidence and the required notice decision.
+Dependencies are allowed only at the exact versions or workflow SHAs reviewed
+by #57. Every entry records primary license evidence and a source-only notice
+decision in the manifest.
 
 ## Issue #4 outcome
 
@@ -153,8 +162,9 @@ even when they have an owner issue.
 
 Publication mode is the clean-cutover gate. It rejects every `replace`,
 `remove`, `review`, unknown or unowned finding, forbidden path, unknown binary,
-unapproved dependency and missing publication file. It scans both the source
-snapshot and a separate unpacked Release publish directory.
+unapproved dependency and missing README. It also rejects a root project
+license, notice, copyright or contribution-policy file. It scans both the
+source snapshot and a separate unpacked Release publish directory.
 
 Run from the repository root:
 
@@ -192,8 +202,9 @@ details. They must remain outside both inspected trees.
 - #52 replaces legacy persistence identifiers and fields.
 - #78 owns the reusable conformance/leakage controls and their fixtures.
 - #56 consumes the identity and URL findings.
-- #57 resolves every dependency and notice row without publishing private
-  ownership evidence.
+- #57 resolved every dependency and notice row, pinned workflow actions, and
+  approved the private source-visible policy without publishing ownership
+  evidence or granting a project reuse license.
 - #58 reruns Publication mode against source and artifacts, excludes this raw
   audit and changes visibility only after a clean result.
 - #60 retains this audit only inside the encrypted archive before legacy
