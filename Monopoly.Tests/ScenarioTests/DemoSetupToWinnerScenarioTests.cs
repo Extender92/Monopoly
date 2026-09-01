@@ -197,7 +197,7 @@ public sealed class DemoSetupToWinnerScenarioTests
 
     private static void AddValidatedState(
         IGame game,
-        ICollection<string> committedStates,
+        List<string> committedStates,
         DecisionIdNormalizer decisionIds)
     {
         Game concreteGame = Assert.IsType<Game>(game);
