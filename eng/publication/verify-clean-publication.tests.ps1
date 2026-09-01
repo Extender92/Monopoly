@@ -246,7 +246,7 @@ try {
 
     Assert-Test "pending spelling governance is permitted only in Audit" {
         $fixture = New-CleanFixture "spelling-governance"
-        Write-Utf8File -Path (Join-Path $fixture.Source ".github/actions/spelling/allow.txt") -Content "fixtureword"
+        Write-Utf8File -Path (Join-Path $fixture.Source ".github/actions/spelling/allow.txt") -Content "temporary"
         Initialize-AuditFixture $fixture
 
         $audit = Invoke-Verifier -Mode Audit -Fixture $fixture

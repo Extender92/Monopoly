@@ -4,7 +4,6 @@ IDictionary
 IDisposable
 IEquatable
 IFile
-ILegacy
 IList
 IMatch
 LASTEXITCODE
