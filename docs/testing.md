@@ -64,6 +64,26 @@ and the bounded tie failure. Setup failures never return a partial match.
 Execution tests prove profile dice, origin passes, decisions, ownership,
 bounded fees, deck rotation, effects, rounds and terminal scoring.
 
+## Full Demo scenario
+
+The setup-to-winner scenario parses the tracked Lantern Vale fixture and drives
+one two-player match for exactly 12 rounds through the public action and
+decision contracts. Scripted dice cover an accepted purchase, a usage fee,
+declined purchases, every Demo card, relative and absolute movement,
+pass-origin rewards, ordered resource changes and one terminal winner.
+
+After every committed phase, the scenario compares runtime state with the
+transport-neutral Save V2 projection. It also verifies structured notification
+order, exact deck rotation and mutation-free duplicate-decision rejection. The
+complete scenario is run twice and compared semantically. Opaque decision GUIDs
+are mapped by creation order because they are authoritative within one match
+but intentionally differ between independently created matches.
+
+The scenario reads only the tracked Demo fixture copied to test output. It uses
+no external or private profile, mutable save, temporary file, network, sleep or
+Console input. Existing one-space/zero-deck and four-space/two-deck fixtures
+provide the structural counterexamples to the 27-space/one-deck Demo.
+
 ## Runtime execution fixtures
 
 Legacy executor tests were removed with their unsupported runtime. The

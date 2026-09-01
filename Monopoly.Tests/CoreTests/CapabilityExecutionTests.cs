@@ -728,40 +728,6 @@ public sealed class CapabilityExecutionTests
         Assert.Equal(new SpaceId("space.execution-1"), game.CurrentPlayer.CurrentSpaceId);
     }
 
-    [Fact]
-    public void BundledDemoRunsDeterministicallyToTerminalWinner()
-    {
-        string first = RunDemo();
-        string second = RunDemo();
-        Assert.Equal(first, second);
-    }
-
-    private static string RunDemo()
-    {
-        ValidatedGameProfile profile = new JsonGameProfileParser().Parse(File.ReadAllBytes(DemoPath));
-        Game game = GameSetup.Create(
-            profile,
-            [new PlayerSetup(12, "Aster"), new PlayerSetup(4, "Bramble")],
-            new MinimumMatchRandomSource());
-        int completedTurns = 0;
-        while (!game.IsGameOver && completedTurns < 100)
-        {
-            GameActionResult result = game.PlayTurn();
-            if (result.Status == GameActionStatus.DecisionRequired)
-            {
-                PendingDecision decision = result.PendingDecision!;
-                result = game.SubmitDecision(new DecisionResponse(decision.DecisionId, decision.PlayerId, DecisionOptions.Decline));
-            }
-            Assert.Contains(result.Status, new[] { GameActionStatus.TurnCompleted, GameActionStatus.GameOver });
-            completedTurns++;
-        }
-
-        Assert.True(game.IsGameOver);
-        Assert.Equal(24, completedTurns);
-        Assert.Equal(12, game.RoundNumber);
-        return $"{game.Winner!.Id}:{string.Join(',', game.Players.SelectMany(player => player.Resources.OrderBy(entry => entry.Key).Select(entry => entry.Value)))}";
-    }
-
     private static ValidatedGameProfile PurchasableProfile(int price, int fee, int startingCredits) =>
         ExecutionProfileFactory.Create(
             spaceCount: 2,

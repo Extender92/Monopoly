@@ -75,8 +75,10 @@ complete product dataset.
 
 Issue #4 delivered the final JSON and content replacement. The reusable
 structural contracts and strict schema validator are defined in
-[profile-format.md](profile-format.md). Issue #54 proves the complete Demo flow,
-and #78 checks structural variation and publication leakage.
+[profile-format.md](profile-format.md). The deterministic Demo scenario parses
+that JSON and proves setup, every supported capability, persistable state,
+notification order, 12-round scoring and one terminal winner. Issue #78 checks
+the wider structural variation and publication leakage controls.
 
 Before publication, the Demo source and rendered/build artifacts must pass the
 issue #55 manifest, dependency/license review in #57 and the independent review
