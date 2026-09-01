@@ -17,10 +17,10 @@ The audit tracks the following independent categories and their disposition:
 | Fixed board/deck and concrete square/card/status types | Replace with structural and capability contracts | #72, #73 |
 | Profile parsing and validation assumptions | Replace with bounded schema v1 | #74 |
 | Product-shaped rule and setup behavior | Replaced by the supported public baseline | #40, #75 complete |
-| Frontend-specific presentation values in Core | Semantic profile metadata and original content implemented; generic projections remain | #77 |
+| Frontend-specific presentation values in Core | Replaced by semantic metadata and generic linear Console projections | #32, #77 complete |
 | Regional Version 1 save fields | Removed; replace persistence with exact-profile Save V2 | #52 |
 | Legacy solution, package, namespace, command and URL identity | Replace before clean export | #56 |
-| Legacy Console type branches | Excluded from compilation by #75; delete and replace with generic projections | #77 |
+| Legacy Console type branches | Deleted and replaced with one generic new/load session | #77 complete |
 | Legacy documentation and tests | Product data removed; complete Demo execution and leakage coverage remain | #54, #78 |
 
 The detailed denylist and per-file inventory remain in

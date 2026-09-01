@@ -5,7 +5,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -14,20 +13,6 @@
 		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
 		<InternalsVisibleTo Include="Monopoly.Tests" />
 	</ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="ConsoleCommandLineOptions.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="GUI\ArrowKeyMenuController.cs" />
-    <Compile Include="GUI\ConsolePositions.cs" />
-    <Compile Include="GUI\ConsoleWrapper.cs" />
-    <Compile Include="GUI\IConsoleWrapper.cs" />
-    <Compile Include="GUI\MainMenu.cs" />
-    <Compile Include="GUI\MenuOptionSelector.cs" />
-    <Compile Include="Utilities\DisplayNameAttribute.cs" />
-    <Compile Include="Utilities\EnumExtensions.cs" />
-  </ItemGroup>
-
 	<ItemGroup>
 		<None Include="..\profiles\demo\lantern-vale-v1.json"
 			  Link="profiles\demo\lantern-vale-v1.json"

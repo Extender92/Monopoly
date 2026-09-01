@@ -2,7 +2,6 @@ using Infrastructure.Persistence;
 using Infrastructure.Profiles;
 using Monopoly.Console.GUI;
 using Monopoly.Core;
-using Monopoly.Core.Persistence;
 using Monopoly.Core.Randomness;
 
 namespace Monopoly.Console;
@@ -10,8 +9,6 @@ namespace Monopoly.Console;
 internal static class Program
 {
     private const string Usage = "Usage: Monopoly.Console [--profile <path>] [--help]";
-    private const string SessionTransitionMessage =
-        "The selected profile is valid and supported. Interactive match play is temporarily unavailable while generic Console projections are being completed.";
 
     private static int Main(string[] args) => Run(args, new ConsoleWrapper());
 
@@ -73,23 +70,8 @@ internal static class Program
             return 1;
         }
 
-        (runApplication ?? DisplayMainMenu)(profile, consoleWrapper);
+        (runApplication ?? RunApplication)(profile, consoleWrapper);
         return 0;
-    }
-
-    internal static void StartNewGame(IGameSaveStore saveStore, ValidatedGameProfile profile) =>
-        StartNewGame(saveStore, profile, new ConsoleWrapper());
-
-    internal static void StartNewGame(
-        IGameSaveStore saveStore,
-        ValidatedGameProfile profile,
-        IConsoleWrapper consoleWrapper)
-    {
-        ArgumentNullException.ThrowIfNull(saveStore);
-        ArgumentNullException.ThrowIfNull(profile);
-        ArgumentNullException.ThrowIfNull(consoleWrapper);
-        GameSetup.ValidateCompatibility(profile);
-        ShowTransitionMessage(consoleWrapper, SessionTransitionMessage);
     }
 
     internal static ValidatedGameProfile LoadBundledDemoProfile() => LoadSelectedProfile(null);
@@ -106,58 +88,16 @@ internal static class Program
         return profile;
     }
 
-    internal static void LoadGame(IGameSaveStore saveStore, ValidatedGameProfile profile) =>
-        LoadGame(saveStore, profile, new ConsoleWrapper());
-
-    internal static void LoadGame(
-        IGameSaveStore saveStore,
+    private static void RunApplication(
         ValidatedGameProfile profile,
         IConsoleWrapper consoleWrapper)
     {
-        ArgumentNullException.ThrowIfNull(saveStore);
-        ArgumentNullException.ThrowIfNull(profile);
-        ArgumentNullException.ThrowIfNull(consoleWrapper);
-
-        try
-        {
-            _ = saveStore.Load(
-                new GameProfileRegistry([profile]),
-                randomSource: new SystemMatchRandomSource());
-            ShowTransitionMessage(
-                consoleWrapper,
-                "The saved match is valid for the selected profile. Interactive match play is temporarily unavailable while generic Console projections are being completed.");
-        }
-        catch (SaveStoreException exception)
-        {
-            string message = exception.Kind switch
-            {
-                SaveStoreErrorKind.NotFound => "No save file was found.",
-                SaveStoreErrorKind.InvalidData => "The save file contains invalid data.",
-                SaveStoreErrorKind.IncompatibleVersion => "The save file uses an unsupported version.",
-                SaveStoreErrorKind.IncompatibleProfile => "The save requires a different or changed profile.",
-                SaveStoreErrorKind.StorageFailure => "The save storage could not be accessed.",
-                _ => "The save file could not be loaded."
-            };
-            ShowTransitionMessage(consoleWrapper, message);
-        }
-    }
-
-    private static void ShowTransitionMessage(IConsoleWrapper consoleWrapper, string message)
-    {
-        consoleWrapper.WriteLine($"{message} Press Enter to return to the main menu.");
-        consoleWrapper.ReadLine();
-    }
-
-    private static void DisplayMainMenu(
-        ValidatedGameProfile profile,
-        IConsoleWrapper consoleWrapper)
-    {
-        ConsolePositions.SetStandardPositions();
-        MainMenu mainMenu = new(
-            new MenuOptionSelector(consoleWrapper),
+        ConsoleApplication application = new(
+            profile,
+            consoleWrapper,
             new JsonFileGameSaveStore("game_data.json"),
-            profile);
-        mainMenu.DisplayMainMenu();
+            static () => new SystemMatchRandomSource());
+        application.Run();
     }
 
     private static string SourceErrorMessage(ProfileSourceErrorKind kind) => kind switch

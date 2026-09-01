@@ -128,11 +128,11 @@ the schema-version 1 parser and locked to its reviewed revision fingerprint.
 
 Issue #75 removed the product-shaped Core executor, concrete legacy runtime
 types and their regression fixtures. The supported runtime now executes only
-validated Demo/synthetic capabilities through one registry. Product-shaped
-Console session sources remain tracked but excluded from compilation and are
-owned by #77. Version 1 appears only in compatibility detection and audit
-evidence owned by #52. Final artifact and snapshot confirmation remains #58's
-responsibility.
+validated Demo/synthetic capabilities through one registry. Issue #77 deleted
+the excluded product-shaped Console session and replaced it with generic linear
+projections and one new/load session path. Version 1 appears only in
+compatibility detection and audit evidence owned by #52. Final artifact and
+snapshot confirmation remains #58's responsibility.
 
 ## Verification contract
 
@@ -170,8 +170,8 @@ found and `2` means the manifest, input or verifier execution was invalid.
 ## Completion handoff
 
 - #4 and #37 consume the board, card, test-data and capability findings.
-- #75 removed the legacy Core runtime; #77 removes the temporarily excluded
-  Console compatibility sources and supplies generic projections.
+- #75 removed the legacy Core runtime; #77 removed the excluded Console
+  compatibility sources and supplied generic projections.
 - #52 replaces legacy persistence identifiers and fields.
 - #56 consumes the identity and URL findings.
 - #57 resolves every dependency and notice row without publishing private

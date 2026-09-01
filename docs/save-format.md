@@ -94,5 +94,7 @@ dice results, selected starting/round-anchor participant and deck order contain
 the authoritative consequences of earlier randomness.
 
 The current Console composition registers exactly the bundled or explicitly
-selected profile. It continues to use `game_data.json` until save naming and
-selection are planned in the clean-root project.
+selected profile. New and loaded matches use the same interactive session.
+Ready, pending and terminal state can be saved explicitly; leaving a session
+does not save automatically. Console continues to use `game_data.json` until
+save naming and selection are planned in the clean-root project.
