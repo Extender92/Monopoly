@@ -23,6 +23,8 @@ if ([string]::IsNullOrWhiteSpace($ManifestPath)) {
 
 $script:Findings = [System.Collections.Generic.List[object]]::new()
 $script:Violations = [System.Collections.Generic.List[object]]::new()
+$script:SourceFileCount = 0
+$script:ArtifactFileCount = 0
 
 function ConvertTo-NormalizedPath {
     param([Parameter(Mandatory)][string]$Path)
@@ -105,6 +107,7 @@ function Add-Result {
         [string]$Path,
         [Parameter(Mandatory)][string]$Message,
         [string]$Classification,
+        [string]$RuleId,
         [object[]]$OwnerIssues = @()
     )
 
@@ -114,6 +117,8 @@ function Add-Result {
         path = $Path
         message = $Message
         classification = $Classification
+        ruleId = $RuleId
+        disposition = if ($Kind -eq "violation") { "blocker" } else { "permitted-transition" }
         ownerIssues = @($OwnerIssues | ForEach-Object { [int]$_ })
     }
 
@@ -122,6 +127,24 @@ function Add-Result {
     }
     else {
         $script:Findings.Add([pscustomobject]$item)
+    }
+}
+
+function Assert-AuditAllowance {
+    param(
+        $Allowance,
+        [Parameter(Mandatory)][string]$Context,
+        [switch]$RequirePaths
+    )
+
+    if ($null -eq $Allowance) {
+        return
+    }
+    if ([string]::IsNullOrWhiteSpace($Allowance.rationale)) {
+        throw "$Context audit allowance must declare a rationale."
+    }
+    if ($RequirePaths -and @($Allowance.pathPatterns).Count -eq 0) {
+        throw "$Context audit allowance must declare path patterns."
     }
 }
 
@@ -145,11 +168,11 @@ function Assert-OwnerIssues {
 function Assert-Manifest {
     param([Parameter(Mandatory)]$Manifest)
 
-    if ($Manifest.schemaVersion -ne 1) {
+    if ($Manifest.schemaVersion -ne 2) {
         throw "Unsupported manifest schema version '$($Manifest.schemaVersion)'."
     }
 
-    foreach ($property in "policy", "fileRules", "contentRules", "allowRules", "dependencies", "forbiddenPaths", "requiredPublicationFiles", "textExtensions", "textFileNames", "artifactBinaryRules") {
+    foreach ($property in "policy", "auditMaterial", "fileRules", "contentRules", "allowRules", "dependencies", "forbiddenPaths", "requiredPublicationFiles", "textExtensions", "textFileNames", "artifactBinaryRules") {
         if ($null -eq $Manifest.$property) {
             throw "Manifest property '$property' is required."
         }
@@ -166,6 +189,7 @@ function Assert-Manifest {
             throw "File rule '$($rule.id)' has invalid patterns or classification."
         }
         Assert-OwnerIssues -Value $rule -Context "File rule '$($rule.id)'"
+        Assert-AuditAllowance -Allowance $rule.auditAllowance -Context "File rule '$($rule.id)'" -RequirePaths
     }
 
     $contentRuleIds = @{}
@@ -181,6 +205,7 @@ function Assert-Manifest {
             throw "Content rule '$($rule.id)' has an unsupported target."
         }
         Assert-OwnerIssues -Value $rule -Context "Content rule '$($rule.id)'"
+        Assert-AuditAllowance -Allowance $rule.auditAllowance -Context "Content rule '$($rule.id)'" -RequirePaths
         if ($rule.matchType -eq "regex") {
             foreach ($pattern in @($rule.patterns)) {
                 try {
@@ -221,6 +246,9 @@ function Assert-Manifest {
         }
         Assert-OwnerIssues -Value $dependency -Context "Dependency '$($dependency.name)'"
     }
+
+    Assert-AuditAllowance -Allowance $Manifest.policy.dependencyReviewAuditAllowance -Context "Dependency review policy"
+    Assert-OwnerIssues -Value $Manifest.policy.dependencyReviewAuditAllowance -Context "Dependency review policy"
 }
 
 function Get-AuditFiles {
@@ -264,7 +292,7 @@ function Get-PublicationFiles {
             $blocked = $false
             foreach ($rule in @($Manifest.forbiddenPaths)) {
                 if (Test-AnyGlob -Value $relativeDirectory -Patterns @($rule.patterns)) {
-                    Add-Result -Kind violation -Code "ForbiddenPath" -Scope $Scope -Path $relativeDirectory -Message "Forbidden directory is present." -Classification $rule.classification -OwnerIssues @($rule.ownerIssues)
+                    Add-Result -Kind violation -Code "ForbiddenPath" -Scope $Scope -Path $relativeDirectory -Message "Forbidden directory is present." -Classification $rule.classification -RuleId "forbidden-path" -OwnerIssues @($rule.ownerIssues)
                     $blocked = $true
                     break
                 }
@@ -339,12 +367,55 @@ function Test-KnownArtifactBinary {
     return $false
 }
 
+function Test-AuditMaterialPath {
+    param(
+        [Parameter(Mandatory)][string]$RelativePath,
+        [Parameter(Mandatory)]$Manifest
+    )
+
+    return Test-AnyGlob -Value $RelativePath -Patterns @($Manifest.auditMaterial)
+}
+
+function Test-AuditAllowance {
+    param(
+        $Rule,
+        [Parameter(Mandatory)][string]$RelativePath,
+        [Parameter(Mandatory)]$Manifest
+    )
+
+    if (Test-AuditMaterialPath -RelativePath $RelativePath -Manifest $Manifest) {
+        return $true
+    }
+    return $null -ne $Rule.auditAllowance -and
+        (Test-AnyGlob -Value $RelativePath -Patterns @($Rule.auditAllowance.pathPatterns))
+}
+
+function Get-ClassifiedResultKind {
+    param(
+        [Parameter(Mandatory)][string]$SelectedMode,
+        [Parameter(Mandatory)][string]$Classification,
+        $Rule,
+        [Parameter(Mandatory)][string]$RelativePath,
+        [Parameter(Mandatory)]$Manifest
+    )
+
+    if ($Classification -notin @($Manifest.policy.publicationBlocks)) {
+        return "finding"
+    }
+    if ($SelectedMode -eq "Audit" -and
+        (Test-AuditAllowance -Rule $Rule -RelativePath $RelativePath -Manifest $Manifest)) {
+        return "finding"
+    }
+    return "violation"
+}
+
 function Test-FileCollection {
     param(
         [Parameter(Mandatory)][object[]]$Files,
         [Parameter(Mandatory)][string]$Scope,
         [Parameter(Mandatory)]$Manifest,
-        [Parameter(Mandatory)][string]$SelectedMode
+        [Parameter(Mandatory)][string]$SelectedMode,
+        [string[]]$SensitivePaths = @()
     )
 
     $publicationBlocks = @($Manifest.policy.publicationBlocks)
@@ -353,8 +424,7 @@ function Test-FileCollection {
 
         foreach ($forbiddenRule in @($Manifest.forbiddenPaths)) {
             if (Test-AnyGlob -Value $relativePath -Patterns @($forbiddenRule.patterns)) {
-                $kind = if ($SelectedMode -eq "Publication") { "violation" } else { "finding" }
-                Add-Result -Kind $kind -Code "ForbiddenPath" -Scope $Scope -Path $relativePath -Message "Forbidden file path is present." -Classification $forbiddenRule.classification -OwnerIssues @($forbiddenRule.ownerIssues)
+                Add-Result -Kind violation -Code "ForbiddenPath" -Scope $Scope -Path $relativePath -Message "Forbidden file path is present." -Classification $forbiddenRule.classification -RuleId "forbidden-path" -OwnerIssues @($forbiddenRule.ownerIssues)
             }
         }
 
@@ -363,22 +433,51 @@ function Test-FileCollection {
         $knownArtifactBinary = $Scope -eq "artifact" -and (Test-KnownArtifactBinary -Extension $extension -Manifest $Manifest)
 
         if ($fileRules.Count -eq 0 -and -not $knownArtifactBinary) {
-            Add-Result -Kind violation -Code "UnclassifiedFile" -Scope $Scope -Path $relativePath -Message "No file rule classifies this file." -Classification "unclassified"
+            Add-Result -Kind violation -Code "UnclassifiedFile" -Scope $Scope -Path $relativePath -Message "No file rule classifies this file." -Classification "unclassified" -RuleId "file-classification"
         }
 
         foreach ($rule in $fileRules) {
             if ($rule.classification -in $publicationBlocks) {
-                $kind = if ($SelectedMode -eq "Publication") { "violation" } else { "finding" }
-                Add-Result -Kind $kind -Code "FileDisposition" -Scope $Scope -Path $relativePath -Message "File rule '$($rule.id)' requires $($rule.classification)." -Classification $rule.classification -OwnerIssues @($rule.ownerIssues)
+                $kind = Get-ClassifiedResultKind -SelectedMode $SelectedMode -Classification $rule.classification -Rule $rule -RelativePath $relativePath -Manifest $Manifest
+                Add-Result -Kind $kind -Code "FileDisposition" -Scope $Scope -Path $relativePath -Message "File rule '$($rule.id)' requires $($rule.classification)." -Classification $rule.classification -RuleId $rule.id -OwnerIssues @($rule.ownerIssues)
             }
         }
 
         $isKnownText = $extension -in @($Manifest.textExtensions) -or [IO.Path]::GetFileName($relativePath) -in @($Manifest.textFileNames)
         if (-not $isKnownText -and -not $knownArtifactBinary) {
-            Add-Result -Kind violation -Code "UnknownBinary" -Scope $Scope -Path $relativePath -Message "The file extension is not explicitly classified as text or an allowed artifact binary." -Classification "unclassified"
+            Add-Result -Kind violation -Code "UnknownBinary" -Scope $Scope -Path $relativePath -Message "The file extension is not explicitly classified as text or an allowed artifact binary." -Classification "unclassified" -RuleId "binary-classification"
+        }
+
+        if ($SelectedMode -eq "Publication" -and
+            (Test-AuditMaterialPath -RelativePath $relativePath -Manifest $Manifest)) {
+            continue
         }
 
         $representations = Get-FileRepresentations -Path $file.FullPath
+
+        $sensitiveMatch = $false
+        foreach ($sensitivePath in @($SensitivePaths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })) {
+            $variants = @(
+                [IO.Path]::GetFullPath($sensitivePath),
+                ([IO.Path]::GetFullPath($sensitivePath)).Replace("\", "/"),
+                ([IO.Path]::GetFullPath($sensitivePath)).Replace("/", "\")
+            ) | Select-Object -Unique
+            foreach ($representation in $representations) {
+                if (@($variants | Where-Object { $representation.IndexOf($_, [StringComparison]::OrdinalIgnoreCase) -ge 0 }).Count -gt 0) {
+                    $sensitiveMatch = $true
+                    break
+                }
+            }
+            if ($sensitiveMatch) {
+                break
+            }
+        }
+        if ($sensitiveMatch) {
+            $dynamicRule = [pscustomobject]@{ auditAllowance = $null }
+            $kind = Get-ClassifiedResultKind -SelectedMode $SelectedMode -Classification "remove" -Rule $dynamicRule -RelativePath $relativePath -Manifest $Manifest
+            Add-Result -Kind $kind -Code "EmbeddedLocalPath" -Scope $Scope -Path $relativePath -Message "The file embeds an inspected filesystem root." -Classification "remove" -RuleId "dynamic-inspected-path" -OwnerIssues @(58)
+        }
+
         foreach ($rule in @($Manifest.contentRules)) {
             $matchedPattern = $null
             if (@($rule.targets) -contains "path") {
@@ -394,8 +493,8 @@ function Test-FileCollection {
             }
 
             if ($null -ne $matchedPattern) {
-                $kind = if ($SelectedMode -eq "Publication" -and $rule.classification -in $publicationBlocks) { "violation" } else { "finding" }
-                Add-Result -Kind $kind -Code "ContentRule" -Scope $Scope -Path $relativePath -Message "Content rule '$($rule.id)' matched '$matchedPattern'." -Classification $rule.classification -OwnerIssues @($rule.ownerIssues)
+                $kind = Get-ClassifiedResultKind -SelectedMode $SelectedMode -Classification $rule.classification -Rule $rule -RelativePath $relativePath -Manifest $Manifest
+                Add-Result -Kind $kind -Code "ContentRule" -Scope $Scope -Path $relativePath -Message "Content rule '$($rule.id)' matched a configured pattern." -Classification $rule.classification -RuleId $rule.id -OwnerIssues @($rule.ownerIssues)
             }
         }
 
@@ -403,8 +502,9 @@ function Test-FileCollection {
             $utf8 = $representations[0]
             $isJsonSchema = $utf8 -match '"\$schema"\s*:'
             if (-not $isJsonSchema -and $utf8 -match '"Version"\s*:' -and $utf8 -match '"Players"\s*:' -and $utf8 -match '"CurrentPlayerId"\s*:') {
-                $kind = if ($SelectedMode -eq "Publication") { "violation" } else { "finding" }
-                Add-Result -Kind $kind -Code "SaveSignature" -Scope $Scope -Path $relativePath -Message "JSON content has the legacy game-save signature." -Classification "remove" -OwnerIssues @(52, 58)
+                $saveRule = [pscustomobject]@{ auditAllowance = $null }
+                $kind = Get-ClassifiedResultKind -SelectedMode $SelectedMode -Classification "remove" -Rule $saveRule -RelativePath $relativePath -Manifest $Manifest
+                Add-Result -Kind $kind -Code "SaveSignature" -Scope $Scope -Path $relativePath -Message "JSON content has the legacy game-save signature." -Classification "remove" -RuleId "legacy-save-signature" -OwnerIssues @(52, 58)
             }
         }
     }
@@ -419,8 +519,8 @@ function Test-Dependencies {
     foreach ($dependency in @($Manifest.dependencies)) {
         $approved = $dependency.licenseStatus -eq "approved" -and $dependency.noticeStatus -in @("approved", "not-required") -and -not [string]::IsNullOrWhiteSpace($dependency.licenseEvidence)
         if (-not $approved) {
-            $kind = if ($SelectedMode -eq "Publication") { "violation" } else { "finding" }
-            Add-Result -Kind $kind -Code "DependencyReview" -Scope "dependency" -Path "$($dependency.ecosystem)/$($dependency.name)@$($dependency.version)" -Message "License evidence or notice review is incomplete." -Classification "review" -OwnerIssues @($dependency.ownerIssues)
+            $kind = if ($SelectedMode -eq "Audit" -and $null -ne $Manifest.policy.dependencyReviewAuditAllowance) { "finding" } else { "violation" }
+            Add-Result -Kind $kind -Code "DependencyReview" -Scope "dependency" -Path "$($dependency.ecosystem)/$($dependency.name)@$($dependency.version)" -Message "License evidence or notice review is incomplete." -Classification "review" -RuleId "dependency-review" -OwnerIssues @($dependency.ownerIssues)
         }
     }
 }
@@ -439,7 +539,7 @@ function Test-DeclaredDependencies {
             $version = if ($reference.Version) { [string]$reference.Version } elseif ($reference.SelectSingleNode("*[local-name()='Version']")) { [string]$reference.SelectSingleNode("*[local-name()='Version']").InnerText } else { $null }
             $manifestEntry = @($nugetDependencies | Where-Object { $_.name -eq $name -and $_.version -eq $version })
             if ($manifestEntry.Count -eq 0) {
-                Add-Result -Kind violation -Code "DependencyInventory" -Scope "dependency" -Path "NuGet/$name@$version" -Message "Direct package reference is missing from the dependency inventory or has a different version." -Classification "unclassified" -OwnerIssues @(57)
+                Add-Result -Kind violation -Code "DependencyInventory" -Scope "dependency" -Path "NuGet/$name@$version" -Message "Direct package reference is missing from the dependency inventory or has a different version." -Classification "unclassified" -RuleId "dependency-inventory" -OwnerIssues @(57)
             }
         }
     }
@@ -457,7 +557,7 @@ function Test-DeclaredDependencies {
                 $_.name -eq $name -and $version -in @(([string]$_.version).Split(",") | ForEach-Object { $_.Trim() })
             })
             if ($manifestEntry.Count -eq 0) {
-                Add-Result -Kind violation -Code "DependencyInventory" -Scope "dependency" -Path "github-action/$name@$version" -Message "Workflow action is missing from the dependency inventory or has a different reference." -Classification "unclassified" -OwnerIssues @(57)
+                Add-Result -Kind violation -Code "DependencyInventory" -Scope "dependency" -Path "github-action/$name@$version" -Message "Workflow action is missing from the dependency inventory or has a different reference." -Classification "unclassified" -RuleId "dependency-inventory" -OwnerIssues @(57)
             }
         }
     }
@@ -467,26 +567,26 @@ function Write-AuditReport {
     param(
         [Parameter(Mandatory)][string]$Path,
         [Parameter(Mandatory)][string]$SelectedMode,
-        [Parameter(Mandatory)][string]$RootPath,
-        [string]$ArtifactPath,
+        [Parameter(Mandatory)][string]$ManifestHash,
         [Parameter(Mandatory)][int]$ExitCode,
-        [string]$ToolError
+        [string]$ToolErrorCode
     )
 
     $report = [ordered]@{
-        schemaVersion = 1
+        schemaVersion = 2
         generatedAtUtc = [DateTime]::UtcNow.ToString("O")
         mode = $SelectedMode
-        root = $RootPath
-        artifactRoot = $ArtifactPath
+        manifestSha256 = $ManifestHash
         exitCode = $ExitCode
-        toolError = $ToolError
+        toolErrorCode = $ToolErrorCode
         summary = [ordered]@{
-            findings = $script:Findings.Count
-            violations = $script:Violations.Count
+            sourceFiles = $script:SourceFileCount
+            artifactFiles = $script:ArtifactFileCount
+            permittedTransitionFindings = $script:Findings.Count
+            blockers = $script:Violations.Count
         }
-        findings = @($script:Findings)
-        violations = @($script:Violations)
+        permittedTransitionFindings = @($script:Findings)
+        blockers = @($script:Violations)
     }
 
     $parent = Split-Path -Parent $Path
@@ -497,10 +597,11 @@ function Write-AuditReport {
 }
 
 $exitCode = 2
-$toolError = $null
+$toolErrorCode = $null
 $rootFull = $null
 $artifactFull = $null
 $reportFull = $null
+$manifestHash = $null
 $reportAllowed = $false
 
 try {
@@ -518,7 +619,15 @@ try {
         throw "ReportPath must be outside Root."
     }
 
-    $manifest = Get-Content -Raw -LiteralPath $manifestFull | ConvertFrom-Json
+    $manifestBytes = [IO.File]::ReadAllBytes($manifestFull)
+    $sha256 = [Security.Cryptography.SHA256]::Create()
+    try {
+        $manifestHash = (($sha256.ComputeHash($manifestBytes) | ForEach-Object { $_.ToString("x2") }) -join "")
+    }
+    finally {
+        $sha256.Dispose()
+    }
+    $manifest = [Text.Encoding]::UTF8.GetString($manifestBytes) | ConvertFrom-Json
     Assert-Manifest -Manifest $manifest
 
     if ($Mode -eq "Publication") {
@@ -545,18 +654,24 @@ try {
     else {
         @(Get-PublicationFiles -RootPath $rootFull -Manifest $manifest -Scope "source")
     }
+    $script:SourceFileCount = $sourceFiles.Count
 
-    Test-FileCollection -Files $sourceFiles -Scope "source" -Manifest $manifest -SelectedMode $Mode
+    $sensitivePaths = @($rootFull)
+    if ($null -ne $artifactFull) {
+        $sensitivePaths += $artifactFull
+    }
+    Test-FileCollection -Files $sourceFiles -Scope "source" -Manifest $manifest -SelectedMode $Mode -SensitivePaths $sensitivePaths
     Test-DeclaredDependencies -Files $sourceFiles -Manifest $manifest
 
     if ($Mode -eq "Publication") {
         $artifactFiles = @(Get-PublicationFiles -RootPath $artifactFull -Manifest $manifest -Scope "artifact")
-        Test-FileCollection -Files $artifactFiles -Scope "artifact" -Manifest $manifest -SelectedMode $Mode
+        $script:ArtifactFileCount = $artifactFiles.Count
+        Test-FileCollection -Files $artifactFiles -Scope "artifact" -Manifest $manifest -SelectedMode $Mode -SensitivePaths $sensitivePaths
 
         foreach ($requiredFile in @($manifest.requiredPublicationFiles)) {
             $requiredPath = Join-Path $rootFull ([string]$requiredFile.path)
             if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
-                Add-Result -Kind violation -Code "RequiredPublicationFile" -Scope "source" -Path ([string]$requiredFile.path) -Message "Required publication file is missing." -Classification "review" -OwnerIssues @($requiredFile.ownerIssues)
+                Add-Result -Kind violation -Code "RequiredPublicationFile" -Scope "source" -Path ([string]$requiredFile.path) -Message "Required publication file is missing." -Classification "review" -RuleId "required-publication-file" -OwnerIssues @($requiredFile.ownerIssues)
             }
         }
     }
@@ -565,26 +680,25 @@ try {
     $exitCode = if ($script:Violations.Count -eq 0) { 0 } else { 1 }
 }
 catch {
-    $toolError = $_.Exception.Message
+    $toolErrorCode = "VerifierInputOrToolFailure"
     $exitCode = 2
 }
 
 if ($null -ne $reportFull -and $reportAllowed) {
     try {
-        Write-AuditReport -Path $reportFull -SelectedMode $Mode -RootPath $rootFull -ArtifactPath $artifactFull -ExitCode $exitCode -ToolError $toolError
+        Write-AuditReport -Path $reportFull -SelectedMode $Mode -ManifestHash $manifestHash -ExitCode $exitCode -ToolErrorCode $toolErrorCode
     }
     catch {
-        Write-Error "Could not write audit report: $($_.Exception.Message)"
+        Write-Error "Could not write the clean-publication report."
         exit 2
     }
 }
 
 if ($exitCode -eq 2) {
-    [Console]::Error.WriteLine($toolError)
+    [Console]::Error.WriteLine("The clean-publication verifier could not run. Check its inputs and manifest.")
 }
 else {
-    Write-Host "Clean-publication $Mode completed: $($script:Findings.Count) finding(s), $($script:Violations.Count) violation(s)."
-    Write-Host "Report: $reportFull"
+    Write-Host "Clean-publication $Mode completed: $($script:Findings.Count) permitted transition finding(s), $($script:Violations.Count) blocker(s)."
 }
 
 exit $exitCode

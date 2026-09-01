@@ -1,6 +1,7 @@
 using System.Reflection;
 using Monopoly.Core.Interface;
 using Monopoly.Core.Models.Board;
+using Monopoly.Core.Persistence;
 
 namespace Monopoly.Tests.CoreTests;
 
@@ -149,24 +150,37 @@ public sealed class RuntimeStructureTests
     }
 
     [Fact]
-    public void PublicRuntimeContainsNoProductShapedParallelTypes()
+    public void PublicRuntimeUsesOnlyTheProfileDrivenSurface()
     {
         Assembly core = typeof(Game).Assembly;
-        string[] removedTypes =
+        string[] expectedPublicEnums =
         [
-            "Monopoly.Core.GameRules",
-            "Monopoly.Core.GameHandler",
-            "Monopoly.Core.Transaction",
-            "Monopoly.Core.Jail",
-            "Monopoly.Core.Models.Board.Square",
-            "Monopoly.Core.Models.Board.PropertySquare",
-            "Monopoly.Core.Models.Board.RailroadSquare",
-            "Monopoly.Core.Models.Board.UtilitySquare",
-            "Monopoly.Core.Models.FortuneCard.ILegacyCard"
+            nameof(GameActionRejectionReason),
+            nameof(GameActionStatus),
+            nameof(GamePhase),
+            nameof(GameProfileResolutionErrorKind),
+            nameof(GameSetupErrorKind),
+            nameof(GameStateValidationErrorKind),
+            nameof(MatchTieBreakPolicy),
+            nameof(PassOriginPolicy),
+            nameof(ProfileContractErrorKind),
+            nameof(ProfileExecutionErrorKind),
+            nameof(ProfileValidationErrorKind),
+            nameof(PurchaseDeclinePolicyKind),
+            nameof(RandomPurpose),
+            nameof(RandomSourceErrorKind),
+            nameof(SaveStoreErrorKind),
+            nameof(StartingPlayerPolicyKind),
+            nameof(StatusEffectOperation),
+            nameof(StatusTransitionKind)
         ];
 
-        Assert.All(removedTypes, name => Assert.Null(core.GetType(name)));
+        Assert.Equal(
+            expectedPublicEnums.Order(StringComparer.Ordinal),
+            core.ExportedTypes.Where(type => type.IsEnum).Select(type => type.Name).Order(StringComparer.Ordinal));
         Assert.Equal(typeof(ValidatedGameProfile), typeof(IGame).GetProperty(nameof(IGame.Profile))!.PropertyType);
+        Assert.Equal(typeof(DeckCollection), typeof(IGame).GetProperty(nameof(IGame.Decks))!.PropertyType);
+        Assert.Equal(typeof(GameTrack), typeof(GameBoard).GetProperty(nameof(GameBoard.Track))!.PropertyType);
         Assert.Null(typeof(Game).GetProperty("Rules", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
         Assert.Null(typeof(Game).GetProperty("Fines"));
         Assert.Null(typeof(Game).GetProperty("ConsecutiveDoubles"));

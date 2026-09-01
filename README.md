@@ -1,4 +1,4 @@
-# Monopoly
+# Legacy property-trading engine
 
 > **Development status:** This legacy repository is an unofficial work in
 > progress. It provides no supported release or deployment artifact.
@@ -104,8 +104,3 @@ legacy repository's execution order.
 Read [Development workflow](docs/development-workflow.md), start significant
 work from a focused issue and use a dedicated branch. The clean publication
 process and future project identity are tracked separately.
-
-## Attribution
-
-This repository continues work originally developed in
-[CodeCraftersMR/CCMR-Monopoly](https://github.com/CodeCraftersMR/CCMR-Monopoly).

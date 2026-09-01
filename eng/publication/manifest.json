@@ -1,12 +1,16 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "policy": {
     "uncertainContent": "review",
     "publicationBlocks": [
       "replace",
       "remove",
       "review"
-    ]
+    ],
+    "dependencyReviewAuditAllowance": {
+      "rationale": "Dependency and notice evidence remains an explicit governance gate owned by issue 57, which follows issue 78 in the roadmap.",
+      "ownerIssues": [57]
+    }
   },
   "auditMaterial": [
     "docs/clean-publication-audit.md",
@@ -28,6 +32,8 @@
     ".targets",
     ".txt",
     ".xml",
+    ".diag",
+    ".trace",
     ".yaml",
     ".yml"
   ],
@@ -104,11 +110,22 @@
         "**/local-profiles/**",
         "*.private.profile.json",
         "**/*.private.profile.json",
+        "PrivateGameProfiles",
+        "PrivateGameProfiles/**",
+        "**/PrivateGameProfiles",
+        "**/PrivateGameProfiles/**",
         "publication-audit*.json",
         "publication-audit*.txt",
+        "diagnostics",
+        "diagnostics/**",
+        "**/diagnostics",
+        "**/diagnostics/**",
         "**/*.tmp",
         "**/*.temp",
-        "**/*.log"
+        "**/*.log",
+        "**/*.binlog",
+        "**/*.diag",
+        "**/*.trace"
       ],
       "classification": "remove",
       "ownerIssues": [58]
@@ -173,7 +190,15 @@
       ],
       "ownership": "project-owned",
       "classification": "remove",
-      "ownerIssues": [71, 58]
+      "ownerIssues": [71, 58],
+      "auditAllowance": {
+        "rationale": "These files are the external publication control and legacy evidence; issue 58 excludes them from the clean candidate.",
+        "pathPatterns": [
+          "docs/clean-publication-audit.md",
+          "docs/legacy-neutralization-plan.md",
+          "eng/publication/**"
+        ]
+      }
     },
     {
       "id": "regional-board-and-card-data",
@@ -228,15 +253,47 @@
       ],
       "ownership": "third-party-derived-configuration",
       "classification": "review",
-      "ownerIssues": [57]
+      "ownerIssues": [57],
+      "auditAllowance": {
+        "rationale": "The derived spelling configuration remains under the dependency and notice review performed by issue 57.",
+        "pathPatterns": [
+          ".github/actions/spelling/**"
+        ]
+      }
     }
   ],
   "contentRules": [
     {
-      "id": "legacy-product-and-repository-identity",
+      "id": "current-legacy-identity",
       "matchType": "regex",
       "patterns": [
         "(?i)\\bMonopoly\\b",
+        "(?i)github\\.com/Extender92/Monopoly"
+      ],
+      "targets": [
+        "path",
+        "content"
+      ],
+      "classification": "replace",
+      "ownerIssues": [56],
+      "auditAllowance": {
+        "rationale": "The current repository, solution, project, namespace, command and badge identity remains until issue 56 assembles the external candidate.",
+        "pathPatterns": [
+          "Monopoly.sln",
+          "Monopoly.Core/**",
+          "Monopoly.Console/**",
+          "Monopoly.Tests/**",
+          "Infrastructure/**",
+          "README.md",
+          "docs/**",
+          ".github/**"
+        ]
+      }
+    },
+    {
+      "id": "retired-repository-reference",
+      "matchType": "regex",
+      "patterns": [
         "(?i)CCMR-Monopoly",
         "(?i)CodeCraftersMR/CCMR-Monopoly"
       ],
@@ -244,7 +301,7 @@
         "path",
         "content"
       ],
-      "classification": "replace",
+      "classification": "remove",
       "ownerIssues": [56]
     },
     {
@@ -434,7 +491,7 @@
         "content"
       ],
       "classification": "replace",
-      "ownerIssues": [78, 58]
+      "ownerIssues": [58]
     },
     {
       "id": "legacy-save-symbols",
@@ -451,6 +508,39 @@
       ],
       "caseSensitive": true,
       "classification": "replace",
+      "ownerIssues": [58]
+    },
+    {
+      "id": "product-shaped-runtime-symbols",
+      "matchType": "regex",
+      "patterns": [
+        "(?i)\\bProperty(Square|Space|Handler|State)\\b",
+        "(?i)\\b(Railroad|Station|Utility|Tax|Chance|CommunityChest|Jail)(Square|Space|Card|Deck|Handler|State|Type)\\b",
+        "(?i)\\b(House|Hotel|Mortgage|Bankruptcy)(State|Handler|Manager)\\b",
+        "(?i)\\bTitleDeed(s)?\\b"
+      ],
+      "targets": [
+        "path",
+        "content"
+      ],
+      "classification": "replace",
+      "ownerIssues": [58]
+    },
+    {
+      "id": "private-and-local-path-content",
+      "matchType": "regex",
+      "patterns": [
+        "(?i)PrivateGameProfiles",
+        "(?i)(^|[\\s\"'])local-profiles([/\\\\]|$)",
+        "(?i)\\.private\\.profile\\.json",
+        "(?i)[A-Z]:[/\\\\](Users|Documents and Settings)[/\\\\]",
+        "(?i)(^|[\\s\"'])/(home|Users)/[^/\\s]+/"
+      ],
+      "targets": [
+        "path",
+        "content"
+      ],
+      "classification": "remove",
       "ownerIssues": [58]
     },
     {

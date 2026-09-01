@@ -162,8 +162,27 @@ function Assert-Equal {
 
 function Assert-HasViolation {
     param($Report, [string]$Code)
-    if ($null -eq $Report -or @($Report.violations | Where-Object code -eq $Code).Count -eq 0) {
+    if ($null -eq $Report -or @($Report.blockers | Where-Object code -eq $Code).Count -eq 0) {
         throw "Expected violation '$Code' was not reported."
+    }
+}
+
+function Assert-HasFinding {
+    param($Report, [string]$Code, [string]$RuleId)
+    $matches = @($Report.permittedTransitionFindings | Where-Object {
+        $_.code -eq $Code -and ([string]::IsNullOrWhiteSpace($RuleId) -or $_.ruleId -eq $RuleId)
+    })
+    if ($null -eq $Report -or $matches.Count -eq 0) {
+        throw "Expected permitted transition finding '$Code/$RuleId' was not reported."
+    }
+}
+
+function Initialize-AuditFixture {
+    param([Parameter(Mandatory)]$Fixture)
+
+    & git -C $Fixture.Source init --quiet
+    if ($LASTEXITCODE -ne 0) {
+        throw "Could not initialize audit fixture repository."
     }
 }
 
@@ -173,7 +192,80 @@ try {
         $result = Invoke-Verifier -Mode Publication -Fixture $fixture
         Assert-Equal 0 $result.ExitCode $result.Output
         $report = Get-Report $result
-        Assert-Equal 0 $report.summary.violations "Clean fixture should have no violations."
+        Assert-Equal 0 $report.summary.blockers "Clean fixture should have no blockers."
+        Assert-Equal 2 $report.schemaVersion "Report schema should be version 2."
+        Assert-Equal 64 $report.manifestSha256.Length "Report should identify the exact manifest."
+        $rawReport = Get-Content -Raw -LiteralPath $result.ReportPath
+        if ($rawReport.IndexOf($fixture.Source, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
+            $rawReport.IndexOf($fixture.Artifact, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            throw "The report leaked an inspected absolute path."
+        }
+    }
+
+    Assert-Test "legacy identity is permitted only in Audit" {
+        $fixture = New-CleanFixture "legacy-identity-audit"
+        Write-Utf8File -Path (Join-Path $fixture.Source "Monopoly.Core/Engine.cs") -Content "namespace Monopoly.Core; public sealed class Engine { }"
+        Initialize-AuditFixture $fixture
+
+        $audit = Invoke-Verifier -Mode Audit -Fixture $fixture
+        Assert-Equal 0 $audit.ExitCode $audit.Output
+        $auditReport = Get-Report $audit
+        Assert-HasFinding $auditReport "ContentRule" "current-legacy-identity"
+        Assert-Equal "permitted-transition" $auditReport.permittedTransitionFindings[0].disposition "Audit findings need an explicit disposition."
+
+        $publication = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $publication.ExitCode "Legacy identity must block Publication."
+        Assert-HasViolation (Get-Report $publication) "ContentRule"
+    }
+
+    Assert-Test "product-shaped content blocks Audit" {
+        $fixture = New-CleanFixture "product-content-audit"
+        Write-Utf8File -Path (Join-Path $fixture.Source "src/JailSquare.cs") -Content "namespace NeutralApp; public sealed class JailSquare { }"
+        Initialize-AuditFixture $fixture
+
+        $result = Invoke-Verifier -Mode Audit -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "Product-shaped content must block Audit."
+        $report = Get-Report $result
+        Assert-HasViolation $report "ContentRule"
+        Assert-Equal "blocker" $report.blockers[0].disposition "Audit violations need an explicit disposition."
+    }
+
+    Assert-Test "audit material is permitted only in Audit" {
+        $fixture = New-CleanFixture "audit-material"
+        Write-Utf8File -Path (Join-Path $fixture.Source "docs/clean-publication-audit.md") -Content "# Evidence`nJailSquare"
+        Initialize-AuditFixture $fixture
+
+        $audit = Invoke-Verifier -Mode Audit -Fixture $fixture
+        Assert-Equal 0 $audit.ExitCode $audit.Output
+        Assert-HasFinding (Get-Report $audit) "FileDisposition" "raw-publication-audit"
+
+        $publication = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $publication.ExitCode "Audit material must not enter Publication."
+        Assert-HasViolation (Get-Report $publication) "FileDisposition"
+    }
+
+    Assert-Test "pending spelling governance is permitted only in Audit" {
+        $fixture = New-CleanFixture "spelling-governance"
+        Write-Utf8File -Path (Join-Path $fixture.Source ".github/actions/spelling/allow.txt") -Content "fixtureword"
+        Initialize-AuditFixture $fixture
+
+        $audit = Invoke-Verifier -Mode Audit -Fixture $fixture
+        Assert-Equal 0 $audit.ExitCode $audit.Output
+        Assert-HasFinding (Get-Report $audit) "FileDisposition" "derived-spelling-configuration"
+
+        $publication = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $publication.ExitCode "Pending spelling governance must block Publication."
+        Assert-HasViolation (Get-Report $publication) "FileDisposition"
+    }
+
+    Assert-Test "retired repository reference blocks Audit" {
+        $fixture = New-CleanFixture "retired-repository"
+        Write-Utf8File -Path (Join-Path $fixture.Source "README.md") -Content "https://github.com/CodeCraftersMR/CCMR-Monopoly"
+        Initialize-AuditFixture $fixture
+
+        $result = Invoke-Verifier -Mode Audit -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "A retired repository reference must block Audit outside evidence files."
+        Assert-HasViolation (Get-Report $result) "ContentRule"
     }
 
     Assert-Test "unclassified binary is rejected" {
@@ -184,6 +276,15 @@ try {
         $report = Get-Report $result
         Assert-HasViolation $report "UnclassifiedFile"
         Assert-HasViolation $report "UnknownBinary"
+    }
+
+    Assert-Test "unclassified file blocks Audit" {
+        $fixture = New-CleanFixture "unknown-audit-file"
+        Write-Utf8File -Path (Join-Path $fixture.Source "src/unclassified.bin") -Content "unknown"
+        Initialize-AuditFixture $fixture
+        $result = Invoke-Verifier -Mode Audit -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "Unknown files must block Audit."
+        Assert-HasViolation (Get-Report $result) "UnclassifiedFile"
     }
 
     Assert-Test "denylisted filename is rejected" {
@@ -210,12 +311,76 @@ try {
         Assert-HasViolation (Get-Report $result) "ContentRule"
     }
 
+    Assert-Test "UTF-8 binary content and binary filename are rejected" {
+        $fixture = New-CleanFixture "deny-binary"
+        [IO.File]::WriteAllBytes(
+            (Join-Path $fixture.Artifact "Monopoly.Core.dll"),
+            [Text.Encoding]::UTF8.GetBytes("JailSquare"))
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "Binary names and UTF-8 binary content must be scanned."
+        Assert-HasViolation (Get-Report $result) "ContentRule"
+    }
+
+    Assert-Test "embedded inspected roots are rejected" {
+        $fixture = New-CleanFixture "embedded-roots"
+        Write-Utf8File -Path (Join-Path $fixture.Source "src/diagnostic.txt") -Content "source=$($fixture.Source)"
+        [IO.File]::WriteAllBytes(
+            (Join-Path $fixture.Artifact "NeutralApp.pdb"),
+            [Text.Encoding]::UTF8.GetBytes("artifact=$($fixture.Artifact)"))
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "Inspected filesystem roots must not be embedded."
+        Assert-HasViolation (Get-Report $result) "EmbeddedLocalPath"
+    }
+
+    Assert-Test "private profile paths and suffixes are rejected" {
+        $fixture = New-CleanFixture "private-profile"
+        Write-Utf8File -Path (Join-Path $fixture.Source "local-profiles/sample.private.profile.json") -Content '{}'
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "Private profile conventions must be blocked."
+        Assert-HasViolation (Get-Report $result) "ForbiddenPath"
+    }
+
+    Assert-Test "user-specific path content is rejected" {
+        $fixture = New-CleanFixture "user-path"
+        Write-Utf8File -Path (Join-Path $fixture.Source "src/diagnostic.txt") -Content 'C:\Users\sample\PrivateGameProfiles\profiles\sample.json'
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "User-specific paths must be blocked."
+        Assert-HasViolation (Get-Report $result) "ContentRule"
+    }
+
     Assert-Test "forbidden save directory is rejected" {
         $fixture = New-CleanFixture "forbidden-save"
         Write-Utf8File -Path (Join-Path $fixture.Source "saves/state.json") -Content '{}'
         $result = Invoke-Verifier -Mode Publication -Fixture $fixture
         Assert-Equal 1 $result.ExitCode "Forbidden save directory should fail."
         Assert-HasViolation (Get-Report $result) "ForbiddenPath"
+    }
+
+    Assert-Test "logs diagnostics and build residue are rejected" {
+        $fixture = New-CleanFixture "residue"
+        Write-Utf8File -Path (Join-Path $fixture.Source "logs/session.log") -Content "runtime output"
+        Write-Utf8File -Path (Join-Path $fixture.Source "diagnostics/session.txt") -Content "diagnostic output"
+        Write-Utf8File -Path (Join-Path $fixture.Source "obj/generated.txt") -Content "generated output"
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "Logs, diagnostics and build residue must be blocked."
+        Assert-HasViolation (Get-Report $result) "ForbiddenPath"
+    }
+
+    Assert-Test "fixed product structure is rejected in Audit" {
+        $fixture = New-CleanFixture "fixed-structure"
+        Write-Utf8File -Path (Join-Path $fixture.Source "src/Shape.cs") -Content "// fixed 40-space board"
+        Initialize-AuditFixture $fixture
+        $result = Invoke-Verifier -Mode Audit -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "A fixed product-shaped structure must block Audit."
+        Assert-HasViolation (Get-Report $result) "ContentRule"
+    }
+
+    Assert-Test "regional Version 1 fields are rejected" {
+        $fixture = New-CleanFixture "regional-save-fields"
+        Write-Utf8File -Path (Join-Path $fixture.Source "state.json") -Content '{"ChanceDeck":[],"GameLanguage":"legacy"}'
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "Regional save fields must be blocked."
+        Assert-HasViolation (Get-Report $result) "ContentRule"
     }
 
     Assert-Test "legacy save signature is rejected" {
@@ -232,7 +397,7 @@ try {
         $result = Invoke-Verifier -Mode Publication -Fixture $fixture
         Assert-Equal 0 $result.ExitCode $result.Output
         $report = Get-Report $result
-        Assert-Equal 0 @($report.findings | Where-Object code -eq "SaveSignature").Count "A JSON Schema is reference material, not a saved match."
+        Assert-Equal 0 @($report.permittedTransitionFindings | Where-Object code -eq "SaveSignature").Count "A JSON Schema is reference material, not a saved match."
     }
 
     Assert-Test "unresolved dependency blocks Publication" {
@@ -258,8 +423,7 @@ try {
 
     Assert-Test "unresolved dependency is reported but allowed in Audit" {
         $fixture = New-CleanFixture "dependency-audit"
-        & git -C $fixture.Source init --quiet
-        if ($LASTEXITCODE -ne 0) { throw "Could not initialize audit fixture repository." }
+        Initialize-AuditFixture $fixture
         New-ApprovedManifest -Path $fixture.Manifest -Mutate {
             param($manifest)
             $manifest.dependencies[0].licenseEvidence = $null
@@ -269,9 +433,8 @@ try {
         $result = Invoke-Verifier -Mode Audit -Fixture $fixture
         Assert-Equal 0 $result.ExitCode $result.Output
         $report = Get-Report $result
-        if (@($report.findings | Where-Object code -eq "DependencyReview").Count -eq 0) {
-            throw "Audit did not report the unresolved dependency."
-        }
+        Assert-HasFinding $report "DependencyReview" "dependency-review"
+        Assert-Equal 0 $report.summary.blockers "Explicit pending governance should not block Audit."
     }
 
     Assert-Test "report path inside snapshot is rejected" {
@@ -281,6 +444,16 @@ try {
         Assert-Equal 2 $result.ExitCode "Report inside snapshot should be a tool error."
         if (Test-Path -LiteralPath $insideReport) {
             throw "Rejected report path was still written inside the snapshot."
+        }
+    }
+
+    Assert-Test "report path inside artifact is rejected" {
+        $fixture = New-CleanFixture "report-inside-artifact"
+        $insideReport = Join-Path $fixture.Artifact "publication-audit.json"
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture -ReportPath $insideReport
+        Assert-Equal 2 $result.ExitCode "Report inside artifact should be a tool error."
+        if (Test-Path -LiteralPath $insideReport) {
+            throw "Rejected report path was still written inside the artifact tree."
         }
     }
 

@@ -139,3 +139,34 @@ Run the clean-publication Audit and its fixture suite for changes that affect
 source, data, documentation or artifacts. A Release publish scan must confirm
 that the Demo is included and audit/reference material, saves, local profiles
 and build intermediates are not included.
+
+Audit blocks non-allow results by default. Only the path-scoped current
+identity, excluded audit material and pending #57 governance review may appear
+as permitted transition findings. Publication ignores those allowances and
+requires a neutral candidate, approved dependencies and publication files.
+
+~~~powershell
+pwsh eng/publication/verify-clean-publication.tests.ps1
+pwsh eng/publication/verify-clean-publication.ps1 `
+  -Mode Audit `
+  -Root . `
+  -ReportPath <outside-repository>/publication-audit.json
+~~~
+
+The external #56 candidate uses the same verifier and an approved external
+manifest:
+
+~~~powershell
+pwsh <legacy-controls>/verify-clean-publication.ps1 `
+  -Mode Publication `
+  -Root <frozen-source> `
+  -ArtifactRoot <unpacked-release-publish> `
+  -ManifestPath <approved-manifest> `
+  -ReportPath <outside-both-trees>/publication-report.json
+~~~
+
+Report schema version 2 contains the manifest SHA-256, scanned file counts,
+permitted transition findings and blockers. It contains relative finding paths
+but not the inspected absolute roots. The controls scan filenames plus UTF-8
+and UTF-16 content in source, diagnostics and expected .NET binaries, including
+portable PDBs.
