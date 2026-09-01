@@ -125,7 +125,7 @@ public sealed class ConsoleTransitionTests
     }
 
     [Fact]
-    public void ExplicitSyntheticProfileCanEnterAndLeaveAPlayableSession()
+    public void ExplicitSyntheticProfileCanEnterAndLeavePlayableSession()
     {
         string profilePath = Path.Combine(
             AppContext.BaseDirectory,
