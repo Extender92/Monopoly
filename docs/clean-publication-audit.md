@@ -104,11 +104,15 @@ with documented evidence and review:
 
 ## Allowlist policy
 
-The allowlist is narrow and path-scoped. It permits independently written
-property-trading mechanics, generic concepts such as dice, movement, ownership,
-rent, auctions, detention, mortgages, building, trading and bankruptcy, and the
-project's own implementation when no deny rule also matches. An allow entry
-does not override a deny rule merely because both occur in the same file.
+The allowlist is narrow and path-scoped. Audit blocks every non-allow finding
+unless the manifest gives it an explicit `auditAllowance` with a rationale and
+owning issue. The only transition allowances are the current legacy code and
+repository identity, audit/reference files excluded from the candidate, and
+the dependency/spelling review owned by #57. Product content, unknown files,
+unclassified binaries and ownerless findings block Audit.
+
+Publication ignores every Audit allowance. Independently written generic
+mechanics remain valid only when no deny rule also matches.
 
 Tool-specific spelling dictionaries are not part of the publication allowlist.
 For example, an entry in `.github/actions/spelling/allow.txt` only suppresses a
@@ -134,11 +138,18 @@ projections and one new/load session path. Version 1 appears only in
 compatibility detection and audit evidence owned by #52. Final artifact and
 snapshot confirmation remains #58's responsibility.
 
+Issue #78 strengthened the manifest and verifier so permitted transition
+findings are distinct from blockers. Exportable source no longer carries the
+retired repository attribution or negative product-shaped test symbols. The
+structural suite proves variable tracks, zero/one/multiple decks and generic
+profile/Save V2 contracts without requiring a private profile.
+
 ## Verification contract
 
-Audit mode proves that every tracked file and every known sensitive occurrence
-has a classification and an owning issue. Known replacement work is reported
-but does not fail the audit.
+Audit mode inventories tracked and untracked non-ignored worktree files. It
+passes only when every non-allow result matches one of the documented
+transition allowances. All other blocked classifications fail immediately,
+even when they have an owner issue.
 
 Publication mode is the clean-cutover gate. It rejects every `replace`,
 `remove`, `review`, unknown or unowned finding, forbidden path, unknown binary,
@@ -161,11 +172,17 @@ pwsh eng/publication/verify-clean-publication.ps1 `
   -Mode Publication `
   -Root <clean-snapshot> `
   -ArtifactRoot <unpacked-release-publish> `
+  -ManifestPath <approved-manifest> `
   -ReportPath <private-path-outside-snapshot>/publication-audit.json
 ```
 
 Exit code `0` means the selected gate passed, `1` means policy violations were
 found and `2` means the manifest, input or verifier execution was invalid.
+
+Manifest and report schema version 2 record the manifest SHA-256, source and
+artifact file counts, permitted transition findings and blockers. Reports use
+relative paths and never store the inspected absolute roots or raw exception
+details. They must remain outside both inspected trees.
 
 ## Completion handoff
 
@@ -173,6 +190,7 @@ found and `2` means the manifest, input or verifier execution was invalid.
 - #75 removed the legacy Core runtime; #77 removed the excluded Console
   compatibility sources and supplied generic projections.
 - #52 replaces legacy persistence identifiers and fields.
+- #78 owns the reusable conformance/leakage controls and their fixtures.
 - #56 consumes the identity and URL findings.
 - #57 resolves every dependency and notice row without publishing private
   ownership evidence.

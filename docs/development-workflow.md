@@ -98,8 +98,8 @@ Supported branch prefixes are:
 Examples:
 
 ```text
-feature/classic-property-auctions
-fix/jail-release-state
+feature/profile-defined-bidding
+fix/status-release-state
 refactor/rule-profile-model
 docs/project-documentation-and-agent-guidelines
 test/core-game-flow-coverage
@@ -153,8 +153,8 @@ Each working commit should:
 Examples:
 
 ```text
-Fix jail release state handling
-Add Classic property auction flow
+Fix status release state handling
+Add profile-defined bidding flow
 Test bankruptcy turn rotation
 Document persistence boundaries
 ```

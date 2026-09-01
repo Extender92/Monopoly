@@ -21,7 +21,7 @@ The audit tracks the following independent categories and their disposition:
 | Regional Version 1 save fields | Removed; replace persistence with exact-profile Save V2 | #52 |
 | Legacy solution, package, namespace, command and URL identity | Replace before clean export | #56 |
 | Legacy Console type branches | Deleted and replaced with one generic new/load session | #77 complete |
-| Legacy documentation and tests | Product data removed; complete Demo execution and leakage coverage remain | #54, #78 |
+| Legacy documentation and tests | Product data removed; complete Demo execution and leakage coverage implemented | #54, #78 complete |
 
 The detailed denylist and per-file inventory remain in
 `docs/clean-publication-audit.md` and `eng/publication/`. Those files, including
@@ -36,8 +36,8 @@ or publication candidate.
 
 Tracked files must not contain a developer-specific external path. No local
 profile is copied into source, logs, saves, test fixtures, publish output or the
-clean root. The repository defensively ignores local profile conventions, but
-issue #78 and the publication verifier must still reject leakage.
+clean root. Local-profile conventions are intentionally not ignored inside the
+worktree, so accidental files remain visible and the #78 verifier blocks them.
 
 ## Completion gates
 
@@ -47,7 +47,7 @@ Neutralization is complete only when:
 2. the generic structure, capability and JSON contracts replace legacy types;
 3. original Demo and synthetic data replace product-shaped content;
 4. Save V2 and Console consume generic identifiers and projections;
-5. source and Release artifacts pass the publication manifest;
+5. source and Release artifacts pass the schema-version 2 publication manifest;
 6. the content-identical clean candidate passes independent review; and
 7. issue #58 exports only its approved allowlisted snapshot.
 
