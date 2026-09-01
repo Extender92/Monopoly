@@ -125,3 +125,9 @@ workflow
 xml
 yaml
 yml
+allowlisted
+denylisted
+dtos
+enums
+URLs
+workflows
