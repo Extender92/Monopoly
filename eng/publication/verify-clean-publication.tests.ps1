@@ -72,9 +72,6 @@ function New-CleanFixture {
 
     Write-Utf8File -Path (Join-Path $source "src/NeutralApp.cs") -Content "namespace NeutralApp; public static class EntryPoint { public static int Run() => 0; }"
     Write-Utf8File -Path (Join-Path $source "README.md") -Content "# Neutral property-trading engine"
-    Write-Utf8File -Path (Join-Path $source "LICENSE") -Content "Fixture license text"
-    Write-Utf8File -Path (Join-Path $source "NOTICE") -Content "No fixture notices"
-    Write-Utf8File -Path (Join-Path $source "CONTRIBUTING.md") -Content "Fixture contribution policy"
     [IO.File]::WriteAllBytes((Join-Path $artifact "NeutralApp.dll"), [Text.Encoding]::ASCII.GetBytes("NEUTRAL-BINARY"))
     Write-Utf8File -Path (Join-Path $artifact "NeutralApp.deps.json") -Content '{"runtimeTarget":{"name":"fixture"}}'
 
@@ -202,6 +199,16 @@ try {
         }
     }
 
+    Assert-Test "project license and contribution root files are rejected" {
+        foreach ($fileName in @("LICENSE", "NOTICE", "COPYRIGHT", "CONTRIBUTING", "CONTRIBUTING.md")) {
+            $fixture = New-CleanFixture ("rights-file-" + $fileName.Replace(".", "-"))
+            Write-Utf8File -Path (Join-Path $fixture.Source $fileName) -Content "Unexpected project policy"
+            $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+            Assert-Equal 1 $result.ExitCode "Root file '$fileName' must be blocked."
+            Assert-HasViolation (Get-Report $result) "ForbiddenPath"
+        }
+    }
+
     Assert-Test "legacy identity is permitted only in Audit" {
         $fixture = New-CleanFixture "legacy-identity-audit"
         Write-Utf8File -Path (Join-Path $fixture.Source "Monopoly.Core/Engine.cs") -Content "namespace Monopoly.Core; public sealed class Engine { }"
@@ -244,18 +251,19 @@ try {
         Assert-HasViolation (Get-Report $publication) "FileDisposition"
     }
 
-    Assert-Test "pending spelling governance is permitted only in Audit" {
+    Assert-Test "project-owned spelling configuration passes both modes" {
         $fixture = New-CleanFixture "spelling-governance"
-        Write-Utf8File -Path (Join-Path $fixture.Source ".github/actions/spelling/allow.txt") -Content "temporary"
+        Write-Utf8File -Path (Join-Path $fixture.Source ".github/actions/spelling/allow.txt") -Content "Lantern"
         Initialize-AuditFixture $fixture
 
         $audit = Invoke-Verifier -Mode Audit -Fixture $fixture
         Assert-Equal 0 $audit.ExitCode $audit.Output
-        Assert-HasFinding (Get-Report $audit) "FileDisposition" "derived-spelling-configuration"
+        Assert-Equal 0 (Get-Report $audit).summary.permittedTransitionFindings "Owned spelling rules need no transition allowance."
 
-        $publication = Invoke-Verifier -Mode Publication -Fixture $fixture
-        Assert-Equal 1 $publication.ExitCode "Pending spelling governance must block Publication."
-        Assert-HasViolation (Get-Report $publication) "FileDisposition"
+        $publicationFixture = New-CleanFixture "spelling-publication"
+        Write-Utf8File -Path (Join-Path $publicationFixture.Source ".github/actions/spelling/allow.txt") -Content "Lantern"
+        $publication = Invoke-Verifier -Mode Publication -Fixture $publicationFixture
+        Assert-Equal 0 $publication.ExitCode $publication.Output
     }
 
     Assert-Test "retired repository reference blocks Audit" {
@@ -340,6 +348,19 @@ try {
         Assert-HasViolation (Get-Report $result) "ForbiddenPath"
     }
 
+    Assert-Test "private governance evidence is rejected from source and artifacts" {
+        $fixture = New-CleanFixture "private-governance"
+        Write-Utf8File -Path (Join-Path $fixture.Source "PrivatePublication/issue-57/ownership-attestation.private.md") -Content "private evidence"
+        [IO.File]::WriteAllBytes(
+            (Join-Path $fixture.Artifact "NeutralApp.pdb"),
+            [Text.Encoding]::UTF8.GetBytes("PrivatePublication/issue-57"))
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "Private governance evidence must be blocked."
+        $report = Get-Report $result
+        Assert-HasViolation $report "ForbiddenPath"
+        Assert-HasViolation $report "ContentRule"
+    }
+
     Assert-Test "user-specific path content is rejected" {
         $fixture = New-CleanFixture "user-path"
         Write-Utf8File -Path (Join-Path $fixture.Source "src/diagnostic.txt") -Content 'C:\Users\sample\PrivateGameProfiles\profiles\sample.json'
@@ -421,7 +442,15 @@ try {
         Assert-HasViolation (Get-Report $result) "DependencyInventory"
     }
 
-    Assert-Test "unresolved dependency is reported but allowed in Audit" {
+    Assert-Test "mutable workflow action reference is rejected" {
+        $fixture = New-CleanFixture "mutable-action"
+        Write-Utf8File -Path (Join-Path $fixture.Source ".github/workflows/build.yml") -Content "steps:`n  - uses: actions/checkout@v4"
+        $result = Invoke-Verifier -Mode Publication -Fixture $fixture
+        Assert-Equal 1 $result.ExitCode "Mutable workflow action references must fail."
+        Assert-HasViolation (Get-Report $result) "DependencyInventory"
+    }
+
+    Assert-Test "unresolved dependency blocks Audit after governance approval" {
         $fixture = New-CleanFixture "dependency-audit"
         Initialize-AuditFixture $fixture
         New-ApprovedManifest -Path $fixture.Manifest -Mutate {
@@ -431,10 +460,9 @@ try {
             $manifest.dependencies[0].noticeStatus = "review-required"
         }
         $result = Invoke-Verifier -Mode Audit -Fixture $fixture
-        Assert-Equal 0 $result.ExitCode $result.Output
+        Assert-Equal 1 $result.ExitCode "Resolved governance is required in Audit."
         $report = Get-Report $result
-        Assert-HasFinding $report "DependencyReview" "dependency-review"
-        Assert-Equal 0 $report.summary.blockers "Explicit pending governance should not block Audit."
+        Assert-HasViolation $report "DependencyReview"
     }
 
     Assert-Test "report path inside snapshot is rejected" {

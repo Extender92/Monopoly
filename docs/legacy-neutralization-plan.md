@@ -22,6 +22,7 @@ The audit tracks the following independent categories and their disposition:
 | Legacy solution, package, namespace, command and URL identity | Replace before clean export | #56 |
 | Legacy Console type branches | Deleted and replaced with one generic new/load session | #77 complete |
 | Legacy documentation and tests | Product data removed; complete Demo execution and leakage coverage implemented | #54, #78 complete |
+| Ownership, dependency and rights governance | Keep private ownership evidence outside Git; publish source without a project reuse license or external-code contribution path | #57 complete |
 
 The detailed denylist and per-file inventory remain in
 `docs/clean-publication-audit.md` and `eng/publication/`. Those files, including
@@ -47,9 +48,11 @@ Neutralization is complete only when:
 2. the generic structure, capability and JSON contracts replace legacy types;
 3. original Demo and synthetic data replace product-shaped content;
 4. Save V2 and Console consume generic identifiers and projections;
-5. source and Release artifacts pass the schema-version 2 publication manifest;
-6. the content-identical clean candidate passes independent review; and
-7. issue #58 exports only its approved allowlisted snapshot.
+5. the private ownership/dependency review is complete and the candidate grants
+   no project reuse license;
+6. source and Release artifacts pass the schema-version 2 publication manifest;
+7. the content-identical clean candidate passes independent review; and
+8. issue #58 exports only its approved allowlisted snapshot.
 
 Historical Git content is not rewritten because no legacy history is imported
 into the clean repository. This operational choice does not make current

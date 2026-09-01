@@ -8,7 +8,7 @@ squash merge and optional release in the Monopoly repository.
 The workflow keeps `main` stable, makes each change reviewable and preserves one
 clean logical commit per merged pull request.
 
-This is a repository workflow for contributors. Architectural, game-rule,
+This is a repository workflow for project work. Architectural, game-rule,
 testing and persistence requirements are defined in their focused documents.
 
 ## Workflow principles
@@ -310,7 +310,7 @@ git fetch origin
 git rebase origin/main
 ```
 
-Do not rewrite a branch other contributors are using without coordination.
+Do not rewrite a branch shared with another worker without coordination.
 Never force-push `main`. If a rewritten personal branch must be pushed, use
 `--force-with-lease`, not an unrestricted force push.
 

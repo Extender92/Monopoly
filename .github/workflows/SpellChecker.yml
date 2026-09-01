@@ -3,16 +3,13 @@ name: SpellChecker
 on:
   push:
     branches:
-    - "**"
+      - "**"
     tags-ignore:
-    - "**"
-  pull_request_target:
+      - "**"
+  pull_request:
     branches:
-    - "**"
-    types:
-    - 'opened'
-    - 'reopened'
-    - 'synchronize'
+      - "**"
+    types: [opened, reopened, synchronize]
 
 jobs:
   spelling:
@@ -21,61 +18,20 @@ jobs:
       contents: read
       pull-requests: read
       actions: read
-    outputs:
-      followup: ${{ steps.spelling.outputs.followup }}
     runs-on: ubuntu-latest
-    if: ${{ contains(github.event_name, 'pull_request') || github.event_name == 'push' }}
     concurrency:
       group: spelling-${{ github.event.pull_request.number || github.ref }}
-      # note: If you use only_check_changed_files, you do not want cancel-in-progress
       cancel-in-progress: true
     steps:
-    - name: check-spelling
-      id: spelling
-      uses: check-spelling/check-spelling@v0.0.26
-      with:
-        suppress_push_for_open_pull_request: ${{ github.actor != 'dependabot[bot]' && 1 }}
-        checkout: true
-        check_file_names: 1
-        spell_check_this: check-spelling/spell-check-this@main
-        post_comment: 0
-        use_magic_file: 1
-        report-timing: 1
-        warnings: bad-regex,binary-file,deprecated-feature,large-file,limited-references,no-newline-at-eof,noisy-file,non-alpha-in-dictionary,token-is-substring,unexpected-line-ending,whitespace-in-dictionary,minified-file,unsupported-configuration,no-files-to-check
-        extra_dictionary_limit: 20
-        only_check_changed_files: 0
-        extra_dictionaries:
-          cspell:software-terms/dict/softwareTerms.txt
-
-  comment-push:
-    name: Report (Push)
-    # If your workflow isn't running on push, you can remove this job
-    runs-on: ubuntu-latest
-    needs: spelling
-    permissions:
-      contents: write
-    if: (success() || failure()) && needs.spelling.outputs.followup && github.event_name == 'push'
-    steps:
-    - name: comment
-      uses: check-spelling/check-spelling@main
-      with:
-        checkout: true
-        spell_check_this: check-spelling/spell-check-this@main
-        task: ${{ needs.spelling.outputs.followup }}
-
-  comment-pr:
-    name: Report (PR)
-    # If you workflow isn't running on pull_request*, you can remove this job
-    runs-on: ubuntu-latest
-    needs: spelling
-    permissions:
-      contents: read
-      pull-requests: write
-    if: (success() || failure()) && needs.spelling.outputs.followup && contains(github.event_name, 'pull_request')
-    steps:
-    - name: comment
-      uses: check-spelling/check-spelling@main
-      with:
-        checkout: true
-        spell_check_this: check-spelling/spell-check-this@prerelease
-        task: ${{ needs.spelling.outputs.followup }}
+      - name: Check spelling
+        uses: check-spelling/check-spelling@cfb6f7e75bbfc89c71eaa30366d0c166f1bd9c8c
+        with:
+          suppress_push_for_open_pull_request: ${{ github.actor != 'dependabot[bot]' && 1 }}
+          checkout: true
+          check_file_names: 1
+          post_comment: 0
+          use_magic_file: 1
+          report-timing: 1
+          warnings: bad-regex,binary-file,deprecated-feature,large-file,limited-references,no-newline-at-eof,noisy-file,non-alpha-in-dictionary,token-is-substring,unexpected-line-ending,whitespace-in-dictionary,minified-file,unsupported-configuration,no-files-to-check
+          extra_dictionary_limit: 0
+          only_check_changed_files: 0
